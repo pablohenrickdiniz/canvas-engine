@@ -1,4 +1,4 @@
-define(['Jquery-Conflict'],function($){
+define(['jquery'],function($){
     var MouseReader = function(element) {
         var self = this;
         self.element = element;
@@ -115,7 +115,6 @@ define(['Jquery-Conflict'],function($){
         };
 
         var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
-
         if ($(self.element)[0].attachEvent) //if IE (and Opera depending on user setting)
             $(self.element)[0].attachEvent("on"+mousewheelevt, callback);
         else if ($(self.element)[0].addEventListener) //WC3 browsers

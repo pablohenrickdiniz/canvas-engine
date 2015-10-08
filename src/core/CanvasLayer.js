@@ -1,10 +1,9 @@
 /*
-    CanvasLayer(Object options, CanvasEngine canvas)
+ CanvasLayer(Object options, CanvasEngine canvas)
  */
-define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],function($,Parser,MouseReader,Overlap,Color){
+define(['jquery','AppObject'],function($,AppObject){
     var CanvasLayer = function(options,canvas){
         console.log('Canvas Layer initialize...');
-        options = typeof options == 'object'?options:{};
         var self = this;
         self.context = null;
         self.canvas = canvas;
@@ -12,32 +11,73 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
         self.width = 300;
         self.height = 300;
         self.savedStates = [];
-        self.name = options.name == undefined?'':options.name;
+        self.name = '';
         self.mouseReader = null;
         self.element = null;
         self.opacity = 1;
+
         $(window).resize(function(){
             self.updateElement()
         });
-        $(self.getElement()).on('contextmenu',function(e){
-            // e.preventDefault();
-        });
+
         $(self.getElement()).css({
             'userSelect':'none'
         });
+
+        self.bindProperties();
         self.set(options);
+    };
+
+    CanvasLayer.prototype = new AppObject;
+
+    CanvasLayer.prototype.bindProperties = function(){
+        var self = this;
+        self.onChange('zIndex',function(newValue){
+            $(self.getElement()).css({
+                zIndex:newValue
+            });
+        });
+
+        self.onChange('opacity',function(newValue){
+            $(self.getElement()).css({
+                opacity:newValue
+            });
+        });
+
+        self.onChange('width',function(newValue){
+            self.resize(newValue,self.height);
+        });
+
+        self.onChange('height',function(newValue){
+            self.resize(self.width,newValue);
+        });
+    };
+
+
+    /*
+     CanvasLayer: resize(int width, int height)
+     Redimensiona a camada de canvas
+     */
+    CanvasLayer.prototype.resize = function(width,height){
+        var self = this;
+        // self.saveState('tmp_image');
+        $(self.getElement()).attr('width',width);
+        $(self.getElement()).attr('height',height);
+        //self.restoreState('tmp_image');
         return self;
     };
+
+
     /*
-        object: getVisibleArea()
-        obtém a área visível do mapa
-        exemplo:
-        {
-          x:0,
-          y:0,
-          width:400,
-          height:400
-        }
+     object: getVisibleArea()
+     obtém a área visível do mapa
+     exemplo:
+     {
+     x:0,
+     y:0,
+     width:400,
+     height:400
+     }
      */
     CanvasLayer.prototype.getVisibleArea = function(){
         console.log('Canvas Layer get visible Area...');
@@ -55,19 +95,19 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        boolean: isSetvisible(Object rectSet)
-        verifica se uma área retangular está visível
+     boolean: isSetvisible(Object rectSet)
+     verifica se uma área retangular está visível
      */
     CanvasLayer.prototype.isSetVisible = function(rectSet){
-       // console.log('Canvas Layer is set visible...');
+        // console.log('Canvas Layer is set visible...');
         var self = this;
         var area = self.getVisibleArea();
         return !(rectSet.x+rectSet.width < area.x || area.x+area.width < rectSet.x || rectSet.y+rectSet.height < area.y || area.y+area.height < rectSet.y);
     };
 
     /*
-        CanvasLayer : show()
-        Mostra a camada de canvas
+     CanvasLayer : show()
+     Mostra a camada de canvas
      */
     CanvasLayer.prototype.show = function(){
         //console.log('Canvas layer show...');
@@ -79,8 +119,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer: hide()
-        Esconde a camada de canvas
+     CanvasLayer: hide()
+     Esconde a camada de canvas
      */
     CanvasLayer.prototype.hide = function(){
         //console.log('Canvas layer hide...');
@@ -92,10 +132,10 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer : saveState(String name)
-        Salva todo o gráfico do canvas para o alias name
-        Nota: quanto maior a imagem, mas tempo de processamento
-        será necessário para copiála
+     CanvasLayer : saveState(String name)
+     Salva todo o gráfico do canvas para o alias name
+     Nota: quanto maior a imagem, mas tempo de processamento
+     será necessário para copiála
      */
     CanvasLayer.prototype.saveState = function(name){
         //console.log('Canvas layer save state...');
@@ -108,8 +148,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer : restoreState(name)
-        Redesenha o gráfico do canvas previamente salvo
+     CanvasLayer : restoreState(name)
+     Redesenha o gráfico do canvas previamente salvo
      */
     CanvasLayer.prototype.restoreState = function(name){
         //console.log('Canvas layer restore state...');
@@ -122,8 +162,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer : clearStates()
-        Remove todos os gráficos que foram salvos
+     CanvasLayer : clearStates()
+     Remove todos os gráficos que foram salvos
      */
     CanvasLayer.prototype.clearStates = function(){
         //console.log('Canvas layer restore states...');
@@ -133,8 +173,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        Canvas: getElement()
-        obtém o elemento html canvas
+     Canvas: getElement()
+     obtém o elemento html canvas
      */
     CanvasLayer.prototype.getElement = function(){
         //console.log('Canvas layer get element...')
@@ -160,54 +200,10 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
         return self.element;
     };
 
-    /*
-        CanvasLayer : set(Object options)
-        Altera as propriedades da camada
-        exemplo:
-        layer.set({
-            width:100,  //largura da camada
-            height:100, //altura da camada
-            opacity:1   //opacidade da camada
-        });
-     */
-    CanvasLayer.prototype.set = function(options){
-        //console.log('Canvas layer set...');
-        var self = this;
-        options = options == undefined?{}:options;
-        var width = Parser.parseNumber(options.width,self.width);
-        var height = Parser.parseNumber(options.height,self.height);
-        self.name = options.name == undefined?self.name:options.name;
-        self.opacity = Parser.parseNumber(options.opacity,self.opacity);
-        self.zIndex = Parser.parseInt(options.zIndex, self.zIndex);
-        self.resize(width,height);
-        $(self.getElement()).css({
-            zIndex:self.zIndex,
-            opacity:self.opacity
-        });
-        return self;
-    };
 
     /*
-        CanvasLayer: resize(int width, int height)
-        Redimensiona a camada de canvas
-     */
-    CanvasLayer.prototype.resize = function(width,height){
-        //console.log('Canvas Layer resize...');
-        var self = this;
-        if(width != self.width || height != self.height){
-            self.width = width;
-            self.height = height;
-           // self.saveState('tmp_image');
-            $(self.getElement()).attr('width',width);
-            $(self.getElement()).attr('height',height);
-            //self.restoreState('tmp_image');
-        }
-        return self;
-    };
-
-    /*
-        CanvasRenderingContext2D: getContext()
-        Obtém o contexto do canvas
+     CanvasRenderingContext2D: getContext()
+     Obtém o contexto do canvas
      */
     CanvasLayer.prototype.getContext = function(){
         //console.log('Canvas layer get context...');
@@ -219,8 +215,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer: drawGrid(Grid grid)
-        desenha a grade grid na camada
+     CanvasLayer: drawGrid(Grid grid)
+     desenha a grade grid na camada
      */
     CanvasLayer.prototype.drawGrid = function(grid){
         //console.log('Canvas layer draw grid...');
@@ -241,8 +237,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer : drawAbstractGrid(AbstractGrid grid)
-        Desenha a grade grid na camada
+     CanvasLayer : drawAbstractGrid(AbstractGrid grid)
+     Desenha a grade grid na camada
      */
     CanvasLayer.prototype.drawAbstractGrid = function(grid){
         //console.log('Canvas layer draw abstract grid...');
@@ -270,8 +266,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer : drawRectSet(RectSet set)
-        Desenha um retângulo
+     CanvasLayer : drawRectSet(RectSet set)
+     Desenha um retângulo
      */
     CanvasLayer.prototype.drawRectSet = function(rectSet){
         //console.log('Canvas layer draw rect set...');
@@ -285,8 +281,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer:destroy()
-        Remove a camada da árvore DOM e da CanvasEngine correspondentes
+     CanvasLayer:destroy()
+     Remove a camada da árvore DOM e da CanvasEngine correspondentes
      */
     CanvasLayer.prototype.destroy = function(){
         //console.log('Canvas layer destroy...');
@@ -299,8 +295,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer: drawImage(Image img, int sx, int sy, int sWidth, int sHeight, int x, int y, int width, int height)
-        Desenha uma imagem
+     CanvasLayer: drawImage(Image img, int sx, int sy, int sWidth, int sHeight, int x, int y, int width, int height)
+     Desenha uma imagem
      */
     CanvasLayer.prototype.drawImage = function(){
         //console.log('Canvas layer draw image...');
@@ -310,8 +306,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer: drawImageSet(Object object)
-        Desenha uma área recortade de uma imagem
+     CanvasLayer: drawImageSet(Object object)
+     Desenha uma área recortade de uma imagem
      */
     CanvasLayer.prototype.drawImageSet = function(is){
         //console.log('Canvas layer draw image set...');
@@ -327,8 +323,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer : clear()
-        Remove o conteúdo da camada de canvas
+     CanvasLayer : clear()
+     Remove o conteúdo da camada de canvas
      */
     CanvasLayer.prototype.clear = function(){
         //console.log('Canvas layer clear...');
@@ -338,8 +334,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer: drawAnimation(Animation animation)
-        Draw the current frame of animation
+     CanvasLayer: drawAnimation(Animation animation)
+     Draw the current frame of animation
      */
     CanvasLayer.prototype.drawAnimation = function(animation){
         var self = this;
@@ -354,8 +350,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer: getPixel(int i, int j)
-        get canvas pixel
+     CanvasLayer: getPixel(int i, int j)
+     get canvas pixel
      */
     CanvasLayer.prototype.getPixel = function(i,j){
         var self = this;
@@ -371,8 +367,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer: updateElement()
-        update layer position and scale
+     CanvasLayer: updateElement()
+     update layer position and scale
      */
     CanvasLayer.prototype.updateElement = function(){
         //console.log('Canvas layer refresh...');
@@ -394,8 +390,8 @@ define(['Jquery-Conflict','PropsParser','MouseReader','Overlap','Color'],functio
     };
 
     /*
-        CanvasLayer : clearRect(x, y, width, height)
-        Apaga uma região retângular da camade de canvas
+     CanvasLayer : clearRect(x, y, width, height)
+     Apaga uma região retângular da camade de canvas
      */
     CanvasLayer.prototype.clearRect = function(){
         //console.log('Canvas layer clear rect...');
