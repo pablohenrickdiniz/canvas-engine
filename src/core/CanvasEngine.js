@@ -392,13 +392,6 @@ define(['AppObject','Math','MouseReader','CanvasLayer'], function(AppObject,Math
         var layer = null;
         var self = this;
         options.zIndex = self.layers.length;
-        if(options.width == undefined){
-            options.width = self.width;
-        }
-
-        if(options.height == undefined){
-            options.height = self.height;
-        }
 
         if(className != undefined){
             layer = new className(options,self);
