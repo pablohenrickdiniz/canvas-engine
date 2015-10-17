@@ -1,6 +1,5 @@
-define(['PropsParser'], function (Parser) {
+define(['AppObject'], function (AppObject) {
     var Color = function (options) {
-        options = typeof  options == 'object' ? options : {};
         var self = this;
         self.red = 0;
         self.blue = 0;
@@ -8,36 +7,25 @@ define(['PropsParser'], function (Parser) {
         self.alpha = 1;
         self.set(options);
     };
-    /*
-     Color: set(Object options)
-     Altera as propriedades da cor
-     exemplo:
-     var cor = new Color({
-     red:100,
-     blue:100,
-     green:100
-     });
-     cor => {red:100,blue:100,green:100,opacity:1};
-     cor.set({
-     red:200,
-     opacity:0.8
-     });
-     cor => {red:200,blue:100,green:100,opacity:0.8};
-     */
-    Color.prototype.set = function (options) {
-        var self = this;
-        self.red = Parser.parseInterval(Parser.parseInt(options.red, self.red), 0, 255);
-        self.blue = Parser.parseInterval(Parser.parseInt(options.blue, self.blue), 0, 255);
-        self.green = Parser.parseInterval(Parser.parseInt(options.green, self.green), 0, 255);
-        self.alpha = Parser.parseInterval(Parser.parseFloat(options.alpha, self.alpha), 0, 1);
-        return self;
-    };
+
+    Color.prototype = new AppObject;
+
     /*
      boolean ; isTransparent()
      Verifica se a cor é transparente
      */
     Color.prototype.isTransparent = function () {
         return this.alpha == 0;
+    };
+
+
+    Color.random = function(){
+        var color = new Color({
+            red:Math.floor(Math.random()*255),
+            blue:Math.floor(Math.random()*255),
+            green:Math.floor(Math.random()*255)
+        });
+        return color.toHEX();
     };
 
     /*

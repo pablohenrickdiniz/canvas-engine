@@ -1,4 +1,4 @@
-define(['AppObject','Math','MouseReader','CanvasLayer'], function(AppObject,Math,MouseReader,CanvasLayer){
+define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(AppObject,Math,MouseReader,CanvasLayer,KeyReader){
     var CanvasEngine = function(options){
         console.log('intializing canvas engine...');
         var self = this;

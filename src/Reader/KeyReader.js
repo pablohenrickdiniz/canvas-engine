@@ -1,4 +1,4 @@
-define(['Jquery-Conflict'],function($){
+define(['jquery'],function($){
     var KeyReader = function(element){
         var self = this;
         self.element = element;
@@ -10,6 +10,15 @@ define(['Jquery-Conflict'],function($){
         self.onSequenceCallbacks = [];
         self.initialize();
     };
+
+
+    KeyReader.prototype.key = function(name){
+        if(KeyReader.Keys[name] != undefined){
+            return KeyReader.Keys[name];
+        }
+        return null;
+    };
+
 
     KeyReader.prototype.onSequence = function(sequence,callback){
         var self = this;
@@ -64,40 +73,45 @@ define(['Jquery-Conflict'],function($){
     };
 
     KeyReader.prototype.initialize = function(){
-        console.log('key reader initialize...');
         var self = this;
-        $(self.element).attr('tabindex',1);
-        $(self.element).on("keydown", function (e) {
-            if (self.keySequence.indexOf(e.which) == -1) {
-                self.keySequence.push(e.which);
-            }
+        $(document).ready(function(){
+            console.log('key reader initialize...');
+            $(self.element).attr('tabindex',1);
+            $(self.element).click(function(){
+                $(this).focus();
+            });
+            $(self.element).keydown(function (e) {
+                if (self.keySequence.indexOf(e.which) == -1) {
+                    self.keySequence.push(e.which);
+                }
 
-            if(self.deny){
-                var size = self.allowedSequences.length;
-                var allowed = false;
-                for(var i = 0; i < size;i++){
-                    var sequence = self.allowedSequences[i];
-                    if(self.sequenceIs(sequence,false,true)){
-                        allowed = true;
+                if(self.deny){
+                    var size = self.allowedSequences.length;
+                    var allowed = false;
+                    for(var i = 0; i < size;i++){
+                        var sequence = self.allowedSequences[i];
+                        if(self.sequenceIs(sequence,false,true)){
+                            allowed = true;
+                        }
+                    }
+                    if(!allowed){
+                        e.preventDefault();
                     }
                 }
-                if(!allowed){
-                    e.preventDefault();
-                }
-            }
 
-            self.onSequenceCallbacks.forEach(function(sequence){
-                if(self.sequenceIs(sequence.sequence)){
-                    sequence.callback();
+                self.onSequenceCallbacks.forEach(function(sequence){
+                    if(self.sequenceIs(sequence.sequence)){
+                        sequence.callback();
+                    }
+                });
+            });
+
+            $(self.element).keyup(function (e) {
+                var index = self.keySequence.indexOf(e.which);
+                if (index != -1) {
+                    self.keySequence.splice(index, 1);
                 }
             });
-        });
-
-        $(self.element).on("keyup", function (e) {
-            var index = self.keySequence.indexOf(e.which);
-            if (index != -1) {
-                self.keySequence.splice(index, 1);
-            }
         });
     };
 
