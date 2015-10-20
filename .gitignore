@@ -2,3 +2,5 @@
 .idea
 .node_modules
 .bower_components
+*.min.min.js
+*.min.min.css

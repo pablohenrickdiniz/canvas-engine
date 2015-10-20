@@ -77,6 +77,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
             });
         });
 
+
         self.onChange('container',function(newValue){
             console.log('container changed!');
             $(newValue).css({

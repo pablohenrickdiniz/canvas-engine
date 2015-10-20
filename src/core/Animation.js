@@ -18,7 +18,6 @@ define(['PropsParser','FrameSync','CanvasLayer'],function(Parser,FrameSync,Canva
         self.set(options);
     };
 
-
     Animation.prototype.set = function(options){
         var self = this;
         self.speed = Parser.parseInt(options.speed,self.speed);

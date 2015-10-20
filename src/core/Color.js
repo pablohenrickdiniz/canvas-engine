@@ -18,7 +18,6 @@ define(['AppObject'], function (AppObject) {
         return this.alpha == 0;
     };
 
-
     Color.random = function(){
         var color = new Color({
             red:Math.floor(Math.random()*255),
