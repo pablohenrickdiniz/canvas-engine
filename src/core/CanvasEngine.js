@@ -95,6 +95,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
      */
     CanvasEngine.prototype.initialize = function(){
         var self = this;
+        $(self.container).empty();
 
         self.getMouseReader().onmousedown(3,function(){
             self.lastViewX = self.viewX;

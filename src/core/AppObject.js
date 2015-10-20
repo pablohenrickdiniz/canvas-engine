@@ -43,5 +43,12 @@ define(['lodash'],function(_){
         return self;
     };
 
+    AppObject.prototype.unbindChange = function(key){
+        var self = this;
+        if(self._changeCallbacks[key] != undefined){
+            delete self._changeCallbacks[key];
+        }
+    };
+
     return AppObject;
 });
