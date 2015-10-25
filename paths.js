@@ -1,0 +1,22 @@
+requirejs.config({
+    'AbstractGrid': 'src/core/AbstractGrid.min',
+    'Animation': 'src/core/Animation.min',
+    'AppObject': 'src/core/AppObject.min',
+    'CanvasEngine': 'src/core/CanvasEngine.min',
+    'CanvasLayer':'src/core/CanvasLayer.min',
+    'Color':'src/core/Color.min',
+    'Filter':'src/core/Filter.min',
+    'Frame':'src/core/Frame.min',
+    'FrameSync':'src/core/FrameSync.min',
+    'Grid':'src/core/Grid.min',
+    'ImageSet':'src/core/ImageSet.min',
+    'Map':'src/core/Map.min',
+    'ObjectLayer':'src/core/ObjectLayer.min',
+    'RectSet':'src/core/RectSet.min',
+    'KeyReader':'src/core/KeyReader.min',
+    'MouseReader':'src/core/MouseReader.min',
+    'jquery':'src/utils/jquery.min',
+    'jquery-tmp':'../bower_components/jquery/dist/jquery.min',
+    'Math':'../bower_components/MathLib/src/Math',
+    'Overlap':'../bower_components/MathLib/Overlap'
+});
