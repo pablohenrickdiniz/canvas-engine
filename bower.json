@@ -1,6 +1,5 @@
 {
   "name": "CanvasEngine",
-  "version": "0.0.0",
   "homepage": "https://github.com/pablohenrickdiniz/CanvasEngine",
   "authors": [
     "Pablo Henrick <phydokz@hotmail.com>"
@@ -9,6 +8,7 @@
   "main": "",
   "moduleType": [],
   "license": "MIT",
+  "private": true,
   "ignore": [
     "**/.*",
     "node_modules",
@@ -17,6 +17,8 @@
     "tests"
   ],
   "dependencies": {
+    "MathLib": "https://github.com/pablohenrickdiniz/MathLib.git",
+    "jquery": "~2.1.4",
     "requirejs": "~2.1.20"
   }
 }
