@@ -67,7 +67,6 @@ define(['jquery','AppObject'],function($,AppObject){
         return self;
     };
 
-
     /*
      object: getVisibleArea()
      obtém a área visível do mapa

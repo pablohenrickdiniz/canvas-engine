@@ -16,10 +16,9 @@
     });
 
  */
-define(['PropsParser'],function(Parser){
+define(['AppObject'],function(AppObject){
     var AbstractGrid = function(options){
         console.log('initializing Abstract Grid...');
-        options = typeof options == 'object'?options:{};
         var self = this;
         self.x = 0;
         self.y = 0;
@@ -30,7 +29,21 @@ define(['PropsParser'],function(Parser){
         self.parent = null;
         self.fillStyle = 'transparent';
         self.strokeStyle = '#000000';
+        AbstractGrid.bindProperties.apply(self);
         self.set(options);
+    };
+
+    AbstractGrid.prototype = new AppObject;
+
+
+    AbstractGrid.bindProperties = function(){
+        var self = this;
+        self.beforeSet('width',AppObject.isNumber);
+        self.beforeSet('height',AppObject.isNumber);
+        self.beforeSet('sh',AppObject.isNumber);
+        self.beforeSet('sw',AppObject.isNumber);
+        self.beforeSet('fillStyle',AppObject.isColor);
+        self.beforeSet('strokeStyle',AppObject.isColor);
     };
 
     AbstractGrid.prototype.isDrawable = function(){
@@ -38,17 +51,6 @@ define(['PropsParser'],function(Parser){
         var self = this;
         return self.sw > 0 && self.sh > 0 && self.width >0 && self.height > 0;
     };
-
-    AbstractGrid.prototype.set = function(options){
-        console.log('AbstractGrid set...');
-        var self = this;
-        self.width = Parser.parseNumber(options.width,self.width);
-        self.height = Parser.parseNumber(options.height,self.height);
-        self.sw = Parser.parseNumber(options.sw,self.sw);
-        self.sh = Parser.parseNumber(options.sh,self.sh);
-        return self;
-    };
-
 
     return AbstractGrid;
 });

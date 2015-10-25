@@ -29,7 +29,6 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
 
     CanvasEngine.prototype = new AppObject;
 
-
     CanvasEngine.prototype.bindProperties = function(){
         var self = this;
         self.onChange('viewX',function(newValue){

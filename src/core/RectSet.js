@@ -1,4 +1,4 @@
-define(['PropsParser','Color'],function(Parser,Color){
+define(['AppObject','Color'],function(AppObject,Color){
     var RectSet = function(options){
         var self = this;
         self.width = 32;
@@ -12,18 +12,8 @@ define(['PropsParser','Color'],function(Parser,Color){
         self.state = 0;
         self.i = 0;
         self.j = 0;
+        RectSet.bindProperties.apply(self);
         self.set(options);
-        return self;
-    };
-
-    RectSet.prototype.props = function(){
-        var self = this;
-        return {
-            width:self.width,
-            height:self.height,
-            x:self.x,
-            y:self.y
-        };
     };
 
     RectSet.prototype.getLine = function(){
@@ -36,19 +26,18 @@ define(['PropsParser','Color'],function(Parser,Color){
         return Math.floor(self.x/self.width);
     };
 
-    RectSet.prototype.set = function(options){
+    RectSet.bindProperties = function(options){
         var self = this;
-        self.width = Parser.parseNumber(options.width,self.width);
-        self.height =  Parser.parseNumber(options.height,self.height);
-        self.x =  Parser.parseNumber(options.x,self.x);
-        self.y =  Parser.parseNumber(options.y,self.y);
-        self.state = Parser.parseNumber(options.state,self.state);
-        self.lineDash = Parser.parseArray(options.lineDash,self.lineDash);
-        self.fillStyle = Color.isColor(options.fillStyle)?options.fillStyle:self.fillStyle;
-        self.strokeStyle = Color.isColor(options.strokeStyle)?options.strokeStyle:self.strokeStyle;
-        self.i = Parser.parseInt(options.i,self.i);
-        self.j = Parser.parseInt(options.j,self.j);
-        return self;
+        self.beforeSet('width',AppObject.isNumber);
+        self.beforeSet('height',AppObject.isNumber);
+        self.beforeSet('x',AppObject.isNumber);
+        self.beforeSet('y',AppObject.isNumber);
+        self.beforeSet('state',AppObject.isNumber);
+        self.beforeSet('lineDash',AppObject.isArray);
+        self.beforeSet('fillStyle',AppObject.isColor);
+        self.beforeSet('strokeStyle',AppObject.isColor);
+        self.beforeSet('i',AppObject.isInt);
+        self.beforeSet('j',AppObject.isInt);
     };
 
     return RectSet;

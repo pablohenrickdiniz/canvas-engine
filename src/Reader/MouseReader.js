@@ -167,8 +167,6 @@ define(['jquery'],function($){
         self.mousemove.push(callback);
     };
 
-
-
     MouseReader.LEFT = 1;
     MouseReader.MIDDLE = 2;
     MouseReader.RIGHT = 3;

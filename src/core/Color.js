@@ -99,8 +99,6 @@ define(['AppObject'], function (AppObject) {
         return self;
     };
 
-
-
     /*
      String : asName
      Obtém o nome da cor, caso essa cor possua nome

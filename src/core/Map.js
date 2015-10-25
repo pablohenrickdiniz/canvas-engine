@@ -9,10 +9,9 @@
         tile_h:10  // altura de cada retângulo ou passo
     });
  */
-define(['PropsParser'],function(Parser){
+define(['AppObject'],function(AppObject){
     var Map = function(options){
         console.log('Initializing Map...');
-        options = typeof  options == 'object'?options:{};
         var self = this;
         self.width = 10;
         self.height = 10;
@@ -21,6 +20,7 @@ define(['PropsParser'],function(Parser){
         self.imageSets = [];
         self.parent = null;
         self.renderIntervals = [];
+        Map.bindProperties.apply(self);
         self.set(options);
     };
 
@@ -31,10 +31,10 @@ define(['PropsParser'],function(Parser){
      */
     Map.prototype.getAreaInterval = function(options){
         var self = this;
-        var x = Parser.parseNumber(options.x,0);
-        var y = Parser.parseNumber(options.y,0);
-        var width =  Parser.parseNumber(options.width,0);
-        var height =  Parser.parseNumber(options.height,0);
+        var x = AppObject.isNumber(options.x,0);
+        var y = AppObject.isNumber(options.y,0);
+        var width =  AppObject.isNumber(options.width,0);
+        var height =  AppObject.isNumber(options.height,0);
 
         var si = parseInt(Math.floor(y/self.tile_h));
         var sj = parseInt(Math.floor(x/self.tile_w));
@@ -66,21 +66,20 @@ define(['PropsParser'],function(Parser){
         Map : set(Object options)
         Altera as propriedades do mapa
      */
-    Map.prototype.set = function(options){
-        console.log('Map set...');
+
+    Map.bindProperties = function(){
         var self = this;
-        self.tile_w =  Parser.parseNumber(options.tile_w,self.tile_w);
-        self.tile_h =  Parser.parseNumber(options.tile_h,self.tile_h);
-        self.imageSets = Parser.parseArray(options.imageSets,self.imageSets);
-        self.width = Parser.parseNumber(options.width,self.width);
-        self.height = Parser.parseNumber(options.height,self.height);
-        if(self.parent != null){
-            self.parent.applyToLayers({
-                width:self.width*self.tile_w,
-                height:self.height*self.tile_h
-            });
-        }
-        return self;
+        self.beforeSet('tile_w',AppObject.isNumber);
+        self.beforeSet('tile_h',AppObject.isNumber);
+        self.beforeSet('width',AppObject.isNumber);
+        self.beforeSet('height',AppObject.isNumber);
+        self.beforeSet('imageSets',AppObject.isArray);
+
+        self._afterChange(function(){
+            if(self.parent != null && (self._isChanged('tile_w') || self._isChanged('tile_h') || self._isChanged('width') || self._isChanged('height'))){
+                self.parent.applyToLayers({width:self.width*self.tile_w, height:self.height*self.tile_h});
+            }
+        });
     };
 
     return Map;

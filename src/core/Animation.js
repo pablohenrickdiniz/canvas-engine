@@ -1,7 +1,6 @@
-define(['PropsParser','FrameSync','CanvasLayer'],function(Parser,FrameSync,CanvasLayer){
+define(['AppObject','FrameSync'],function(AppObject,FrameSync){
     var Animation = function(options){
         var self = this;
-        options = options == undefined?{}:options;
         self.speed = 3;
         self.repeat = false;
         self.running = false;
@@ -18,17 +17,7 @@ define(['PropsParser','FrameSync','CanvasLayer'],function(Parser,FrameSync,Canva
         self.set(options);
     };
 
-    Animation.prototype.set = function(options){
-        var self = this;
-        self.speed = Parser.parseInt(options.speed,self.speed);
-        self.repeat = typeof options.repeat == 'boolean'?options.repeat:self.repeat;
-        self.frames = Parser.parseArray(options.frames,self.frames);
-        self.x = Parser.parseInt(options.x, self.x);
-        self.y = Parser.parseInt(options.y, self.y);
-        self.width = Parser.parseInt(options.width,self.width);
-        self.height = Parser.parseInt(options.height,self.height);
-        self.canvasLayer = options.canvasLayer instanceof CanvasLayer?options.canvasLayer:self.canvasLayer;
-    };
+    Animation.prototype = new AppObject;
 
     Animation.prototype.execute = function(){
         var self = this;

@@ -12,17 +12,36 @@
         sh:10           altura de cada retãngula da grade
     });
  */
-define(['PropsParser','RectSet','AbstractGrid','Color'],function(Parser,RectSet,AbstractGrid,Color){
+define(['RectSet','AbstractGrid','Color','lodash'],function(RectSet,AbstractGrid,Color,_){
     var Grid = function(options){
-        console.log('intializing Grid...');
-        options = typeof options == 'object'?options:{};
+        console.log('initializing Grid...');
         var self = this;
-        AbstractGrid.apply(self,[options]);
         self.rectSets = [];
         self.checkedSets = [];
+        AbstractGrid.apply(self,[options]);
+        Grid.bindProperties.apply(self);
     };
 
     Grid.prototype = new AbstractGrid;
+
+
+
+    Grid.bindProperties = function(){
+        var self =this;
+        self._afterChange(function(){
+            var update = false;
+            if(self._isChanged('sw') || self._isChanged('sh')){
+                update = true;
+                self.rectSets = [];
+            }
+            if(self._isChanged('width') || self._isChanged('height')){
+                update = true;
+            }
+            if(update){
+                self.update();
+            }
+        });
+    };
 
     /*
         Object : getAreaInterval(Object options)
@@ -55,10 +74,10 @@ define(['PropsParser','RectSet','AbstractGrid','Color'],function(Parser,RectSet,
      */
     Grid.prototype.getAreaInterval = function(options){
         var self = this;
-        var x = Parser.parseNumber(options.x,0);
-        var y = Parser.parseNumber(options.y,0);
-        var width =  Parser.parseNumber(options.width,0);
-        var height =  Parser.parseNumber(options.height,0);
+        var x = _.isNumber(options.x)?options.x:0;
+        var y = _.isNumber(options.y)?options.y:0;
+        var width =  _.isNumber(options.width)?options.width:0;
+        var height = _.isNumber(options.height)?options.height:0;
 
         var si = parseInt(Math.floor(y/self.sh));
         var sj = parseInt(Math.floor(x/self.sw));
@@ -107,45 +126,6 @@ define(['PropsParser','RectSet','AbstractGrid','Color'],function(Parser,RectSet,
                 }
             });
         });
-        return self;
-    };
-
-    /*
-        Grid: set(Object options)
-        Altera as propriedades da grade
-        exemplo:
-        grid.set({
-            x:0,    //posição inicial x do canto superior esquerdo
-            y:0,    //posição inicial y do canto superior esquerdo
-            width:200,  //largura em pixels
-            height:200, //altura em pixels
-            sw:32,      //largura de cada retângulo
-            sh:32       //altura de cada retângulo
-        });
-     */
-    Grid.prototype.set = function(options){
-        var self = this;
-        options = options == undefined?{}:options;
-        var aux_width = self.width;
-        var aux_height = self.height;
-        var aux_x = self.x;
-        var aux_y = self.y;
-        var aux_sw = self.sw;
-        var aux_sh = self.sh;
-        self.width = Parser.parseNumber(options.width,self.width);
-        self.height = Parser.parseNumber(options.height,self.height);
-        self.sw = Parser.parseNumber(options.sw,self.sw);
-        self.sh = Parser.parseNumber(options.sh,self.sh);
-        self.fillStyle = Color.isColor(options.fillStyle)?options.fillStyle:self.fillStyle;
-        self.strokeStyle = Color.isColor(options.strokeStyle)?options.strokeStyle:self.strokeStyle;
-
-
-        if(self.sw != aux_sw || self.sh != aux_sh){
-            self.rectSets = [];
-        }
-        self.update();
-
-
         return self;
     };
 

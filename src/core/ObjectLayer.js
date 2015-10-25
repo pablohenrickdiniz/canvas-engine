@@ -2,7 +2,6 @@ define(['CanvasLayer'],function(CanvasLayer){
     var ObjectLayer = function(options,canvas){
         var self = this;
         self.objects = [];
-        options = options == undefined?{}:options;
         CanvasLayer.apply(self,[options,canvas]);
     };
     ObjectLayer.prototype = new CanvasLayer;

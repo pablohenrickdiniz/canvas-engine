@@ -14,7 +14,7 @@
         sHeight:32 //altura da área de corte
     });
  */
-define(['PropsParser','ImageLoader','Filter'],function(Parser,ImageLoader,Filter){
+define(['AppObject','ImageLoader'],function(AppObject,ImageLoader){
     var ImageSet = function(options){
         var self = this;
         self.loads = [];
@@ -34,6 +34,7 @@ define(['PropsParser','ImageLoader','Filter'],function(Parser,ImageLoader,Filter
         self.image = null;
         self.parent = null;
         self.selected = false;
+        ImageSet.bindProperties.apply(self);
         self.set(options);
     };
 
@@ -73,31 +74,27 @@ define(['PropsParser','ImageLoader','Filter'],function(Parser,ImageLoader,Filter
      sHeight:32 //altura da área de corte
         });
      */
-    ImageSet.prototype.set = function(options){
+    ImageSet.bindProperties = function(){
         var self = this;
-        self.loads = [];
-        self.x = Parser.parseNumber(options.x,self.x);
-        self.y = Parser.parseNumber(options.y,self.y);
-        self.width = Parser.parseNumber(options.width,self.width);
-        self.height = Parser.parseNumber(options.height,self.height);
-        self.sx = Parser.parseNumber(options.sx,self.sx);
-        self.sy = Parser.parseNumber(options.sy,self.sy);
-        self.sWidth = Parser.parseNumber(options.sWidth,self.width);
-        self.sHeight = Parser.parseNumber(options.sHeight,self.height);
-        self.layer = Parser.parseNumber(options.layer,self.layer);
-        self.parent = options.parent == undefined?self.parent:options.parent;
+        self.beforeSet('x',AppObject.isNumber);
+        self.beforeSet('y',AppObject.isNumber);
+        self.beforeSet('width',AppObject.isNumber);
+        self.beforeSet('height',AppObject.isNumber);
+        self.beforeSet('sx',AppObject.isNumber);
+        self.beforeSet('sy',AppObject.isNumber);
+        self.beforeSet('sWidth',AppObject.isNumber);
+        self.beforeSet('sHeight',AppObject.isNumber);
+        self.beforeSet('layer',AppObject.isNumber);
+        self.beforeSet('url',AppObject.isString);
 
-        if(options.url != undefined && self.url != options.url){
-            self.url = options.url;
+        self.onChange('url',function(url){
             self.loaded = false;
             self.image = new Image();
-            self.image.src = self.url;
-            ImageLoader.load(self.url,function(img){
+            ImageLoader.load(url,function(img){
                 self.loaded = true;
                 self.image = img;
             });
-        }
-        return self;
+        });
     };
 
     /*
