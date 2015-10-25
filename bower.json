@@ -8,7 +8,6 @@
   "main": "",
   "moduleType": [],
   "license": "MIT",
-  "private": true,
   "ignore": [
     "**/.*",
     "node_modules",
@@ -18,7 +17,9 @@
   ],
   "dependencies": {
     "MathLib": "https://github.com/pablohenrickdiniz/MathLib.git",
+    "lodash": "~3.10.1",
     "jquery": "~2.1.4",
     "requirejs": "~2.1.20"
-  }
+  },
+  "private":true
 }
