@@ -14,10 +14,23 @@ define(['AppObject','FrameSync'],function(AppObject,FrameSync){
         self.frameSync = null;
         self.canvasLayer = null;
         self.onStepCall = null;
+        Animation.bindProperties.apply(self);
         self.set(options);
     };
 
-    Animation.prototype = new AppObject;
+    Animation.prototype = new AppObject();
+
+    Animation.bindProperties = function(){
+        var self = this;
+        self.beforeSet('speed',AppObject.isInt);
+        self.beforeSet('repeat',AppObject.isBoolean);
+        self.beforeSet('frames',AppObject.isArray);
+        self.beforeSet('indexFrame',AppObject.isInt);
+        self.beforeSet('x',AppObject.isNumber);
+        self.beforeSet('y',AppObject.isNumber);
+        self.beforeSet('width',AppObject.isNumber);
+        self.beforeSet('height',AppObject.isNumber);
+    };
 
     Animation.prototype.execute = function(){
         var self = this;
@@ -44,7 +57,7 @@ define(['AppObject','FrameSync'],function(AppObject,FrameSync){
         if(self.running){
             self.frameInterval = setTimeout(function(){
                 self.frameSync = FrameSync(function(){
-                    self.step()
+                    self.step();
                 });
 
                 if(self.indexFrame >= self.frames.length-1){
@@ -53,10 +66,10 @@ define(['AppObject','FrameSync'],function(AppObject,FrameSync){
                 else{
                     self.indexFrame = self.indexFrame+1;
                 }
-                if(self.canvasLayer != null){
+                if(self.canvasLayer !== null){
                     self.canvasLayer.drawAnimation(self);
                 }
-                if(self.onStepCall != null){
+                if(self.onStepCall !== null){
                     self.onStepCall(self.indexFrame);
                 }
             },1000/(self.speed));
@@ -81,7 +94,7 @@ define(['AppObject','FrameSync'],function(AppObject,FrameSync){
     Animation.prototype.removeFrame = function(frame){
         var self = this;
         var index = self.frames.indexOf(frame);
-        if(index != -1){
+        if(index !== -1){
             self.frames.splice(index,1);
         }
         return self;
@@ -102,10 +115,10 @@ define(['AppObject','FrameSync'],function(AppObject,FrameSync){
         var self = this;
         return {
             speed:self.speed,
-            frames:self.frames.map(function(frame){return frame.toJSON()}),
+            frames:self.frames.map(function(frame){return frame.toJSON();}),
             width:self.width,
             height:self.height
-        }
+        };
     };
 
     return Animation;

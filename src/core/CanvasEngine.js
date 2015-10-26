@@ -22,14 +22,14 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
         self.animationLayer = null;
         self.areaSelect = null;
         self.container = null;
-        self.bindProperties();
+        CanvasEngine.bindProperties.apply(self);
         self.set(options);
         self.initialize();
     };
 
     CanvasEngine.prototype = new AppObject;
 
-    CanvasEngine.prototype.bindProperties = function(){
+    CanvasEngine.bindProperties = function(){
         var self = this;
         self.onChange('viewX',function(newValue){
             self.layers.forEach(function(layer){
@@ -209,8 +209,6 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
         area.y = pa.y > pb.y?area.y-height:area.y;
         return area;
     };
-
-
 
 
     /*
@@ -430,7 +428,6 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
         }
         return null;
     };
-
 
     CanvasEngine.prototype.removeLayers = function(layers){
         var self = this;

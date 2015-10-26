@@ -17,20 +17,20 @@ define(['jquery','AppObject'],function($,AppObject){
         self.opacity = 1;
 
         $(window).resize(function(){
-            self.updateElement()
+            self.updateElement();
         });
 
         $(self.getElement()).css({
             'userSelect':'none'
         });
 
-        self.bindProperties();
+        CanvasLayer.bindProperties.apply(self);
         self.set(options);
     };
 
     CanvasLayer.prototype = new AppObject;
 
-    CanvasLayer.prototype.bindProperties = function(){
+    CanvasLayer.bindProperties = function(){
         var self = this;
         self.onChange('zIndex',function(newValue){
             $(self.getElement()).css({

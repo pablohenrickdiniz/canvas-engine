@@ -1,4 +1,4 @@
-define(['lodash','Color'],function(_,Color){
+define(['lodash'],function(_){
     var AppObject = function(){
         var self = this;
         self._changeCallbacks = [];
@@ -37,11 +37,9 @@ define(['lodash','Color'],function(_,Color){
         return self;
     };
 
-
     AppObject.prototype._afterChange = function(callback){
         this._afterChange = callback;
     };
-
 
     AppObject.prototype._isChanged = function(key){
         var self= this;
@@ -72,7 +70,7 @@ define(['lodash','Color'],function(_,Color){
     };
 
     AppObject.isInt =function(oldVal,newVal){
-        if((/^[0-9]+$/).test(newVal)){
+        if(AppObject.regex.INT.test(newVal)){
             return newVal;
         }
         return oldVal;
@@ -86,7 +84,8 @@ define(['lodash','Color'],function(_,Color){
     };
 
     AppObject.isColor =function(oldVal,newVal){
-        if(Color.isColor(newVal)){
+        var regex = AppObject.regex;
+        if(regex.HEXADECIMAL_COLOR.test(newVal) || regex.RGB_COLOR.test(newVal) || regex.RGBA_COLOR.test(newVal)){
             return newVal;
         }
         return oldVal;
@@ -106,9 +105,22 @@ define(['lodash','Color'],function(_,Color){
         return oldVal;
     };
 
+    AppObject.isBoolean =function(oldVal,newVal){
+        if(_.isBoolean(newVal)){
+            return newVal;
+        }
+        return oldVal;
+    };
 
     AppObject.prototype.props =function(){
         return Object.keys(this);
+    };
+
+    AppObject.regex = {
+        INT:/^[0-9]+$/,
+        HEXADECIMAL_COLOR: /^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$/,
+        RGB_COLOR: /^rgb\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\)$/,
+        RGBA_COLOR: /^rgba\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(0.[0-9]{1,2}|1)\)$/,
     };
 
     return AppObject;
