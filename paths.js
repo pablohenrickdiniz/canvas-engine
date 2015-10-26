@@ -1,4 +1,5 @@
 requirejs.config({
+    "baseUrl":"bower_components/CanvasEngine/",
     "paths":{
         'AbstractGrid': 'src/core/AbstractGrid.min',
         'Animation': 'src/core/Animation.min',
