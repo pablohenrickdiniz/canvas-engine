@@ -16,6 +16,8 @@ define(['AppObject','Color'],function(AppObject,Color){
         self.set(options);
     };
 
+    RectSet.prototype = new AppObject();
+
     RectSet.prototype.getLine = function(){
         var self = this;
         return Math.floor(self.y/self.height);
@@ -28,16 +30,16 @@ define(['AppObject','Color'],function(AppObject,Color){
 
     RectSet.bindProperties = function(options){
         var self = this;
-        self.beforeSet('width',AppObject.isNumber);
-        self.beforeSet('height',AppObject.isNumber);
-        self.beforeSet('x',AppObject.isNumber);
-        self.beforeSet('y',AppObject.isNumber);
-        self.beforeSet('state',AppObject.isNumber);
-        self.beforeSet('lineDash',AppObject.isArray);
-        self.beforeSet('fillStyle',AppObject.isColor);
-        self.beforeSet('strokeStyle',AppObject.isColor);
-        self.beforeSet('i',AppObject.isInt);
-        self.beforeSet('j',AppObject.isInt);
+        self._beforeSet('width',AppObject.isNumber);
+        self._beforeSet('height',AppObject.isNumber);
+        self._beforeSet('x',AppObject.isNumber);
+        self._beforeSet('y',AppObject.isNumber);
+        self._beforeSet('state',AppObject.isNumber);
+        self._beforeSet('lineDash',AppObject.isArray);
+        self._beforeSet('fillStyle',AppObject.isColor);
+        self._beforeSet('strokeStyle',AppObject.isColor);
+        self._beforeSet('i',AppObject.isInt);
+        self._beforeSet('j',AppObject.isInt);
     };
 
     return RectSet;

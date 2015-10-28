@@ -1,7 +1,7 @@
 /*
  CanvasLayer(Object options, CanvasEngine canvas)
  */
-define(['jquery','AppObject'],function($,AppObject){
+define(['jquery','AppObject','Color'],function($,AppObject,Color){
     var CanvasLayer = function(options,canvas){
         console.log('Canvas Layer initialize...');
         var self = this;
@@ -28,7 +28,7 @@ define(['jquery','AppObject'],function($,AppObject){
         self.set(options);
     };
 
-    CanvasLayer.prototype = new AppObject;
+    CanvasLayer.prototype = new AppObject();
 
     CanvasLayer.bindProperties = function(){
         var self = this;
@@ -90,7 +90,7 @@ define(['jquery','AppObject'],function($,AppObject){
             y:y,
             width:width,
             height:height
-        }
+        };
     };
 
     /*
@@ -154,7 +154,7 @@ define(['jquery','AppObject'],function($,AppObject){
         //console.log('Canvas layer restore state...');
         var self = this;
         var state = self.savedStates[name];
-        if(state != undefined){
+        if(state !== undefined){
             self.getContext().drawImage(state, 0, 0);
         }
         return self;
@@ -178,7 +178,7 @@ define(['jquery','AppObject'],function($,AppObject){
     CanvasLayer.prototype.getElement = function(){
         //console.log('Canvas layer get element...')
         var self = this;
-        if(self.element == null && self.canvas != null){
+        if(self.element === null && self.canvas !== null){
             self.element = document.createElement('canvas');
             $(self.element).css({
                 zIndex:self.zIndex,
@@ -192,7 +192,7 @@ define(['jquery','AppObject'],function($,AppObject){
             $(self.element).addClass('canvas-layer');
             $(self.element).attr('width',self.width);
             $(self.element).attr('height',self.height);
-            if(self.name != ''){
+            if(self.name !== ''){
                 $(self.element).attr('data-name',self.name);
             }
         }
@@ -207,7 +207,7 @@ define(['jquery','AppObject'],function($,AppObject){
     CanvasLayer.prototype.getContext = function(){
         //console.log('Canvas layer get context...');
         var self = this;
-        if(self.context == null){
+        if(self.context === null){
             self.context = self.getElement().getContext('2d');
         }
         return self.context;
@@ -241,16 +241,16 @@ define(['jquery','AppObject'],function($,AppObject){
      */
     CanvasLayer.prototype.drawAbstractGrid = function(grid){
         //console.log('Canvas layer draw abstract grid...');
+        var self = this;
         if(grid.isDrawable()){
-            var self = this;
             var context = self.getContext();
             context.fillStyle = 'transparent';
             context.strokeStyle = (new Color({alpha:0.2})).toRGBA();
             context.lineWidth = 1;
             context.lineDash = [];
             var visibleArea = self.getVisibleArea();
-            var vsi = visibleArea.x != 0?Math.floor(visibleArea.x/grid.sw):0;
-            var vsj = visibleArea.y != 0?Math.floor(visibleArea.y/grid.sh):0;
+            var vsi = visibleArea.x !== 0?Math.floor(visibleArea.x/grid.sw):0;
+            var vsj = visibleArea.y !== 0?Math.floor(visibleArea.y/grid.sh):0;
             var vei = Math.ceil((visibleArea.x+visibleArea.width)/grid.sw);
             var vej = Math.ceil((visibleArea.y+visibleArea.height)/grid.sh);
 
@@ -287,7 +287,7 @@ define(['jquery','AppObject'],function($,AppObject){
         //console.log('Canvas layer destroy...');
         var self = this;
         $(self.element).remove();
-        if(self.canvas.layers[self.zIndex] != undefined){
+        if(self.canvas.layers[self.zIndex] !== undefined){
             delete self.canvas.layers[self.zIndex];
         }
         return self;
@@ -299,7 +299,8 @@ define(['jquery','AppObject'],function($,AppObject){
      */
     CanvasLayer.prototype.drawImage = function(){
         //console.log('Canvas layer draw image...');
-        var context = this.getContext();
+        var self = this;
+        var context = self.getContext();
         context.drawImage.apply(context,arguments);
         return self;
     };
@@ -310,8 +311,9 @@ define(['jquery','AppObject'],function($,AppObject){
      */
     CanvasLayer.prototype.drawImageSet = function(is){
         //console.log('Canvas layer draw image set...');
-        var context = this.getContext();
-        is.parent = this;
+        var self = this;
+        var context = self.getContext();
+        is.parent = self;
         context.drawImage(is.image, is.sx, is.sy, is.sWidth, is.sHeight, is.x, is.y, is.width, is.height);
         if(is.selected){
             context.strokeStyle = 'rgba(0,0,100,0.5)';
@@ -340,7 +342,7 @@ define(['jquery','AppObject'],function($,AppObject){
         var self = this;
         self.clearRect(animation.x,animation.y,animation.width,animation.height);
         var context = self.getContext();
-        if(animation.frames[animation.indexFrame] != undefined){
+        if(animation.frames[animation.indexFrame] !== undefined){
             animation.frames[animation.indexFrame].imageSets.forEach(function(is){
                 context.drawImage(is.image, is.sx, is.sy, is.sWidth, is.sHeight, is.x+animation.x, is.y+animation.y, is.width, is.height);
             });
@@ -356,13 +358,12 @@ define(['jquery','AppObject'],function($,AppObject){
         var self = this;
         var context = self.getContext();
         var p = context.getImageData(i,j,1,1).data;
-        var color = new Color({
+        return new Color({
             red:p[0],
             green:p[1],
             blue:p[2],
             alpha:p[3]
         });
-        return color;
     };
 
     /*
@@ -375,7 +376,7 @@ define(['jquery','AppObject'],function($,AppObject){
         var left = 0;
         var top = 0;
         var scale = 1;
-        if(self.canvas != undefined){
+        if(self.canvas !== undefined){
             left = self.canvas.viewX;
             top = self.canvas.viewY;
             scale = self.canvas.scale;

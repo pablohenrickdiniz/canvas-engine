@@ -22,14 +22,14 @@ define(['AppObject','FrameSync'],function(AppObject,FrameSync){
 
     Animation.bindProperties = function(){
         var self = this;
-        self.beforeSet('speed',AppObject.isInt);
-        self.beforeSet('repeat',AppObject.isBoolean);
-        self.beforeSet('frames',AppObject.isArray);
-        self.beforeSet('indexFrame',AppObject.isInt);
-        self.beforeSet('x',AppObject.isNumber);
-        self.beforeSet('y',AppObject.isNumber);
-        self.beforeSet('width',AppObject.isNumber);
-        self.beforeSet('height',AppObject.isNumber);
+        self._beforeSet('speed',AppObject.isInt);
+        self._beforeSet('repeat',AppObject.isBoolean);
+        self._beforeSet('frames',AppObject.isArray);
+        self._beforeSet('indexFrame',AppObject.isInt);
+        self._beforeSet('x',AppObject.isNumber);
+        self._beforeSet('y',AppObject.isNumber);
+        self._beforeSet('width',AppObject.isNumber);
+        self._beforeSet('height',AppObject.isNumber);
     };
 
     Animation.prototype.execute = function(){

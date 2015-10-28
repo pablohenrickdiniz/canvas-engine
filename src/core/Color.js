@@ -8,7 +8,7 @@ define(['AppObject'], function (AppObject) {
         self.set(options);
     };
 
-    Color.prototype = new AppObject;
+    Color.prototype = new AppObject();
 
     /*
      boolean ; isTransparent()
@@ -49,8 +49,7 @@ define(['AppObject'], function (AppObject) {
         if (self.isTransparent()) {
             return 'transparent';
         }
-        return "rgba(" + self.red + "," + self.blue + "," + self.green + ","
-            + self.alpha + ")";
+        return "rgba(" + self.red + "," + self.blue + "," + self.green + "," + self.alpha + ")";
     };
 
     /*
@@ -109,7 +108,7 @@ define(['AppObject'], function (AppObject) {
             return 'transparent';
         }
         for (var index in Color.Name) {
-            if (Color.Name[index] == self.toHEX()) {
+            if (Color.Name[index] === self.toHEX()) {
                 return index;
             }
         }
@@ -593,7 +592,7 @@ define(['AppObject'], function (AppObject) {
      */
     Color.isColor = function (color) {
         color = Color.parse(color);
-        return color != null;
+        return color !== null;
     };
 
     /*
@@ -604,12 +603,12 @@ define(['AppObject'], function (AppObject) {
      */
     Color.parse = function (str) {
         var color = null;
-        if (typeof str == 'string') {
+        if (typeof str === 'string') {
             var r;
             var g;
             var b;
 
-            if (str == 'transparent') {
+            if (str === 'transparent') {
                 color = new Color({
                     alpha: 0
                 });

@@ -7,7 +7,7 @@ define(['AppObject','IdGenerator'],function(AppObject){
         self.set(options);
     };
 
-    Frame.prototype = new AppObject;
+    Frame.prototype = new AppObject();
 
     Frame.prototype.toJSON = function(){
         var self = this;

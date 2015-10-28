@@ -22,7 +22,7 @@ define(['RectSet','AbstractGrid','Color','lodash'],function(RectSet,AbstractGrid
         Grid.bindProperties.apply(self);
     };
 
-    Grid.prototype = new AbstractGrid;
+    Grid.prototype = new AbstractGrid();
 
 
 
@@ -97,9 +97,9 @@ define(['RectSet','AbstractGrid','Color','lodash'],function(RectSet,AbstractGrid
         var self = this;
         var interval = self.getAreaInterval(options);
         for(var i = interval.si; i <= interval.ei;i++){
-            if(self.rectSets[i] != undefined){
+            if(self.rectSets[i] !== undefined){
                 for(var j = interval.sj; j <= interval.ej;j++){
-                    if(self.rectSets[i][j] != undefined){
+                    if(self.rectSets[i][j] !== undefined){
                         rects.push(self.rectSets[i][j]);
                     }
                 }
@@ -121,7 +121,7 @@ define(['RectSet','AbstractGrid','Color','lodash'],function(RectSet,AbstractGrid
         self.strokeStyle = Color.isColor(options.strokeStyle)?options.strokeStyle:self.strokeStyle;
         self.rectSets.forEach(function(row){
             row.forEach(function(rectSet){
-                if(condition == undefined || condition.apply(rectSet)){
+                if(condition === undefined || condition.apply(rectSet)){
                     rectSet.set(options);
                 }
             });
@@ -139,6 +139,8 @@ define(['RectSet','AbstractGrid','Color','lodash'],function(RectSet,AbstractGrid
         var sh = self.sh;
         var w = self.width;
         var h = self.height;
+        var i;
+        var j;
 
 
         if(w > 0 && h > 0){
@@ -147,11 +149,11 @@ define(['RectSet','AbstractGrid','Color','lodash'],function(RectSet,AbstractGrid
             var count = 0;
 
 
-            for(var i = self.rectSets.length; i < rows;i++){
-                if(self.rectSets[i] == undefined){
+            for(i = self.rectSets.length; i < rows;i++){
+                if(self.rectSets[i] === undefined){
                     self.rectSets[i] = [];
                 }
-                for(var j =self.rectSets[i].length; j < cols;j++){
+                for(j =self.rectSets[i].length; j < cols;j++){
                     count++;
                     self.rectSets[i][j] = new RectSet({
                         x:j*self.sw,
@@ -166,8 +168,8 @@ define(['RectSet','AbstractGrid','Color','lodash'],function(RectSet,AbstractGrid
                 }
             }
 
-            for(var j = self.rectSets[0].length;j < cols;j++){
-                for(var i = 0; i < self.rectSets.length;i++){
+            for(j = self.rectSets[0].length;j < cols;j++){
+                for(i = 0; i < self.rectSets.length;i++){
                     count++;
                     self.rectSets[i][j] = new RectSet({
                         x:j*self.sw,
@@ -182,7 +184,7 @@ define(['RectSet','AbstractGrid','Color','lodash'],function(RectSet,AbstractGrid
                 }
             }
 
-            for(var i =0; i < self.rectSets.length;i++){
+            for(i =0; i < self.rectSets.length;i++){
                 self.rectSets[i].length = cols;
             }
             self.rectSets.length = Math.min(rows,self.rectSets.length);

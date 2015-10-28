@@ -24,6 +24,8 @@ define(['AppObject'],function(AppObject){
         self.set(options);
     };
 
+    Map.prototype = new AppObject();
+
     /*
         Object: getAreaInterval(Object options)
         obtém o intervalo de linhas e colunas de uma
@@ -51,11 +53,11 @@ define(['AppObject'],function(AppObject){
      */
     Map.prototype.setTile = function(i,j,tile){
         var self = this;
-        if(self.imageSets[i] == undefined){
+        if(self.imageSets[i] === undefined){
             self.imageSets[i] = [];
         }
 
-        if(self.imageSets[i][j] == undefined){
+        if(self.imageSets[i][j] === undefined){
             self.imageSets[i][j] = [];
         }
         self.imageSets[i][j][tile.layer] = tile;
@@ -69,14 +71,14 @@ define(['AppObject'],function(AppObject){
 
     Map.bindProperties = function(){
         var self = this;
-        self.beforeSet('tile_w',AppObject.isNumber);
-        self.beforeSet('tile_h',AppObject.isNumber);
-        self.beforeSet('width',AppObject.isNumber);
-        self.beforeSet('height',AppObject.isNumber);
-        self.beforeSet('imageSets',AppObject.isArray);
+        self._beforeSet('tile_w',AppObject.isNumber);
+        self._beforeSet('tile_h',AppObject.isNumber);
+        self._beforeSet('width',AppObject.isNumber);
+        self._beforeSet('height',AppObject.isNumber);
+        self._beforeSet('imageSets',AppObject.isArray);
 
         self._afterChange(function(){
-            if(self.parent != null && (self._isChanged('tile_w') || self._isChanged('tile_h') || self._isChanged('width') || self._isChanged('height'))){
+            if(self.parent !== null && (self._isChanged('tile_w') || self._isChanged('tile_h') || self._isChanged('width') || self._isChanged('height'))){
                 self.parent.applyToLayers({width:self.width*self.tile_w, height:self.height*self.tile_h});
             }
         });

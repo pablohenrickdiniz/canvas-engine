@@ -1,4 +1,4 @@
-define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(AppObject,Math,MouseReader,CanvasLayer,KeyReader){
+define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader','Grid','jquery'], function(AppObject,Math,MouseReader,CanvasLayer,KeyReader,Grid,$){
     var CanvasEngine = function(options){
         console.log('intializing canvas engine...');
         var self = this;
@@ -27,7 +27,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
         self.initialize();
     };
 
-    CanvasEngine.prototype = new AppObject;
+    CanvasEngine.prototype = new AppObject();
 
     CanvasEngine.bindProperties = function(){
         var self = this;
@@ -148,7 +148,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
          Calcula e redesenha um retângulo selecionado no tileset
          */
         self.getMouseReader().onmousedown(1,function(){
-            if(self.selectable && typeof self.areaSelect == 'function'){
+            if(self.selectable && typeof self.areaSelect === 'function'){
                 var reader = this;
                 var translate = {x:Math.abs(self.viewX/self.scale),y:Math.abs(self.viewY/self.scale)};
                 var pa = Math.vpv(Math.sdv(self.scale,reader.lastDown.left),translate);
@@ -167,7 +167,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
          Calcula e redesenha uma área selecionada no tileset
          */
         self.getMouseReader().onmousemove(function(e){
-            if(self.multiSelect && self.selectable && typeof self.areaSelect == 'function'){
+            if(self.multiSelect && self.selectable && typeof self.areaSelect === 'function'){
                 console.log('mouse move...');
                 var reader = this;
                 var grid = self.getGrid();
@@ -254,7 +254,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
      */
     CanvasEngine.prototype.getGridLayer = function(){
         var self = this;
-        if(self.gridLayer == null){
+        if(self.gridLayer === null){
             self.gridLayer = self.createLayer();
         }
         return self.gridLayer;
@@ -266,7 +266,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
      */
     CanvasEngine.prototype.getGrid = function(){
         var self = this;
-        if(self.grid == null){
+        if(self.grid === null){
             var width = self.getWidth();
             var height = self.getHeight();
             self.grid = new Grid({
@@ -286,7 +286,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
     CanvasEngine.prototype.getMouseReader = function(){
         console.log('Canvas Engine get mouse reader...');
         var self = this;
-        if(self.mouseReader == null){
+        if(self.mouseReader === null){
             self.mouseReader = new MouseReader(self.container);
         }
         return self.mouseReader;
@@ -298,20 +298,12 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
     CanvasEngine.prototype.getKeyReader = function(){
         console.log('Canvas Engine get key reader...');
         var self = this;
-        if(self.keyReader == null){
+        if(self.keyReader === null){
             self.keyReader = new KeyReader(self.container);
         }
         return self.keyReader;
     };
-    /*
-     CanvasEngie : resize(int width) Redimensiona a largura da engine
-     */
-    CanvasEngine.prototype.resize = function(width){
-        console.log('Canvas Engine resize...');
-        var self = this;
-        self.width = Parser.parsePercent(width,$(self.container).parent());
-        return self;
-    };
+
     /*
      int : getWidth() Obtém largura do container de canvas em pixels
      */
@@ -359,7 +351,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
         console.log('Canvas engine apply to layers...');
         var self = this;
         self.layers.forEach(function(layer){
-            if(conditions == undefined || conditions.apply(layer)){
+            if(conditions === undefined || conditions.apply(layer)){
                 layer.set(options);
             }
         });
@@ -386,13 +378,13 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
      */
     CanvasEngine.prototype.createLayer = function(options,className){
         console.log('Canvas engine create layer..');
-        options = options==undefined?{}:options;
-        var type = options.type==undefined?'default':options.type;
+        options = options===undefined?{}:options;
+        var type = options.type===undefined?'default':options.type;
         var layer = null;
         var self = this;
         options.zIndex = self.layers.length;
 
-        if(className != undefined){
+        if(className !== undefined){
             layer = new className(options,self);
         }
         else{
@@ -400,7 +392,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
         }
 
         self.layers.push(layer);
-        if(self.gridLayer != null){
+        if(self.gridLayer !== null){
             var newLayer = self.layers[self.layers.length-1];
             self.layers[self.layers.length-1] = self.gridLayer;
             self.layers[self.gridLayer.zIndex] = newLayer;
@@ -423,7 +415,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
     CanvasEngine.prototype.getLayer = function(index){
         console.log('Canvas Engine get layer...');
         var self = this;
-        if(self.layers[index] != undefined){
+        if(self.layers[index] !== undefined){
             return self.layers[index];
         }
         return null;
@@ -443,7 +435,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
     CanvasEngine.prototype.removeLayer = function(index){
         console.log('Canvas Engine remove layer...');
         var self = this;
-        if(self.layers[index] != undefined){
+        if(self.layers[index] !== undefined){
             self.layers[index].destroy();
             self.layers.splice(index,1);
             for(var i = index;i < self.layers.length;i++){
@@ -477,7 +469,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader'], function(Ap
                 sets[i][j].forEach(function(imageSet){
                     map.renderIntervals.push(setTimeout(function(){
                         var layer = self.getLayer(imageSet.layer);
-                        if(layer != null){
+                        if(layer !== null){
                             layer.set({
                                 width:map.width*map.tile_w,
                                 height:map.height*map.tile_h

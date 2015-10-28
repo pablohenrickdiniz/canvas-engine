@@ -35,7 +35,7 @@ define(['jquery'],function($){
             var x = event.offsetX;
             var y = event.offsetY;
             self.lastMove = {x:x,y:y};
-            if(target == $(self.element)[0]){
+            if(target === $(self.element)[0]){
                 self.mousemove.forEach(function(callback){
                     callback.apply(self,[event]);
                 });
@@ -43,7 +43,7 @@ define(['jquery'],function($){
         });
 
         $(self.element).mousedown(function(event){
-            if(event.target == $(self.element)[0]){
+            if(event.target === $(self.element)[0]){
                 var pos = {x:event.offsetX,y:event.offsetY};
                 switch (event.which) {
                     case 1:
@@ -72,7 +72,7 @@ define(['jquery'],function($){
 
 
         $(document).mouseup(function(event){
-            if(event.target == $(self.element)[0]){
+            if(event.target === $(self.element)[0]){
                 var pos = {x:event.offsetX,y:event.offsetY};
                 switch (event.which) {
                     case 1:
@@ -115,10 +115,12 @@ define(['jquery'],function($){
         };
 
         var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
-        if ($(self.element)[0].attachEvent) //if IE (and Opera depending on user setting)
-            $(self.element)[0].attachEvent("on"+mousewheelevt, callback);
-        else if ($(self.element)[0].addEventListener) //WC3 browsers
-            $(self.element)[0].addEventListener(mousewheelevt, callback, false)
+        if ($(self.element)[0].attachEvent) { //if IE (and Opera depending on user setting)
+            $(self.element)[0].attachEvent("on" + mousewheelevt, callback);
+        }
+        else if ($(self.element)[0].addEventListener) { //WC3 browsers
+            $(self.element)[0].addEventListener(mousewheelevt, callback, false);
+        }
     };
 
 

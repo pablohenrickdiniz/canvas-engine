@@ -33,17 +33,17 @@ define(['AppObject'],function(AppObject){
         self.set(options);
     };
 
-    AbstractGrid.prototype = new AppObject;
+    AbstractGrid.prototype = new AppObject();
 
 
     AbstractGrid.bindProperties = function(){
         var self = this;
-        self.beforeSet('width',AppObject.isNumber);
-        self.beforeSet('height',AppObject.isNumber);
-        self.beforeSet('sh',AppObject.isNumber);
-        self.beforeSet('sw',AppObject.isNumber);
-        self.beforeSet('fillStyle',AppObject.isColor);
-        self.beforeSet('strokeStyle',AppObject.isColor);
+        self._beforeSet('width',AppObject.isNumber);
+        self._beforeSet('height',AppObject.isNumber);
+        self._beforeSet('sh',AppObject.isNumber);
+        self._beforeSet('sw',AppObject.isNumber);
+        self._beforeSet('fillStyle',AppObject.isColor);
+        self._beforeSet('strokeStyle',AppObject.isColor);
     };
 
     AbstractGrid.prototype.isDrawable = function(){

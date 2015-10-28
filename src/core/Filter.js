@@ -10,17 +10,17 @@ define(['Color'],function(Color) {
          */
         getCanvas: function (w, h) {
             var self = this;
-            if(self.canvas == null){
+            if(self.canvas === null){
                 self.canvas = document.createElement('canvas');
                 self.canvas.width = w;
                 self.canvas.height = h;
             }
             else{
-                if(w != undefined && self.canvas.width != w){
+                if(w !== undefined && self.canvas.width != w){
                     self.canvas.width = w;
                 }
 
-                if(h != undefined && self.canvas.height != h){
+                if(h !== undefined && self.canvas.height != h){
                     self.canvas.height = h;
                 }
             }
@@ -47,7 +47,7 @@ define(['Color'],function(Color) {
             var self = this;
             if(!self.filtering){
                 self.filtering = true;
-                var args = [this.getPixels(image)].concat(args);
+                args = [this.getPixels(image)].concat(args);
                 var imageData = filter.apply(self, args);
                 var canvas = self.getCanvas(imageData.width,imageData.height);
                 var ctx = canvas.getContext('2d');
@@ -73,7 +73,7 @@ define(['Color'],function(Color) {
             var data = imageData.data;
             var size =data.length;
             for(var i = 0; i < size;i+=4){
-                if(data[i+3] != 0 && data[i] == color.red && data[i+1] == color.blue && data[i+2] == color.green){
+                if(data[i+3] !== 0 && data[i] == color.red && data[i+1] === color.blue && data[i+2] === color.green){
                     data[i] = 255;
                     data[i + 1] = 255;
                     data[i + 2] = 255;
@@ -177,5 +177,5 @@ define(['Color'],function(Color) {
             }
             return imageData;
         }
-    }
+    };
 });

@@ -38,6 +38,8 @@ define(['AppObject','ImageLoader'],function(AppObject,ImageLoader){
         self.set(options);
     };
 
+    ImageSet.prototype = new AppObject();
+
 
     ImageSet.prototype.clone = function(){
         return new ImageSet(this.toJSON());
@@ -55,7 +57,7 @@ define(['AppObject','ImageLoader'],function(AppObject,ImageLoader){
             y:self.y,
             width:self.width,
             height:self.height
-        }
+        };
     };
 
     /*
@@ -76,16 +78,16 @@ define(['AppObject','ImageLoader'],function(AppObject,ImageLoader){
      */
     ImageSet.bindProperties = function(){
         var self = this;
-        self.beforeSet('x',AppObject.isNumber);
-        self.beforeSet('y',AppObject.isNumber);
-        self.beforeSet('width',AppObject.isNumber);
-        self.beforeSet('height',AppObject.isNumber);
-        self.beforeSet('sx',AppObject.isNumber);
-        self.beforeSet('sy',AppObject.isNumber);
-        self.beforeSet('sWidth',AppObject.isNumber);
-        self.beforeSet('sHeight',AppObject.isNumber);
-        self.beforeSet('layer',AppObject.isNumber);
-        self.beforeSet('url',AppObject.isString);
+        self._beforeSet('x',AppObject.isNumber);
+        self._beforeSet('y',AppObject.isNumber);
+        self._beforeSet('width',AppObject.isNumber);
+        self._beforeSet('height',AppObject.isNumber);
+        self._beforeSet('sx',AppObject.isNumber);
+        self._beforeSet('sy',AppObject.isNumber);
+        self._beforeSet('sWidth',AppObject.isNumber);
+        self._beforeSet('sHeight',AppObject.isNumber);
+        self._beforeSet('layer',AppObject.isNumber);
+        self._beforeSet('url',AppObject.isString);
 
         self.onChange('url',function(url){
             self.loaded = false;
@@ -115,7 +117,7 @@ define(['AppObject','ImageLoader'],function(AppObject,ImageLoader){
             sWidth:self.sWidth,
             sHeight:self.sHeight,
             layer:self.layer
-        }
+        };
     };
 
     /*
@@ -128,14 +130,14 @@ define(['AppObject','ImageLoader'],function(AppObject,ImageLoader){
 
     ImageSet.prototype.isTransparent = function(x,y){
         var self = this;
-        if(self.image != null && x < self.width && y < self.height && x >= 0 && y >= 0){
+        if(self.image !== null && x < self.width && y < self.height && x >= 0 && y >= 0){
             var canvas = document.createElement('canvas');
             canvas.width = 1;
             canvas.height = 1;
             var ctx = canvas.getContext('2d');
             ctx.drawImage(self.image,self.sx+x,self.sy+y,1,1,0,0,1,1);
             var p = ctx.getImageData(0,0,1,1).data;
-            return p[3] == undefined || p[3] == 0;
+            return p[3] === undefined || p[3] === 0;
         }
 
         return true;

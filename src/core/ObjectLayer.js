@@ -4,7 +4,7 @@ define(['CanvasLayer'],function(CanvasLayer){
         self.objects = [];
         CanvasLayer.apply(self,[options,canvas]);
     };
-    ObjectLayer.prototype = new CanvasLayer;
+    ObjectLayer.prototype = new CanvasLayer();
 
     ObjectLayer.prototype.add = function(object){
         var self = this;
@@ -18,7 +18,7 @@ define(['CanvasLayer'],function(CanvasLayer){
     ObjectLayer.prototype.moveUp = function(object){
         var self = this;
         var index = self.objects.indexOf(object);
-        if(index != -1 && index < self.objects.length-1){
+        if(index !== -1 && index < self.objects.length-1){
             var objectB =self.objects[index+1];
             objectB.layer = index;
             object.layer = index+1;
@@ -32,7 +32,7 @@ define(['CanvasLayer'],function(CanvasLayer){
     ObjectLayer.prototype.moveDown = function(object){
         var self = this;
         var index = self.objects.indexOf(object);
-        if(index != -1 && index > 0){
+        if(index !== -1 && index > 0){
             var objectB = self.objects[index-1];
             objectB.layer = index;
             object.layer = index-1;
@@ -46,7 +46,7 @@ define(['CanvasLayer'],function(CanvasLayer){
     ObjectLayer.prototype.remove = function(object){
         var self = this;
         var index = self.objects.indexOf(object);
-        if(index != -1){
+        if(index !== -1){
             self.objects.splice(index,1);
             var size = self.objects.length;
             for(var i = index; i < size;i++){

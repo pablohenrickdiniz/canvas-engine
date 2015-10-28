@@ -13,7 +13,7 @@ define(['jquery'],function($){
 
 
     KeyReader.prototype.key = function(name){
-        if(KeyReader.Keys[name] != undefined){
+        if(KeyReader.Keys[name] !== undefined){
             return KeyReader.Keys[name];
         }
         return null;
@@ -30,20 +30,20 @@ define(['jquery'],function($){
 
     KeyReader.prototype.sequenceIs = function (sequence, ordered,exactLength) {
         var self = this;
-        ordered = ordered == undefined ? false : ordered;
-        exactLength = exactLength == undefined?false:exactLength;
-        if(exactLength && sequence.length != self.keySequence.length){
+        ordered = ordered === undefined ? false : ordered;
+        exactLength = exactLength === undefined?false:exactLength;
+        if(exactLength && sequence.length !== self.keySequence.length){
             return false;
         }
 
         for (var i = 0; i < sequence.length; i++) {
             if (ordered) {
-                if (sequence[i] != self.keySequence[i]) {
+                if (sequence[i] !== self.keySequence[i]) {
                     return false;
                 }
             }
             else {
-                if (self.keySequence.indexOf(sequence[i]) == -1) {
+                if (self.keySequence.indexOf(sequence[i]) === -1) {
                     return false;
                 }
             }
@@ -81,7 +81,7 @@ define(['jquery'],function($){
                 $(this).focus();
             });
             $(self.element).keydown(function (e) {
-                if (self.keySequence.indexOf(e.which) == -1) {
+                if (self.keySequence.indexOf(e.which) === -1) {
                     self.keySequence.push(e.which);
                 }
 
@@ -108,7 +108,7 @@ define(['jquery'],function($){
 
             $(self.element).keyup(function (e) {
                 var index = self.keySequence.indexOf(e.which);
-                if (index != -1) {
+                if (index !== -1) {
                     self.keySequence.splice(index, 1);
                 }
             });
