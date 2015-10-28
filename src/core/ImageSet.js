@@ -14,7 +14,7 @@
         sHeight:32 //altura da área de corte
     });
  */
-define(['AppObject','ImageLoader'],function(AppObject,ImageLoader){
+define(['AppObject','ImageLoader','Validator'],function(AppObject,ImageLoader,Validator){
     var ImageSet = function(options){
         var self = this;
         self.loads = [];
@@ -78,15 +78,15 @@ define(['AppObject','ImageLoader'],function(AppObject,ImageLoader){
      */
     ImageSet.bindProperties = function(){
         var self = this;
-        self._beforeSet('x',AppObject.isNumber);
-        self._beforeSet('y',AppObject.isNumber);
-        self._beforeSet('width',AppObject.isNumber);
-        self._beforeSet('height',AppObject.isNumber);
-        self._beforeSet('sx',AppObject.isNumber);
-        self._beforeSet('sy',AppObject.isNumber);
-        self._beforeSet('sWidth',AppObject.isNumber);
-        self._beforeSet('sHeight',AppObject.isNumber);
-        self._beforeSet('layer',AppObject.isNumber);
+        self._beforeSet('x',Validator.validateNumber);
+        self._beforeSet('y',Validator.validateNumber);
+        self._beforeSet('width',Validator.validateNumber);
+        self._beforeSet('height',Validator.validateNumber);
+        self._beforeSet('sx',Validator.validateNumber);
+        self._beforeSet('sy',Validator.validateNumber);
+        self._beforeSet('sWidth',Validator.validateNumber);
+        self._beforeSet('sHeight',Validator.validateNumber);
+        self._beforeSet('layer',Validator.validateNumber);
         self._beforeSet('url',AppObject.isString);
 
         self.onChange('url',function(url){

@@ -30,6 +30,7 @@ define(['jquery','AppObject','Color'],function($,AppObject,Color){
 
     CanvasLayer.prototype = new AppObject();
 
+
     CanvasLayer.bindProperties = function(){
         var self = this;
         self.onChange('zIndex',function(newValue){

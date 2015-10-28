@@ -1,4 +1,4 @@
-define(['AppObject','FrameSync'],function(AppObject,FrameSync){
+define(['AppObject','FrameSync','Validator'],function(AppObject,FrameSync,Validator){
     var Animation = function(options){
         var self = this;
         self.speed = 3;
@@ -22,14 +22,14 @@ define(['AppObject','FrameSync'],function(AppObject,FrameSync){
 
     Animation.bindProperties = function(){
         var self = this;
-        self._beforeSet('speed',AppObject.isInt);
-        self._beforeSet('repeat',AppObject.isBoolean);
-        self._beforeSet('frames',AppObject.isArray);
-        self._beforeSet('indexFrame',AppObject.isInt);
-        self._beforeSet('x',AppObject.isNumber);
-        self._beforeSet('y',AppObject.isNumber);
-        self._beforeSet('width',AppObject.isNumber);
-        self._beforeSet('height',AppObject.isNumber);
+        self._beforeSet('speed',Validator.validateInt);
+        self._beforeSet('repeat',Validator.validateBoolean);
+        self._beforeSet('frames',Validator.validateArray);
+        self._beforeSet('indexFrame',Validator.validateInt);
+        self._beforeSet('x',Validator.validateNumber);
+        self._beforeSet('y',Validator.validateNumber);
+        self._beforeSet('width',Validator.validateNumber);
+        self._beforeSet('height',Validator.validateNumber);
     };
 
     Animation.prototype.execute = function(){

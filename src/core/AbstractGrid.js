@@ -16,7 +16,7 @@
     });
 
  */
-define(['AppObject'],function(AppObject){
+define(['AppObject','Validator'],function(AppObject,Validator){
     var AbstractGrid = function(options){
         console.log('initializing Abstract Grid...');
         var self = this;
@@ -38,12 +38,12 @@ define(['AppObject'],function(AppObject){
 
     AbstractGrid.bindProperties = function(){
         var self = this;
-        self._beforeSet('width',AppObject.isNumber);
-        self._beforeSet('height',AppObject.isNumber);
-        self._beforeSet('sh',AppObject.isNumber);
-        self._beforeSet('sw',AppObject.isNumber);
-        self._beforeSet('fillStyle',AppObject.isColor);
-        self._beforeSet('strokeStyle',AppObject.isColor);
+        self._beforeSet('width',Validator.validateNumber);
+        self._beforeSet('height',Validator.validateNumber);
+        self._beforeSet('sh',Validator.validateNumber);
+        self._beforeSet('sw',Validator.validateNumber);
+        self._beforeSet('fillStyle',Validator.validateColor);
+        self._beforeSet('strokeStyle',Validator.validateColor);
     };
 
     AbstractGrid.prototype.isDrawable = function(){

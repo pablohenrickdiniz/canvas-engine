@@ -15,7 +15,7 @@ define(['AppObject'], function (AppObject) {
      Verifica se a cor é transparente
      */
     Color.prototype.isTransparent = function () {
-        return this.alpha == 0;
+        return this.alpha === 0;
     };
 
     Color.random = function(){

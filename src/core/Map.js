@@ -9,7 +9,7 @@
         tile_h:10  // altura de cada retângulo ou passo
     });
  */
-define(['AppObject'],function(AppObject){
+define(['AppObject','Validator'],function(AppObject,Validator){
     var Map = function(options){
         console.log('Initializing Map...');
         var self = this;
@@ -33,10 +33,10 @@ define(['AppObject'],function(AppObject){
      */
     Map.prototype.getAreaInterval = function(options){
         var self = this;
-        var x = AppObject.isNumber(options.x,0);
-        var y = AppObject.isNumber(options.y,0);
-        var width =  AppObject.isNumber(options.width,0);
-        var height =  AppObject.isNumber(options.height,0);
+        var x = Validator.validateNumber(options.x,0);
+        var y = Validator.validateNumber(options.y,0);
+        var width =  Validator.validateNumber(options.width,0);
+        var height =  Validator.validateNumber(options.height,0);
 
         var si = parseInt(Math.floor(y/self.tile_h));
         var sj = parseInt(Math.floor(x/self.tile_w));
@@ -71,11 +71,11 @@ define(['AppObject'],function(AppObject){
 
     Map.bindProperties = function(){
         var self = this;
-        self._beforeSet('tile_w',AppObject.isNumber);
-        self._beforeSet('tile_h',AppObject.isNumber);
-        self._beforeSet('width',AppObject.isNumber);
-        self._beforeSet('height',AppObject.isNumber);
-        self._beforeSet('imageSets',AppObject.isArray);
+        self._beforeSet('tile_w',Validator.validateNumber);
+        self._beforeSet('tile_h',Validator.validateNumber);
+        self._beforeSet('width',Validator.validateNumber);
+        self._beforeSet('height',Validator.validateNumber);
+        self._beforeSet('imageSets',Validator.validateArray);
 
         self._afterChange(function(){
             if(self.parent !== null && (self._isChanged('tile_w') || self._isChanged('tile_h') || self._isChanged('width') || self._isChanged('height'))){

@@ -1,4 +1,4 @@
-define(['AppObject','Color'],function(AppObject,Color){
+define(['AppObject','Color','Validator'],function(AppObject,Color,Validator){
     var RectSet = function(options){
         var self = this;
         self.width = 32;
@@ -30,16 +30,16 @@ define(['AppObject','Color'],function(AppObject,Color){
 
     RectSet.bindProperties = function(options){
         var self = this;
-        self._beforeSet('width',AppObject.isNumber);
-        self._beforeSet('height',AppObject.isNumber);
-        self._beforeSet('x',AppObject.isNumber);
-        self._beforeSet('y',AppObject.isNumber);
-        self._beforeSet('state',AppObject.isNumber);
-        self._beforeSet('lineDash',AppObject.isArray);
-        self._beforeSet('fillStyle',AppObject.isColor);
-        self._beforeSet('strokeStyle',AppObject.isColor);
-        self._beforeSet('i',AppObject.isInt);
-        self._beforeSet('j',AppObject.isInt);
+        self._beforeSet('width',Validator.validateNumber);
+        self._beforeSet('height',Validator.validateNumber);
+        self._beforeSet('x',Validator.validateNumber);
+        self._beforeSet('y',Validator.validateNumber);
+        self._beforeSet('state',Validator.validateNumber);
+        self._beforeSet('lineDash',Validator.validateArray);
+        self._beforeSet('fillStyle',Validator.validateColor);
+        self._beforeSet('strokeStyle',Validator.validateColor);
+        self._beforeSet('i',Validator.validateInt);
+        self._beforeSet('j',Validator.validateInt);
     };
 
     return RectSet;
