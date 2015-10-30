@@ -1,4 +1,4 @@
-define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader','Grid','jquery'], function(AppObject,Math,MouseReader,CanvasLayer,KeyReader,Grid,$){
+define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader','Grid','jquery','Validator'], function(AppObject,Math,MouseReader,CanvasLayer,KeyReader,Grid,$,Validator){
     var CanvasEngine = function(options){
         console.log('intializing canvas engine...');
         var self = this;
@@ -31,7 +31,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader','Grid','jquer
 
     CanvasEngine.bindProperties = function(){
         var self = this;
-        self.onChange('viewX',function(newValue){
+        self._onChange('viewX',function(newValue){
             self.layers.forEach(function(layer){
                 $(layer.getElement()).css({
                     left:newValue
@@ -39,7 +39,7 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader','Grid','jquer
             });
         });
 
-        self.onChange('viewY',function(newValue){
+        self._onChange('viewY',function(newValue){
             self.layers.forEach(function(layer){
                 $(layer.getElement()).css({
                     top:newValue
@@ -47,7 +47,8 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader','Grid','jquer
             });
         });
 
-        self.onChange('scale',function(newValue){
+        /*
+        self._onChange('scale',function(newValue){
             self.layers.forEach(function(layer) {
                 $(layer.getElement()).css({
                     transform: 'scale(' + newValue + ',' + newValue + ')',
@@ -62,22 +63,26 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader','Grid','jquer
                     msTransformOrigin: '0 0'
                 });
             });
+        });*/
+
+        self._beforeSet('scale',function(oldVal){
+            return oldVal;
         });
 
-        self.onChange('width',function(newValue){
+        self._onChange('width',function(newValue){
             $(self.container).css({
                 width:newValue
             });
         });
 
-        self.onChange('height',function(newValue){
+        self._onChange('height',function(newValue){
             $(self.container).css({
                 height:newValue
             });
         });
 
 
-        self.onChange('container',function(newValue){
+        self._onChange('container',function(newValue){
             console.log('container changed!');
             $(newValue).css({
                 position:'relative',
@@ -378,11 +383,16 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader','Grid','jquer
      */
     CanvasEngine.prototype.createLayer = function(options,className){
         console.log('Canvas engine create layer..');
-        options = options===undefined?{}:options;
-        var type = options.type===undefined?'default':options.type;
+        options = Validator.validateObject({},options);
+        var type = Validator.validateString('default',options.type);
         var layer = null;
         var self = this;
         options.zIndex = self.layers.length;
+        console.log(options);
+
+        options.width = Validator.validateNumber(self.getWidth(),options.width);
+        options.height = Validator.validateNumber(self.getHeight(),options.height);
+
 
         if(className !== undefined){
             layer = new className(options,self);

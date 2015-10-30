@@ -33,40 +33,27 @@ define(['jquery','AppObject','Color'],function($,AppObject,Color){
 
     CanvasLayer.bindProperties = function(){
         var self = this;
-        self.onChange('zIndex',function(newValue){
+        self._onChange('zIndex',function(newValue){
             $(self.getElement()).css({
                 zIndex:newValue
             });
         });
 
-        self.onChange('opacity',function(newValue){
+        self._onChange('opacity',function(newValue){
             $(self.getElement()).css({
                 opacity:newValue
             });
         });
 
-        self.onChange('width',function(newValue){
-            self.resize(newValue,self.height);
+        self._onChange('width',function(newValue){
+            $(self.getElement()).attr('width',newValue);
         });
 
-        self.onChange('height',function(newValue){
-            self.resize(self.width,newValue);
+        self._onChange('height',function(newValue){
+            $(self.getElement()).attr('height',newValue);
         });
     };
 
-
-    /*
-     CanvasLayer: resize(int width, int height)
-     Redimensiona a camada de canvas
-     */
-    CanvasLayer.prototype.resize = function(width,height){
-        var self = this;
-        // self.saveState('tmp_image');
-        $(self.getElement()).attr('width',width);
-        $(self.getElement()).attr('height',height);
-        //self.restoreState('tmp_image');
-        return self;
-    };
 
     /*
      object: getVisibleArea()

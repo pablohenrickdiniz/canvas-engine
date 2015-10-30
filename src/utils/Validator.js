@@ -19,9 +19,19 @@ define(['lodash'],function(_){
             }
             return oldVal;
         },
+        validateObject:function(oldVal, newVal){
+            if(_.isObject(newVal)){
+                return newVal;
+            }
+            return oldVal;
+        },
         validateColor: function (oldVal, newVal) {
             var regex = Validator.regex;
-            if (regex.HEXADECIMAL_COLOR.test(newVal) || regex.RGB_COLOR.test(newVal) || regex.RGBA_COLOR.test(newVal)) {
+            if (
+                newVal === 'transparent' ||
+                regex.HEXADECIMAL_COLOR.test(newVal) ||
+                regex.RGB_COLOR.test(newVal) ||
+                regex.RGBA_COLOR.test(newVal)) {
                 return newVal;
             }
             return oldVal;

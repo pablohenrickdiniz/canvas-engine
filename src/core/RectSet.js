@@ -34,7 +34,7 @@ define(['AppObject','Color','Validator'],function(AppObject,Color,Validator){
         self._beforeSet('height',Validator.validateNumber);
         self._beforeSet('x',Validator.validateNumber);
         self._beforeSet('y',Validator.validateNumber);
-        self._beforeSet('state',Validator.validateNumber);
+        self._beforeSet('state',Validator.validateInt);
         self._beforeSet('lineDash',Validator.validateArray);
         self._beforeSet('fillStyle',Validator.validateColor);
         self._beforeSet('strokeStyle',Validator.validateColor);

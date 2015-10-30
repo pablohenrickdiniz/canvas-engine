@@ -89,7 +89,7 @@ define(['AppObject','ImageLoader','Validator'],function(AppObject,ImageLoader,Va
         self._beforeSet('layer',Validator.validateNumber);
         self._beforeSet('url',AppObject.isString);
 
-        self.onChange('url',function(url){
+        self._onChange('url',function(url){
             self.loaded = false;
             self.image = new Image();
             ImageLoader.load(url,function(img){

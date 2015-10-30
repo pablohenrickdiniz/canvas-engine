@@ -54,7 +54,7 @@ define(['lodash'],function(_){
         return self;
     };
 
-    AppObject.prototype.onChange = function(key,callback){
+    AppObject.prototype._onChange = function(key,callback){
         var self = this;
         if(self[key] !== undefined || self[key] === null){
             self._changeCallbacks[key] = callback;
@@ -62,7 +62,7 @@ define(['lodash'],function(_){
         return self;
     };
 
-    AppObject.prototype.unbindChange = function(key){
+    AppObject.prototype._unbindChange = function(key){
         var self = this;
         if(self._changeCallbacks[key] !== undefined){
             delete self._changeCallbacks[key];
