@@ -1,7 +1,7 @@
 /*
  CanvasLayer(Object options, CanvasEngine canvas)
  */
-define(['jquery','AppObject','Color'],function($,AppObject,Color){
+define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Validator){
     var CanvasLayer = function(options,canvas){
         console.log('Canvas Layer initialize...');
         var self = this;
@@ -10,11 +10,14 @@ define(['jquery','AppObject','Color'],function($,AppObject,Color){
         self.zIndex = 0;
         self.width = 300;
         self.height = 300;
+        self.left = 0;
+        self.top = 0;
         self.savedStates = [];
         self.name = '';
         self.mouseReader = null;
         self.element = null;
         self.opacity = 1;
+        self._aftResize = function(){};
 
         $(window).resize(function(){
             self.updateElement();
@@ -47,11 +50,42 @@ define(['jquery','AppObject','Color'],function($,AppObject,Color){
 
         self._onChange('width',function(newValue){
             $(self.getElement()).attr('width',newValue);
+            self._aftResize();
         });
 
         self._onChange('height',function(newValue){
             $(self.getElement()).attr('height',newValue);
+            self._aftResize();
         });
+
+        self._onChange('name',function(newValue){
+            if(newValue.length === 0){
+                $(self.getElement()).removeAttr('data-name');
+            }
+            else{
+                $(self.getElement()).attr('data-name',newValue);
+            }
+        });
+
+        self._onChange('left',function(left){
+            $(self.getElement()).css({
+                left:left
+            });
+        });
+
+        self._onChange('top',function(top){
+            $(self.getElement()).css({
+                top:top
+            });
+        });
+
+        self._beforeSet('_aftResize',Validator.validateFunction);
+        self._beforeSet('opacity',Validator.validateNumber);
+        self._beforeSet('width',Validator.validateNumber);
+        self._beforeSet('height',Validator.validateNumber);
+        self._beforeSet('zIndex',Validator.validateInt);
+        self._beforeSet('left',Validator.validateNumber);
+        self._beforeSet('top',Validator.validateNumber);
     };
 
 
@@ -387,6 +421,14 @@ define(['jquery','AppObject','Color'],function($,AppObject,Color){
         var context = self.getContext();
         context.clearRect.apply(context,arguments);
         return self;
+    };
+
+
+    CanvasLayer.prototype.afterResize = function(callback){
+        var self = this;
+        self.set({
+            _aftResize : callback
+        });
     };
 
     return CanvasLayer;

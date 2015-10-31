@@ -65,8 +65,8 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader','Grid','jquer
             });
         });*/
 
-        self._beforeSet('scale',function(oldVal){
-            return oldVal;
+        self._beforeSet('scale',function(){
+            return 1;
         });
 
         self._onChange('width',function(newValue){

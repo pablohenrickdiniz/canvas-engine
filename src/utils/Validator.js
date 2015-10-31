@@ -56,6 +56,12 @@ define(['lodash'],function(_){
             }
             return oldVal;
         },
+        validateFunction:function(oldVal, newVal){
+            if (_.isFunction(newVal)) {
+                return newVal;
+            }
+            return oldVal;
+        },
         isPercent:function(percent){
             return this.regex.PERCENT.test(percent);
         }
