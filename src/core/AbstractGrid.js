@@ -47,7 +47,6 @@ define(['AppObject','Validator'],function(AppObject,Validator){
     };
 
     AbstractGrid.prototype.isDrawable = function(){
-        console.log('AbstractGrid is drawable...');
         var self = this;
         return self.sw > 0 && self.sh > 0 && self.width >0 && self.height > 0;
     };

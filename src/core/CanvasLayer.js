@@ -6,6 +6,7 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
         console.log('Canvas Layer initialize...');
         var self = this;
         self.context = null;
+        self.element = null;
         self.canvas = canvas;
         self.zIndex = 0;
         self.width = 300;
@@ -17,15 +18,8 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
         self.mouseReader = null;
         self.element = null;
         self.opacity = 1;
+        self.backgroundColor = 'transparent';
         self._aftResize = function(){};
-
-        $(window).resize(function(){
-            self.updateElement();
-        });
-
-        $(self.getElement()).css({
-            'userSelect':'none'
-        });
 
         CanvasLayer.bindProperties.apply(self);
         self.set(options);
@@ -34,36 +28,35 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
     CanvasLayer.prototype = new AppObject();
 
 
+
     CanvasLayer.bindProperties = function(){
         var self = this;
-        self._onChange('zIndex',function(newValue){
+        self._onChange('zIndex',function(zIndex){
             $(self.getElement()).css({
-                zIndex:newValue
+                zIndex:zIndex
             });
         });
 
-        self._onChange('opacity',function(newValue){
+        self._onChange('opacity',function(opacity){
             $(self.getElement()).css({
-                opacity:newValue
+                opacity:opacity
             });
         });
 
-        self._onChange('width',function(newValue){
-            $(self.getElement()).attr('width',newValue);
-            self._aftResize();
+        self._onChange('width',function(width){
+            $(self.getElement()).attr('width',width);
         });
 
-        self._onChange('height',function(newValue){
-            $(self.getElement()).attr('height',newValue);
-            self._aftResize();
+        self._onChange('height',function(height){
+            $(self.getElement()).attr('height',height);
         });
 
-        self._onChange('name',function(newValue){
-            if(newValue.length === 0){
+        self._onChange('name',function(name){
+            if(name.length === 0){
                 $(self.getElement()).removeAttr('data-name');
             }
             else{
-                $(self.getElement()).attr('data-name',newValue);
+                $(self.getElement()).attr('data-name',name);
             }
         });
 
@@ -79,6 +72,13 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
             });
         });
 
+        self._onChange('backgroundColor',function(backgroundColor){
+            $(self.getElement()).css({
+                backgroundColor:backgroundColor
+            });
+        });
+
+
         self._beforeSet('_aftResize',Validator.validateFunction);
         self._beforeSet('opacity',Validator.validateNumber);
         self._beforeSet('width',Validator.validateNumber);
@@ -86,6 +86,14 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
         self._beforeSet('zIndex',Validator.validateInt);
         self._beforeSet('left',Validator.validateNumber);
         self._beforeSet('top',Validator.validateNumber);
+        self._beforeSet('backgroundColor',Validator.validateColor);
+
+
+        self._afterChange(function(){
+            if(self._isChanged('width') || self._isChanged('height')){
+                self._aftResize();
+            }
+        });
     };
 
 
@@ -101,7 +109,6 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
      }
      */
     CanvasLayer.prototype.getVisibleArea = function(){
-        console.log('Canvas Layer get visible Area...');
         var self = this;
         var width = Math.min(self.width,self.canvas.getWidth());
         var height = Math.min(self.height,self.canvas.getHeight());
@@ -200,23 +207,17 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
     CanvasLayer.prototype.getElement = function(){
         //console.log('Canvas layer get element...')
         var self = this;
-        if(self.element === null && self.canvas !== null){
+        if(self.element === null){
             self.element = document.createElement('canvas');
             $(self.element).css({
-                zIndex:self.zIndex,
+                pointerEvents:'none',
+                userSelect:'none',
                 position:'absolute',
-                backgroundColor:'transparent',
-                left:self.canvas.viewX,
-                top:self.canvas.viewY,
-                pointerEvents:'none'
+                left:self.left,
+                top:self.top,
+                backgroundColor:self.backgroundColor,
+                opacity:self.opacity
             });
-
-            $(self.element).addClass('canvas-layer');
-            $(self.element).attr('width',self.width);
-            $(self.element).attr('height',self.height);
-            if(self.name !== ''){
-                $(self.element).attr('data-name',self.name);
-            }
         }
         return self.element;
     };
@@ -231,6 +232,9 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
         var self = this;
         if(self.context === null){
             self.context = self.getElement().getContext('2d');
+            if(self.context.setLineDash === undefined){
+                self.context.setLineDash = function(){};
+            }
         }
         return self.context;
     };
@@ -386,29 +390,6 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
             blue:p[2],
             alpha:p[3]
         });
-    };
-
-    /*
-     CanvasLayer: updateElement()
-     update layer position and scale
-     */
-    CanvasLayer.prototype.updateElement = function(){
-        //console.log('Canvas layer refresh...');
-        var self = this;
-        var left = 0;
-        var top = 0;
-        var scale = 1;
-        if(self.canvas !== undefined){
-            left = self.canvas.viewX;
-            top = self.canvas.viewY;
-            scale = self.canvas.scale;
-        }
-        $(self.getElement()).css({
-            left:left,
-            top:top,
-            scale:scale
-        });
-        return self;
     };
 
     /*

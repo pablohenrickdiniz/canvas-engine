@@ -33,10 +33,10 @@ define(['AppObject','Validator'],function(AppObject,Validator){
      */
     Map.prototype.getAreaInterval = function(options){
         var self = this;
-        var x = Validator.validateNumber(options.x,0);
-        var y = Validator.validateNumber(options.y,0);
-        var width =  Validator.validateNumber(options.width,0);
-        var height =  Validator.validateNumber(options.height,0);
+        var x = Validator.validateNumber(0,options.x);
+        var y = Validator.validateNumber(0,options.y);
+        var width =  Validator.validateNumber(0,options.width);
+        var height =  Validator.validateNumber(0,options.height);
 
         var si = parseInt(Math.floor(y/self.tile_h));
         var sj = parseInt(Math.floor(x/self.tile_w));

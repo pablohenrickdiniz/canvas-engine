@@ -17,6 +17,7 @@ define(['lodash'],function(_){
             if (_.isNumber(newVal)) {
                 return newVal;
             }
+
             return oldVal;
         },
         validateObject:function(oldVal, newVal){
@@ -58,6 +59,12 @@ define(['lodash'],function(_){
         },
         validateFunction:function(oldVal, newVal){
             if (_.isFunction(newVal)) {
+                return newVal;
+            }
+            return oldVal;
+        },
+        validateElement:function(oldVal,newVal){
+            if(_.isElement(newVal)){
                 return newVal;
             }
             return oldVal;

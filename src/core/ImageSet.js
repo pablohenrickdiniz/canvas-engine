@@ -87,7 +87,7 @@ define(['AppObject','ImageLoader','Validator'],function(AppObject,ImageLoader,Va
         self._beforeSet('sWidth',Validator.validateNumber);
         self._beforeSet('sHeight',Validator.validateNumber);
         self._beforeSet('layer',Validator.validateNumber);
-        self._beforeSet('url',AppObject.isString);
+        self._beforeSet('url',Validator.validateString);
 
         self._onChange('url',function(url){
             self.loaded = false;

@@ -4,7 +4,7 @@ define(['lodash'],function(_){
         self._changeCallbacks = [];
         self._bfrSet = [];
         self._changed = [];
-        self._aftChange = null;
+        self._aftChange = [];
     };
 
     AppObject.prototype.set = function(options){
@@ -29,8 +29,10 @@ define(['lodash'],function(_){
                     }
                 }
             });
-            if(self._aftChange !== null && Object.keys(self._changed).length > 0){
-                self._aftChange();
+            if(self._aftChange.length > 0 && Object.keys(self._changed).length > 0){
+                self._aftChange.forEach(function(callback){
+                    callback();
+                });
             }
             self._changed = [];
         }
@@ -38,7 +40,7 @@ define(['lodash'],function(_){
     };
 
     AppObject.prototype._afterChange = function(callback){
-        this._aftChange = callback;
+        this._aftChange.push(callback);
     };
 
     AppObject.prototype._isChanged = function(key){

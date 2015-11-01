@@ -1,7 +1,6 @@
-define(['jquery'],function($){
-    var MouseReader = function(element) {
+define(['AppObject','jquery','Validator'],function(AppObject,$,Validator){
+    var MouseReader = function(properties) {
         var self = this;
-        self.element = element;
         self.leftdown = [];
         self.rightdown = [];
         self.middledown = [];
@@ -9,41 +8,42 @@ define(['jquery'],function($){
         self.rightup = [];
         self.middleup = [];
         self.mousemove = [];
-        self.left = false;
-        self.middle = false;
-        self.right = false;
-        self.lastDown = {
-            left:{x:0,y:0},
-            right:{x:0,y:0},
-            middle:{x:0,y:0}
-        };
-        self.lastUp = {
-            left:{x:0,y:0},
-            right:{x:0,y:0},
-            middle:{x:0,y:0}
-        };
-        self.lastMove = {x:0,y:0};
-        self.lastWheel = 0;
-        self.mouseWheel = [];
-        self.start();
+        self.element = null;
+        self.initialize();
+        MouseReader.bindProperties.apply(self);
+        self.set(properties);
     };
 
-    MouseReader.prototype.start = function () {
+    MouseReader.prototype = new AppObject();
+
+
+    MouseReader.bindProperties = function(){
         var self = this;
-        $(self.element).mousemove(function(event){
-            var target = event.target;
-            var x = event.offsetX;
-            var y = event.offsetY;
-            self.lastMove = {x:x,y:y};
-            if(target === $(self.element)[0]){
+        self._beforeSet('element',function(oldVal,newVal){
+            newVal = Validator.validateElement(oldVal,newVal);
+            if(oldVal !== newVal){
+                $(oldVal).unbind('mousemove');
+                $(oldVal).unbind('mousedown');
+                $(oldVal).unbind('mousewheel');
+            }
+            return newVal;
+        });
+
+        self._onChange('element',function(element){
+            self.initializeVars();
+            $(element).mousemove(function(event){
+                event.preventDefault();
+                var target = event.target;
+                var x = event.offsetX;
+                var y = event.offsetY;
+                self.lastMove = {x:x,y:y};
                 self.mousemove.forEach(function(callback){
                     callback.apply(self,[event]);
                 });
-            }
-        });
+            });
 
-        $(self.element).mousedown(function(event){
-            if(event.target === $(self.element)[0]){
+            $(element).mousedown(function(event){
+                event.preventDefault();
                 var pos = {x:event.offsetX,y:event.offsetY};
                 switch (event.which) {
                     case 1:
@@ -67,12 +67,62 @@ define(['jquery'],function($){
                             callback.apply(self,[event]);
                         });
                 }
+
+            });
+
+            $(element).mouseout(function(event){
+                self.left = false;
+                self.right = false;
+                self.middle = false;
+            });
+
+
+            var callback = function(e){
+                e.preventDefault();
+                self.lastWheel = e.detail? e.detail*(-120) : e.wheelDelta;
+                self.mouseWheel.forEach(function(callback){
+                    callback.apply(self,[e]);
+                });
+            };
+
+            var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
+            if ($(element)[0].attachEvent) { //if IE (and Opera depending on user setting)
+                $(element)[0].attachEvent("on" + mousewheelevt, callback);
+            }
+            else if ($(self.element)[0].addEventListener) { //WC3 browsers
+                $(element)[0].addEventListener(mousewheelevt, callback, false);
             }
         });
+    };
 
 
+    MouseReader.prototype.initializeVars = function(){
+        var self = this;
+        self.left = false;
+        self.middle = false;
+        self.right = false;
+        self.lastDown = {
+            left:{x:0,y:0},
+            right:{x:0,y:0},
+            middle:{x:0,y:0}
+        };
+        self.lastUp = {
+            left:{x:0,y:0},
+            right:{x:0,y:0},
+            middle:{x:0,y:0}
+        };
+        self.lastMove = {x:0,y:0};
+        self.lastWheel = 0;
+        self.mouseWheel = [];
+    };
+
+
+    MouseReader.prototype.initialize = function () {
+        var self = this;
+        self.initializeVars();
         $(document).mouseup(function(event){
-            if(event.target === $(self.element)[0]){
+            event.preventDefault();
+            if(self.element !== null){
                 var pos = {x:event.offsetX,y:event.offsetY};
                 switch (event.which) {
                     case 1:
@@ -98,37 +148,6 @@ define(['jquery'],function($){
                 }
             }
         });
-
-        $(self.element).mouseout(function(event){
-            self.left = false;
-            self.right = false;
-            self.middle = false;
-        });
-
-
-        var callback = function(e){
-            e.preventDefault();
-            self.lastWheel = e.detail? e.detail*(-120) : e.wheelDelta;
-            self.mouseWheel.forEach(function(callback){
-                callback.apply(self,[e]);
-            });
-        };
-
-        var mousewheelevt=(/Firefox/i.test(navigator.userAgent))? "DOMMouseScroll" : "mousewheel";
-        if ($(self.element)[0].attachEvent) { //if IE (and Opera depending on user setting)
-            $(self.element)[0].attachEvent("on" + mousewheelevt, callback);
-        }
-        else if ($(self.element)[0].addEventListener) { //WC3 browsers
-            $(self.element)[0].addEventListener(mousewheelevt, callback, false);
-        }
-    };
-
-
-    MouseReader.prototype.unbindEvents = function(){
-        var self = this;
-        $(self.element).unbind('mousemove');
-        $(self.element).unbind('mousedown');
-        $(self.element).unbind('mousewheel');
     };
 
     MouseReader.prototype.onmousewheel = function(callback){

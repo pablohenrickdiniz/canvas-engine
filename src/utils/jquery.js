@@ -1,3 +1,3 @@
-define(['jquery-tmp'],function(jeq){
+define(['jquery'],function(jeq){
     return jeq.noConflict();
 });
