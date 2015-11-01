@@ -90,9 +90,6 @@ define(['AppObject','Math','MouseReader','CanvasLayer','KeyReader','Grid','jquer
             }).addClass('transparent-background canvas-engine').on('contextmenu',function(e){
                 e.preventDefault();
             }).empty();
-            self.layers.forEach(function(layer){
-                $(container).append(layer.getElement());
-            });
 
             self.getMouseReader().set({
                 element:container

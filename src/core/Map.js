@@ -64,6 +64,16 @@ define(['AppObject','Validator'],function(AppObject,Validator){
         return self;
     };
 
+    Map.prototype.getFullWidth = function(){
+        var self = this;
+        return self.width*self.tile_w;
+    };
+
+    Map.prototype.getFullHeight = function(){
+        var self = this;
+        return self.height*self.tile_h;
+    };
+
     /*
         Map : set(Object options)
         Altera as propriedades do mapa

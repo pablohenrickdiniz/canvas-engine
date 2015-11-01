@@ -31,6 +31,7 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
 
     CanvasLayer.bindProperties = function(){
         var self = this;
+
         self._onChange('zIndex',function(zIndex){
             $(self.getElement()).css({
                 zIndex:zIndex
@@ -44,11 +45,11 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
         });
 
         self._onChange('width',function(width){
-            $(self.getElement()).attr('width',width);
+            $(self.getElement()).prop('width',width);
         });
 
         self._onChange('height',function(height){
-            $(self.getElement()).attr('height',height);
+            $(self.getElement()).prop('height',height);
         });
 
         self._onChange('name',function(name){
@@ -87,13 +88,6 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
         self._beforeSet('left',Validator.validateNumber);
         self._beforeSet('top',Validator.validateNumber);
         self._beforeSet('backgroundColor',Validator.validateColor);
-
-
-        self._afterChange(function(){
-            if(self._isChanged('width') || self._isChanged('height')){
-                self._aftResize();
-            }
-        });
     };
 
 
