@@ -1,4 +1,5 @@
 define(['AppObject','Color','Validator'],function(AppObject,Color,Validator){
+    'use strict';
     var RectSet = function(options){
         var self = this;
         self.width = 32;
@@ -12,11 +13,13 @@ define(['AppObject','Color','Validator'],function(AppObject,Color,Validator){
         self.state = 0;
         self.i = 0;
         self.j = 0;
+        AppObject.call(self);
         RectSet.bindProperties.apply(self);
         self.set(options);
     };
 
-    RectSet.prototype = new AppObject();
+    RectSet.prototype = Object.create(AppObject.prototype);
+    RectSet.prototype.constructor = RectSet;
 
     RectSet.prototype.getLine = function(){
         var self = this;
@@ -40,6 +43,7 @@ define(['AppObject','Color','Validator'],function(AppObject,Color,Validator){
         self._beforeSet('strokeStyle',Validator.validateColor);
         self._beforeSet('i',Validator.validateInt);
         self._beforeSet('j',Validator.validateInt);
+        self._accessible(['width','height','x','y']);
     };
 
     return RectSet;

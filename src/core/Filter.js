@@ -1,4 +1,5 @@
 define(['Color'],function(Color) {
+    'use strict';
     return {
         filterList:[],
         filtering:false,

@@ -1,19 +1,26 @@
 define(['AppObject','IdGenerator'],function(AppObject){
+    'use strict';
     var Frame = function(options){
         var self = this;
         self.imageSets = [];
         self.soundEffect = null;
         self.parent = null;
+        Frame.bindProperties.apply(self);
         self.set(options);
     };
 
-    Frame.prototype = new AppObject();
+    Frame.prototype = Object.create(AppObject.prototype);
+    Frame.prototype.constructor = Frame;
 
-    Frame.prototype.toJSON = function(){
+
+    Frame.bindProperties = function(){
         var self = this;
-        return {
-            imageSets: self.imageSets.map(function(imageSet){return imageSet.toJSON();})
-        };
+        self._accessible(['imageSets']);
+    };
+
+    Frame.prototype.add = function(imageSet){
+        var self = this;
+        self.imageSets.push(imageSet);
     };
 
     Frame.prototype.removeImageSet = function(imageSet){

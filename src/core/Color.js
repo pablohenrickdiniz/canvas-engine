@@ -1,14 +1,17 @@
 define(['AppObject'], function (AppObject) {
+    'use strict';
     var Color = function (options) {
         var self = this;
         self.red = 0;
         self.blue = 0;
         self.green = 0;
         self.alpha = 1;
+        AppObject.call(self);
         self.set(options);
     };
 
-    Color.prototype = new AppObject();
+    Color.prototype = Object.create(AppObject.prototype);
+    Color.prototype.constructor = Color;
 
     /*
      boolean ; isTransparent()

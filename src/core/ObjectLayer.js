@@ -1,10 +1,14 @@
 define(['CanvasLayer'],function(CanvasLayer){
+    'use strict';
     var ObjectLayer = function(options,canvas){
         var self = this;
         self.objects = [];
-        CanvasLayer.apply(self,[options,canvas]);
+        CanvasLayer.call(self,options,canvas);
     };
-    ObjectLayer.prototype = new CanvasLayer();
+
+
+    ObjectLayer.prototype = Object.create(CanvasLayer.prototype);
+    ObjectLayer.prototype.constructor = ObjectLayer;
 
     ObjectLayer.prototype.add = function(object){
         var self = this;

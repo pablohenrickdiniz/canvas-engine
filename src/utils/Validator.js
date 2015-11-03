@@ -1,4 +1,5 @@
 define(['lodash'],function(_){
+    'use strict';
     var Validator = {
         regex : {
             PERCENT:/^[0-9]+(\.[0-9]+)?%$/,
@@ -11,6 +12,7 @@ define(['lodash'],function(_){
             if (Validator.regex.INT.test(newVal)) {
                 return newVal;
             }
+
             return oldVal;
         },
         validateNumber: function (oldVal, newVal) {
@@ -71,6 +73,9 @@ define(['lodash'],function(_){
         },
         isPercent:function(percent){
             return this.regex.PERCENT.test(percent);
+        },
+        isInt:function(val){
+            return Validator.regex.INT.test(val);
         }
     };
     return Validator;

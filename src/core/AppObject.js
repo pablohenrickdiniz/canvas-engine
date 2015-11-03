@@ -1,53 +1,45 @@
-define(['lodash'],function(_){
+define(['lodash','IdGenerator'],function(_,Id){
+    'use strict';
     var AppObject = function(){
         var self = this;
         self._changeCallbacks = [];
         self._bfrSet = [];
         self._changed = [];
         self._aftChange = [];
+        self._acc = [];
     };
 
-    AppObject.id = 0;
-
-    AppObject.prototype._uniqueId = function(){
-        var self = this;
-        if(self._id === undefined){
-            self._id = ++AppObject.id;
-        }
-        return self._id;
-    };
+    AppObject.validate = true;
 
 
     AppObject.prototype.set = function(options){
         var self = this;
         if(options instanceof Object){
-            var id = self._uniqueId();
             Object.keys(self).forEach(function(key){
                 if(options[key] !== undefined){
                     var newValue = options[key];
                     var oldValue = self[key];
                     if(!_.isEqual(oldValue,newValue)){
-                        if(self._bfrSet[id] === undefined){
-                            self._bfrSet[id] = {};
-                        }
+                        if(AppObject.validate){
+                            if(self._bfrSet === undefined){
+                                self._bfrSet = {};
+                            }
 
-                        if(self._bfrSet[id][key] !== undefined){
-                            newValue = self._bfrSet[id][key](oldValue,newValue);
+                            if(self._bfrSet[key] !== undefined){
+                                newValue = self._bfrSet[key](oldValue,newValue);
+                            }
                         }
 
                         if(!_.isEqual(oldValue,newValue)){
                             self[key] = newValue;
-                            if(self._changed[id] === undefined){
-                                self._changed[id] = {};
+                            if(self._changed === undefined){
+                                self._changed = {};
                             }
-                            self._changed[id][key] = true;
+                            self._changed[key] = true;
 
-                            if(self._changeCallbacks[id] === undefined){
-                                self._changeCallbacks[id] = {};
-                            }
 
-                            if(self._changeCallbacks[id][key] !== undefined){
-                                self._changeCallbacks[id][key](newValue);
+                            if(self._changeCallbacks[key] !== undefined){
+                                self._changeCallbacks[key](newValue);
                             }
                         }
                     }
@@ -55,67 +47,106 @@ define(['lodash'],function(_){
             });
 
 
-            if(self._aftChange[id] !== undefined && self._aftChange[id].length > 0 && Object.keys(self._changed[id]).length > 0){
-                self._aftChange[id].forEach(function(callback){
+            if(self._aftChange !== undefined && self._aftChange.length > 0 && Object.keys(self._changed).length > 0){
+                self._aftChange.forEach(function(callback){
                     callback();
                 });
             }
-            self._changed[id] = [];
+            self._changed = [];
         }
         return self;
     };
 
     AppObject.prototype._afterChange = function(callback){
         var self = this;
-        var id = self._uniqueId();
-        if(self._aftChange[id] === undefined){
-            self._aftChange[id] = [];
+        if(self._aftChange === undefined){
+            self._aftChange = [];
         }
-        self._aftChange[id].push(callback);
+        self._aftChange.push(callback);
     };
 
     AppObject.prototype._isChanged = function(key){
         var self= this;
-        var id = self._uniqueId();
-        return self._changed[id][key] !== undefined;
+        return self._changed[key] !== undefined;
     };
 
     AppObject.prototype._beforeSet = function(key,callback){
         var self = this;
-        var id = self._uniqueId();
         if(self[key] !== undefined || self[key] === null){
-            if(self._bfrSet[id] === undefined){
-                self._bfrSet[id] = {};
+            if(self._bfrSet === undefined){
+                self._bfrSet = {};
             }
-            self._bfrSet[id][key] = callback;
+            self._bfrSet[key] = callback;
         }
         return self;
     };
 
     AppObject.prototype._onChange = function(key,callback){
         var self = this;
-        var id = self._uniqueId();
         if(self[key] !== undefined || self[key] === null){
-            if(self._changeCallbacks[id] === undefined){
-                self._changeCallbacks[id] = {};
+            if(self._changeCallbacks === undefined){
+                self._changeCallbacks = {};
             }
 
-            self._changeCallbacks[id][key] = callback;
+            self._changeCallbacks[key] = callback;
         }
         return self;
     };
 
     AppObject.prototype._unbindChange = function(key){
         var self = this;
-        var id = self._uniqueId();
-        if(self._changeCallbacks[id] !== undefined && self._changeCallbacks[id][key] !== undefined){
-            delete self._changeCallbacks[id][key];
+        if(self._changeCallbacks !== undefined && self._changeCallbacks[key] !== undefined){
+            delete self._changeCallbacks[key];
         }
     };
 
     AppObject.prototype.props =function(){
         return Object.keys(this);
     };
+
+    AppObject.prototype._accessible = function(vars){
+        var  self = this;
+        if(vars !== undefined){
+            self._acc = {};
+            vars.forEach(function(key){
+                if(self[key] !== undefined){
+                    self._acc[key] = true;
+                }
+            });
+        }
+        else{
+            if(self._acc  === undefined){
+                self._acc = {};
+            }
+            return Object.keys(self._acc);
+        }
+    };
+
+    AppObject.prototype._props = function(){
+        var self = this;
+        var acessible = self._accessible();
+        var props = {};
+        acessible.forEach(function(key){
+            props[key] = self._propsR(self[key]);
+        });
+        return props;
+    };
+
+
+    AppObject.prototype._propsR = function(prop){
+        var self = this;
+        if(_.isArray(prop)){
+           prop = prop.map(function(child){
+                return self._propsR(child);
+           });
+        }
+        else if(prop instanceof AppObject){
+            prop = prop._props();
+        }
+
+        return prop;
+    };
+
 
     return AppObject;
 });

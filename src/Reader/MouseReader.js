@@ -1,4 +1,5 @@
 define(['AppObject','jquery','Validator'],function(AppObject,$,Validator){
+    'use strict';
     var MouseReader = function(properties) {
         var self = this;
         self.leftdown = [];
@@ -10,12 +11,13 @@ define(['AppObject','jquery','Validator'],function(AppObject,$,Validator){
         self.mousemove = [];
         self.element = null;
         self.initialize();
+        AppObject.call(self);
         MouseReader.bindProperties.apply(self);
         self.set(properties);
     };
 
-    MouseReader.prototype = new AppObject();
-
+    MouseReader.prototype = Object.create(AppObject.prototype);
+    MouseReader.prototype.constructor = MouseReader;
 
     MouseReader.bindProperties = function(){
         var self = this;

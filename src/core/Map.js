@@ -10,6 +10,7 @@
     });
  */
 define(['AppObject','Validator'],function(AppObject,Validator){
+    'use strict';
     var Map = function(options){
         console.log('Initializing Map...');
         var self = this;
@@ -20,11 +21,13 @@ define(['AppObject','Validator'],function(AppObject,Validator){
         self.imageSets = [];
         self.parent = null;
         self.renderIntervals = [];
+        AppObject.call(self);
         Map.bindProperties.apply(self);
         self.set(options);
     };
 
-    Map.prototype = new AppObject();
+    Map.prototype = Object.create(AppObject.prototype);
+    Map.prototype.constructor = Map;
 
     /*
         Object: getAreaInterval(Object options)
@@ -92,6 +95,7 @@ define(['AppObject','Validator'],function(AppObject,Validator){
                 self.parent.applyToLayers({width:self.width*self.tile_w, height:self.height*self.tile_h});
             }
         });
+        self._accessible(['width','height','tile_w','tile_h','imageSets']);
     };
 
     return Map;

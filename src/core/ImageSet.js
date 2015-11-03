@@ -15,6 +15,7 @@
     });
  */
 define(['AppObject','ImageLoader','Validator'],function(AppObject,ImageLoader,Validator){
+    'use strict';
     var ImageSet = function(options){
         var self = this;
         self.loads = [];
@@ -34,15 +35,17 @@ define(['AppObject','ImageLoader','Validator'],function(AppObject,ImageLoader,Va
         self.image = null;
         self.parent = null;
         self.selected = false;
+        AppObject.call(self);
         ImageSet.bindProperties.apply(self);
         self.set(options);
     };
 
-    ImageSet.prototype = new AppObject();
+    ImageSet.prototype = Object.create(AppObject.prototype);
+    ImageSet.prototype.constructor = ImageSet;
 
 
     ImageSet.prototype.clone = function(){
-        return new ImageSet(this.toJSON());
+        return new ImageSet(this._props());
     };
 
 
@@ -88,6 +91,7 @@ define(['AppObject','ImageLoader','Validator'],function(AppObject,ImageLoader,Va
         self._beforeSet('sHeight',Validator.validateNumber);
         self._beforeSet('layer',Validator.validateNumber);
         self._beforeSet('url',Validator.validateString);
+        self._accessible(['url','x','y','width','height','sx','sy','sWidth','sHeight','layer']);
 
         self._onChange('url',function(url){
             self.loaded = false;
@@ -97,27 +101,6 @@ define(['AppObject','ImageLoader','Validator'],function(AppObject,ImageLoader,Va
                 self.image = img;
             });
         });
-    };
-
-    /*
-       Object: toJSON()
-       Exporta para o formato JSON para
-       ser usado por outras aplicações
-     */
-    ImageSet.prototype.toJSON = function(){
-        var self = this;
-        return {
-            url:self.url,
-            x:self.x,
-            y:self.y,
-            width:self.width,
-            height:self.height,
-            sx:self.sx,
-            sy:self.sy,
-            sWidth:self.sWidth,
-            sHeight:self.sHeight,
-            layer:self.layer
-        };
     };
 
     /*

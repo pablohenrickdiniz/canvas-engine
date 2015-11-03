@@ -1,4 +1,5 @@
 define(['jquery'],function($){
+    'use strict';
     var KeyReader = function(element){
         var self = this;
         self.element = element;

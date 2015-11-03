@@ -13,17 +13,18 @@
     });
  */
 define(['RectSet','AbstractGrid','Color','lodash'],function(RectSet,AbstractGrid,Color,_){
+    'use strict';
     var Grid = function(options){
         console.log('initializing Grid...');
         var self = this;
         self.rectSets = [];
         self.checkedSets = [];
-        AbstractGrid.apply(self,[options]);
+        AbstractGrid.call(self,options);
         Grid.bindProperties.apply(self);
     };
 
-    Grid.prototype = new AbstractGrid();
-
+    Grid.prototype = Object.create(AbstractGrid.prototype);
+    Grid.prototype.constructor = Grid;
 
 
     Grid.bindProperties = function(){

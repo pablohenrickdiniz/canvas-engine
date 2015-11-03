@@ -1,4 +1,5 @@
-define(['AppObject','FrameSync','Validator'],function(AppObject,FrameSync,Validator){
+define(['AppObject','FrameSync','Validator','Frame'],function(AppObject,FrameSync,Validator,Frame){
+    'use strict';
     var Animation = function(options){
         var self = this;
         self.speed = 3;
@@ -14,11 +15,13 @@ define(['AppObject','FrameSync','Validator'],function(AppObject,FrameSync,Valida
         self.frameSync = null;
         self.canvasLayer = null;
         self.onStepCall = null;
+        AppObject.call(self);
         Animation.bindProperties.apply(self);
         self.set(options);
     };
 
-    Animation.prototype = new AppObject();
+    Animation.prototype = Object.create(AppObject.prototype);
+    Animation.prototype.constructor = Animation;
 
     Animation.bindProperties = function(){
         var self = this;
@@ -30,6 +33,7 @@ define(['AppObject','FrameSync','Validator'],function(AppObject,FrameSync,Valida
         self._beforeSet('y',Validator.validateNumber);
         self._beforeSet('width',Validator.validateNumber);
         self._beforeSet('height',Validator.validateNumber);
+        self._accessible(['speed','repeat','frames','x','y','width','height']);
     };
 
     Animation.prototype.execute = function(){
@@ -84,19 +88,67 @@ define(['AppObject','FrameSync','Validator'],function(AppObject,FrameSync,Valida
         return self;
     };
 
-    Animation.prototype.addFrame = function(frame){
+    Animation.prototype.add = function(frame){
         var self = this;
-        frame.parent = self;
-        self.frames.push(frame);
+        if(frame instanceof Frame){
+            frame.parent = self;
+            self.frames.push(frame);
+        }
         return self;
     };
 
-    Animation.prototype.removeFrame = function(frame){
+    Animation.prototype.get = function(index){
         var self = this;
-        var index = self.frames.indexOf(frame);
+        if(self.frames[index] !== undefined){
+            return self.frames[index];
+        }
+        return null;
+    };
+
+    Animation.prototype.set = function(index,frame){
+        var self = this;
+        if(self.frames[index] !== undefined){
+            self.frames[index] = frame;
+        }
+        return self;
+    };
+
+    Animation.prototype.swap = function(indexA,indexB){
+        var self = this;
+        if(self.frames[indexA] !== undefined && self.frames[indexB] !== undefined){
+            var aux = self.frames[indexA];
+            self.frames[indexA] = self.frames[indexB];
+            self.frames[indexB] = aux;
+        }
+        return self;
+    };
+
+    /*
+        Animation: remove(int index | Frame frame)
+        Remove um quadro de animação
+     */
+    Animation.prototype.remove = function(frame){
+        var self = this;
+
+
+        var index = -1;
+        if(frame instanceof Frame){
+            index = self.frames.indexOf(frame);
+        }
+        else if(Validator.isInt(frame) && self.frames[frame] !== undefined){
+            index = frame;
+        }
+
         if(index !== -1){
             self.frames.splice(index,1);
         }
+
+        return self;
+    };
+
+    Animation.prototype.clearFrames = function(){
+        var self = this;
+        self.frames = [];
         return self;
     };
 
@@ -109,16 +161,6 @@ define(['AppObject','FrameSync','Validator'],function(AppObject,FrameSync,Valida
 
     Animation.prototype.isRunning = function() {
         return this.running;
-    };
-
-    Animation.prototype.toJSON = function(){
-        var self = this;
-        return {
-            speed:self.speed,
-            frames:self.frames.map(function(frame){return frame.toJSON();}),
-            width:self.width,
-            height:self.height
-        };
     };
 
     return Animation;

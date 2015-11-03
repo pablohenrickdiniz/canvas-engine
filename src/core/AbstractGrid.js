@@ -17,6 +17,7 @@
 
  */
 define(['AppObject','Validator'],function(AppObject,Validator){
+    'use strict';
     var AbstractGrid = function(options){
         console.log('initializing Abstract Grid...');
         var self = this;
@@ -29,11 +30,13 @@ define(['AppObject','Validator'],function(AppObject,Validator){
         self.parent = null;
         self.fillStyle = 'transparent';
         self.strokeStyle = '#000000';
+        AppObject.call(self);
         AbstractGrid.bindProperties.apply(self);
         self.set(options);
     };
 
-    AbstractGrid.prototype = new AppObject();
+    AbstractGrid.prototype = Object.create(AppObject.prototype);
+    AbstractGrid.prototype.constructor = AbstractGrid;
 
 
     AbstractGrid.bindProperties = function(){

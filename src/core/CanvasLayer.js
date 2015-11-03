@@ -2,6 +2,7 @@
  CanvasLayer(Object options, CanvasEngine canvas)
  */
 define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Validator){
+    'use strict';
     var CanvasLayer = function(options,canvas){
         console.log('Canvas Layer initialize...');
         var self = this;
@@ -18,16 +19,16 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
         self.mouseReader = null;
         self.element = null;
         self.opacity = 1;
+        self.visible = true;
         self.backgroundColor = 'transparent';
-        self._aftResize = function(){};
 
+        AppObject.call(self);
         CanvasLayer.bindProperties.apply(self);
         self.set(options);
     };
 
-    CanvasLayer.prototype = new AppObject();
-
-
+    CanvasLayer.prototype = Object.create(AppObject.prototype);
+    CanvasLayer.prototype.constructor = CanvasLayer;
 
     CanvasLayer.bindProperties = function(){
         var self = this;
@@ -42,6 +43,15 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
             $(self.getElement()).css({
                 opacity:opacity
             });
+        });
+
+        self._onChange('visible',function(visible){
+            if(visible){
+                self.show();
+            }
+            else{
+                self.hide();
+            }
         });
 
         self._onChange('width',function(width){
@@ -88,6 +98,7 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
         self._beforeSet('left',Validator.validateNumber);
         self._beforeSet('top',Validator.validateNumber);
         self._beforeSet('backgroundColor',Validator.validateColor);
+        self._beforeSet('visible',Validator.validateBoolean);
     };
 
 
@@ -234,72 +245,6 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
     };
 
     /*
-     CanvasLayer: drawGrid(Grid grid)
-     desenha a grade grid na camada
-     */
-    CanvasLayer.prototype.drawGrid = function(grid){
-        //console.log('Canvas layer draw grid...');
-        var self = this;
-        var context = self.getContext();
-        grid.rectSets.forEach(function(row){
-            row.forEach(function(rectSet){
-                context.fillStyle = rectSet.fillStyle;
-                context.strokeStyle = rectSet.strokeStyle;
-                context.setLineDash(rectSet.lineDash);
-                context.lineWidth = rectSet.lineWidth;
-                context.fillRect(rectSet.x,rectSet.y,rectSet.width,rectSet.height);
-                context.strokeRect(rectSet.x,rectSet.y,rectSet.width,rectSet.height);
-            });
-        });
-        grid.parent = this;
-        return self;
-    };
-
-    /*
-     CanvasLayer : drawAbstractGrid(AbstractGrid grid)
-     Desenha a grade grid na camada
-     */
-    CanvasLayer.prototype.drawAbstractGrid = function(grid){
-        //console.log('Canvas layer draw abstract grid...');
-        var self = this;
-        if(grid.isDrawable()){
-            var context = self.getContext();
-            context.fillStyle = 'transparent';
-            context.strokeStyle = (new Color({alpha:0.2})).toRGBA();
-            context.lineWidth = 1;
-            context.lineDash = [];
-            var visibleArea = self.getVisibleArea();
-            var vsi = visibleArea.x !== 0?Math.floor(visibleArea.x/grid.sw):0;
-            var vsj = visibleArea.y !== 0?Math.floor(visibleArea.y/grid.sh):0;
-            var vei = Math.ceil((visibleArea.x+visibleArea.width)/grid.sw);
-            var vej = Math.ceil((visibleArea.y+visibleArea.height)/grid.sh);
-
-
-            for(var i = vsi; i < vei;i++){
-                for(var j = vsj; j < vej;j++){
-                    context.strokeRect((i*grid.sw)+grid.x,(j*grid.sh)+grid.y,grid.sw,grid.sh);
-                }
-            }
-        }
-        return self;
-    };
-
-    /*
-     CanvasLayer : drawRectSet(RectSet set)
-     Desenha um retângulo
-     */
-    CanvasLayer.prototype.drawRectSet = function(rectSet){
-        //console.log('Canvas layer draw rect set...');
-        var self = this;
-        var context = self.getContext();
-        context.fillStyle = rectSet.fillStyle;
-        context.strokeStyle = rectSet.strokeStyle;
-        context.fillRect(rectSet.x,rectSet.y,rectSet.width,rectSet.height);
-        context.strokeRect(rectSet.x,rectSet.y,rectSet.width,rectSet.height);
-        return self;
-    };
-
-    /*
      CanvasLayer:destroy()
      Remove a camada da árvore DOM e da CanvasEngine correspondentes
      */
@@ -310,7 +255,6 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
         if(self.canvas.layers[self.zIndex] !== undefined){
             delete self.canvas.layers[self.zIndex];
         }
-        return self;
     };
 
     /*
