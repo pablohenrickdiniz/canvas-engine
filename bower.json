@@ -1,6 +1,6 @@
 {
   "name": "phydokz/canvas-engine",
-  "homepage": "https://github.com/pablohenrickdiniz/CanvasEngine",
+  "homepage": "https://github.com/pablohenrickdiniz/canvas-engine",
   "authors": [
     "Pablo Henrick <phydokz@hotmail.com>"
   ],
@@ -8,7 +8,7 @@
   "main": "",
   "moduleType": [],
   "license": "MIT",
-  "private": true,
+  "private":false,
   "ignore": [
     "**/.*",
     "node_modules",
