@@ -1,0 +1,23 @@
+{
+  "name": "phydokz/canvas-engine",
+  "homepage": "https://github.com/pablohenrickdiniz/canvas-engine",
+  "authors": [
+    "Pablo Henrick <phydokz@hotmail.com>"
+  ],
+  "description": "",
+  "main": "",
+  "moduleType": [],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "~2.1.4",
+    "math-lib": "https://github.com/pablohenrickdiniz/math-lib",
+    "lodash": "~3.10.1"
+  }
+}
