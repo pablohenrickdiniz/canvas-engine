@@ -4,20 +4,27 @@
   "authors": [
     "Pablo Henrick <phydokz@hotmail.com>"
   ],
-  "description": "",
-  "main": "src/index.js",
+  "description": "canvas engine, draw canvas, draw animations",
+  "main": "src/canvas-engine.js",
   "moduleType": [],
   "license": "MIT",
   "ignore": [
-    "**/.*",
     "node_modules",
     "bower_components",
     "test",
-    "tests"
+    "tests",
+    "**/.*"
   ],
   "dependencies": {
-    "jquery": "~2.1.4",
-    "math-lib": "https://github.com/pablohenrickdiniz/math-lib",
-    "lodash": "~3.10.1"
-  }
+    "requirejs": "~2.1.22",
+    "quadtree-js": "https://github.com/timohausmann/quadtree-js.git"
+  },
+  "keywords": [
+    "canvas",
+    "engine",
+    "graphics",
+    "drawing",
+    "animations"
+  ],
+  "private": true
 }
