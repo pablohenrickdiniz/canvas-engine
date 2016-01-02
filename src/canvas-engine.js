@@ -1,4 +1,5 @@
 (function(window) {
+    'use strict';
     var CanvasEngine = {};
     CanvasEngine.AppObject = (function () {
         var AppObject = function () {
@@ -9,7 +10,6 @@
             self._aftChange = [];
             self._acc = [];
         };
-
 
         AppObject.validate = true;
 
@@ -489,10 +489,9 @@
 
 
     CanvasEngine.Animation = (function () {
-        var LayerObject = CanvasEngine.LayerObject,
-            FrameSync = CanvasEngine.FrameSync,
+            var FrameSync = CanvasEngine.FrameSync,
             Validator = CanvasEngine.Validator,
-            Frame = CanvasEngine.Frame;
+            AppObject = CanvasEngine.AppObject;
 
         var Animation = function (options) {
             var self = this;
@@ -503,10 +502,14 @@
             self.indexFrame = -1;
             self.frameInterval = null;
             self.frameSync = null;
-            self.onStepCall = null;
+            self.onStepCall = null
+            AppObject.call(self);
             Animation.bindProperties.apply(self);
             self.set(options);
         };
+
+        Animation.prototype = Object.create(AppObject.prototype);
+        Animation.constructor = Animation;
 
         Animation.bindProperties = function () {
             var self = this;
@@ -1648,6 +1651,7 @@
         var CanvasLayer = function (options, canvas) {
             console.log('Canvas Layer initialize...');
             var self = this;
+            self.type = 'layer';
             self.context = null;
             self.element = null;
             self.canvas = canvas;
@@ -1659,7 +1663,6 @@
             self.savedStates = [];
             self.name = '';
             self.mouseReader = null;
-            self.element = null;
             self.opacity = 1;
             self.visible = true;
             self.backgroundColor = 'transparent';
@@ -1718,13 +1721,13 @@
             self._onChange('zIndex', function (zIndex) {
                 $(self.getElement()).css({
                     zIndex: zIndex
-                });
+                }).data('zindex',zIndex);
             });
 
             self._onChange('opacity', function (opacity) {
                 $(self.getElement()).css({
                     opacity: opacity
-                });
+                }).data('opacity',opacity);
             });
 
             self._onChange('visible', function (visible) {
@@ -1734,6 +1737,7 @@
                 else {
                     self.hide();
                 }
+                $(self.getElement()).data('visible',visible);
             });
 
             self._onChange('width', function (width) {
@@ -1746,29 +1750,34 @@
 
             self._onChange('name', function (name) {
                 if (name.length === 0) {
-                    $(self.getElement()).removeAttr('data-name');
+                    $(self.getElement()).removeAttr('data-name').data('name','');
                 }
                 else {
-                    $(self.getElement()).attr('data-name', name);
+                    $(self.getElement()).data('name', name);
                 }
             });
 
             self._onChange('left', function (left) {
                 $(self.getElement()).css({
                     left: left
-                });
+                }).data('left',left);
             });
 
             self._onChange('top', function (top) {
                 $(self.getElement()).css({
                     top: top
-                });
+                }).data('top',top);
             });
 
             self._onChange('backgroundColor', function (backgroundColor) {
                 $(self.getElement()).css({
                     backgroundColor: backgroundColor
-                });
+                }).data('backgroundColor',backgroundColor);
+            });
+
+            self._onChange('element',function(element){
+                var data = $(element).data();
+                self.set(data);
             });
 
 
@@ -1781,6 +1790,7 @@
             self._beforeSet('top', Validator.validateNumber);
             self._beforeSet('backgroundColor', Validator.validateColor);
             self._beforeSet('visible', Validator.validateBoolean);
+            self._beforeSet('element',Validator.validateElement);
         };
 
 
@@ -2200,20 +2210,20 @@
         CanvasLayer.prototype.setContext = function (options) {
             var self = this;
             var context = self.getContext();
-            if (options.backgroundColor != undefined) {
+            if (options.backgroundColor !== undefined) {
                 context.fillStyle = options.backgroundColor;
             }
 
-            if (options.borderColor != undefined) {
+            if (options.borderColor !== undefined) {
                 context.strokeStyle = options.borderColor;
             }
 
 
-            if (options.opacity != undefined) {
+            if (options.opacity !== undefined) {
                 context.globalAlpha = options.opacity / 100;
             }
 
-            if (options.origin != undefined) {
+            if (options.origin !== undefined) {
                 var tx = 0;
                 var ty = 0;
                 if (_.isString(options.origin)) {
@@ -2798,7 +2808,7 @@
                 self.layers.forEach(function (layer) {
                     $(layer.getElement()).css({
                         left: newValue
-                    });
+                    }).data('left',newValue);
                 });
             });
 
@@ -2806,7 +2816,7 @@
                 self.layers.forEach(function (layer) {
                     $(layer.getElement()).css({
                         top: newValue
-                    });
+                    }).data('top',newValue);
                 });
             });
 
@@ -2853,7 +2863,21 @@
                     height: self.height
                 }).addClass('transparent-background canvas-engine').on('contextmenu', function (e) {
                     e.preventDefault();
-                }).empty();
+                });
+
+                $(container).find('canvas').each(function(){
+                    var data = $(this).data();
+
+
+                    if(data.type === 'grid-layer' && self.gridLayer === null){
+                        self.gridLayer = self.createLayer({element:this},GridLayer);
+                    }
+                    else{
+                        var layer = self.createLayer({element:this});
+                        self.layers.push(layer);
+                    }
+                });
+
 
                 self.getMouseReader().set({
                     element: container
@@ -2866,9 +2890,6 @@
                 oldVal = $(oldVal)[0];
                 newVal = $(newVal)[0];
                 newVal = Validator.validateElement(oldVal, newVal);
-                if (oldVal !== newVal) {
-                    $(oldVal).empty();
-                }
                 return newVal;
             });
         };
@@ -2944,7 +2965,7 @@
             var self = this;
             if (self.gridLayer === null) {
                 self.gridLayer = self.createLayer({
-                    name: 'grid-layer'
+                    type: 'grid-layer'
                 }, GridLayer);
             }
             return self.gridLayer;
@@ -3477,41 +3498,36 @@
     })();
 
     CanvasEngine.ImageSet = (function () {
-        var AppObject = CanvasEngine.AppObject,
+            var LayerObject = CanvasEngine.LayerObject,
             Validator = CanvasEngine.Validator;
 
         var ImageSet = function (options) {
             var self = this;
             self.loads = [];
             self.url = '';
-            self.x = 0;
-            self.y = 0;
-            self.oldX = 0;
-            self.oldY = 0;
-            self.width = 0;
-            self.height = 0;
             self.sx = 0;
             self.sy = 0;
+            self.dx = 0;
+            self.dy = 0;
             self.sWidth = 0;
             self.sHeight = 0;
+            self.dWidth = 0;
+            self.dHeight = 0;
             self.layer = 0;
             self.loaded = false;
             self.image = null;
-            self.parent = null;
-            self.selected = false;
-            AppObject.call(self);
+            LayerObject.call(self);
             ImageSet.bindProperties.apply(self);
             self.set(options);
         };
 
-        ImageSet.prototype = Object.create(AppObject.prototype);
+        ImageSet.prototype = Object.create(LayerObject.prototype);
         ImageSet.prototype.constructor = ImageSet;
 
 
         ImageSet.prototype.clone = function () {
             return new ImageSet(this._props());
         };
-
 
         /*
          Object : getBounds()
@@ -3524,6 +3540,22 @@
                 y: self.y,
                 width: self.width,
                 height: self.height
+            };
+        };
+
+
+        ImageSet.prototype.getGraphic = function(){
+            var self = this;
+            return {
+                image:self.image,
+                dx:self.x,
+                dy:self.dy,
+                sx:self.sx,
+                sy:self.sy,
+                sWidth:self.sWidth,
+                sHeight:self.sHeight,
+                dWidth:self.dWidth,
+                dHeight:self.dHeight
             };
         };
 
@@ -3750,9 +3782,10 @@
         };
 
         ObjectLayer.prototype.drawObject = function (object) {
+            console.log(object);
             var graphic = object.getGraphic();
             var self = this;
-            if (graphic != null) {
+            if (graphic !== null) {
                 graphic.dx = object.x;
                 graphic.dy = object.y;
                 self.image(graphic);
