@@ -10,8 +10,8 @@
             self._acc = [];
         };
 
-        AppObject.validate = true;
 
+        AppObject.validate = true;
 
         AppObject.prototype.set = function (options) {
             var self = this;
@@ -3820,12 +3820,12 @@
             var self = this;
             options = options == undefined ? _.copy(ObjectLayer.defaultValues.animation) : _.merge(ObjectLayer.defaultValues.animation, options);
 
-            if (options.default != undefined) {
+            if (options.defaultOptions !== undefined) {
                 var size = options.frames.length;
                 for (var i = 0; i < size; i++) {
-                    options.frames[i] = _.merge(options.frames[i], options.default);
+                    options.frames[i] = _.merge(options.frames[i], options.defaultOptions);
                 }
-                delete options.default;
+                delete options.defaultOptions;
             }
 
 
