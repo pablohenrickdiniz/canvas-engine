@@ -18,6 +18,7 @@ define(['AppObject','FrameSync','Validator','Frame'],function(AppObject,FrameSyn
         AppObject.call(self);
         Animation.bindProperties.apply(self);
         self.set(options);
+        console.log(this);
     };
 
     Animation.prototype = Object.create(AppObject.prototype);
@@ -105,14 +106,6 @@ define(['AppObject','FrameSync','Validator','Frame'],function(AppObject,FrameSyn
         return null;
     };
 
-    Animation.prototype.set = function(index,frame){
-        var self = this;
-        if(self.frames[index] !== undefined){
-            self.frames[index] = frame;
-        }
-        return self;
-    };
-
     Animation.prototype.swap = function(indexA,indexB){
         var self = this;
         if(self.frames[indexA] !== undefined && self.frames[indexB] !== undefined){
@@ -159,8 +152,20 @@ define(['AppObject','FrameSync','Validator','Frame'],function(AppObject,FrameSyn
         return self;
     };
 
+    Animation.prototype.getGraphic = function(){
+        var self = this;
+        if(self.indexFrame != -1 && self.frames.length > 0 && self.frames[self.indexFrame] != undefined){
+            return self.frames[self.indexFrame];
+        }
+        return null;
+    };
+
     Animation.prototype.isRunning = function() {
         return this.running;
+    };
+
+    Animation.create = function(options){
+        return new Animation(options);
     };
 
     return Animation;

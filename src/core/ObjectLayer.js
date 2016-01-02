@@ -1,11 +1,10 @@
-define(['CanvasLayer'],function(CanvasLayer){
+define(['CanvasLayer','Animation'],function(CanvasLayer,Animation){
     'use strict';
     var ObjectLayer = function(options,canvas){
         var self = this;
         self.objects = [];
         CanvasLayer.call(self,options,canvas);
     };
-
 
     ObjectLayer.prototype = Object.create(CanvasLayer.prototype);
     ObjectLayer.prototype.constructor = ObjectLayer;
@@ -17,6 +16,10 @@ define(['CanvasLayer'],function(CanvasLayer){
         self.objects.push(object);
         self.refresh();
         return self;
+    };
+
+    ObjectLayer.prototype.createAnimation = function(options){
+
     };
 
     ObjectLayer.prototype.moveUp = function(object){

@@ -1,7 +1,7 @@
 /*
  CanvasLayer(Object options, CanvasEngine canvas)
  */
-define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Validator){
+define(['jquery','AppObject','Color','Validator','lodash'],function($,AppObject,Color,Validator,_){
     'use strict';
     var CanvasLayer = function(options,canvas){
         console.log('Canvas Layer initialize...');
@@ -21,7 +21,47 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
         self.opacity = 1;
         self.visible = true;
         self.backgroundColor = 'transparent';
-
+        self.defaultValues = {
+            rect:{
+                x:0,
+                y:0,
+                width:10,
+                height:10,
+                backgroundColor:'transparent',
+                borderColor:'black',
+                rotate:45,
+                origin:{x:0, y:0},
+                opacity:100
+            },
+            circle:{
+                x:0,
+                y:0,
+                radius:10,
+                backgroundColor:'transparent',
+                borderColor:'black',
+                origin:{x:0,y:0},
+                opacity:100
+            },
+            polygon:{
+                backgroundColor:'transparent',
+                borderColor:'black',
+                origin:{x:0,y:0},
+                opacity:100
+            },
+            image:{
+                image:null,
+                sx:0,
+                sy:0,
+                sWidth:'dWidth',
+                sHeight:'dHeight',
+                dx:0,
+                dy:0,
+                dWidth:'default',
+                dHeight:'default'
+            }
+        };
+        self.transparentRegex = /^\s*transparent\s*|rgba\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*0\s*\)\s*$/;
+        self.setContext(self.defaultValues.context);
         AppObject.call(self);
         CanvasLayer.bindProperties.apply(self);
         self.set(options);
@@ -258,18 +298,6 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
     };
 
     /*
-     CanvasLayer: drawImage(Image img, int sx, int sy, int sWidth, int sHeight, int x, int y, int width, int height)
-     Desenha uma imagem
-     */
-    CanvasLayer.prototype.drawImage = function(){
-        //console.log('Canvas layer draw image...');
-        var self = this;
-        var context = self.getContext();
-        context.drawImage.apply(context,arguments);
-        return self;
-    };
-
-    /*
      CanvasLayer: drawImageSet(Object object)
      Desenha uma área recortade de uma imagem
      */
@@ -304,12 +332,15 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
      */
     CanvasLayer.prototype.drawAnimation = function(animation){
         var self = this;
-        self.clearRect(animation.x,animation.y,animation.width,animation.height);
-        var context = self.getContext();
+        self.clearRect({
+            x:animation.x,
+            y:animation.y,
+            width:animation.width,
+            height:animation.height
+        });
         if(animation.frames[animation.indexFrame] !== undefined){
-            animation.frames[animation.indexFrame].imageSets.forEach(function(is){
-                context.drawImage(is.image, is.sx, is.sy, is.sWidth, is.sHeight, is.x+animation.x, is.y+animation.y, is.width, is.height);
-            });
+            var frame = animation.frames[animation.indexFrame];
+            self.image(frame);
         }
         return self;
     };
@@ -330,25 +361,135 @@ define(['jquery','AppObject','Color','Validator'],function($,AppObject,Color,Val
         });
     };
 
-    /*
-     CanvasLayer : clearRect(x, y, width, height)
-     Apaga uma região retângular da camade de canvas
-     */
-    CanvasLayer.prototype.clearRect = function(){
-        //console.log('Canvas layer clear rect...');
-        var self = this;
-        var context = self.getContext();
-        context.clearRect.apply(context,arguments);
-        return self;
-    };
-
-
     CanvasLayer.prototype.afterResize = function(callback){
         var self = this;
         self.set({
             _aftResize : callback
         });
     };
+
+    CanvasLayer.prototype.image = function(options){
+        var self = this;
+        options = options == undefined?self.defaultValues.image: _.merge(self.defaultValues.image,options);
+        var image = options.image;
+        if(image != null && image instanceof HTMLImageElement){
+            var dWidth = image.width;
+            var dHeight = image.height;
+            var sWidth = image.width;
+            var sHeight = image.height;
+            var sx = options.sx;
+            var sy = options.sy;
+            var dx = options.dx;
+            var dy = options.dy;
+
+            var percent;
+
+            if(Validator.isPercent(options.dWidth)){
+                percent = parseFloat(options.dWidth.replace('%',''));
+                dWidth = dWidth * (percent/100);
+            }
+            else if(Validator.isNumber(options.dWidth) && options.dWidth > 0){
+                dWidth = options.dWidth;
+            }
+
+            if(Validator.isPercent(options.dHeight)){
+                percent = parseFloat(options.dHeight.replace('%',''));
+                dHeight = dHeight * (percent/100);
+            }
+            else if(Validator.isNumber(options.dHeight) && options.dHeight > 0){
+                dHeight = options.dHeight;
+            }
+
+            if(Validator.isNumber(options.sWidth) && options.sWidth > 0){
+                sWidth = options.sWidth;
+            }
+
+            if(Validator.isNumber(options.sHeight) && options.sHeight > 0){
+                sHeight = options.sHeight;
+            }
+
+            if(dWidth > 0 && dHeight > 0){
+                this.getContext().drawImage(image,sx,sy,sWidth,sHeight,dx,dy,dWidth,dHeight);
+            }
+        }
+        return self;
+    };
+
+
+    CanvasLayer.prototype.circle = function(options){
+        var self = this;
+        options = options == undefined?self.defaultValues.circle:_.merge(self.defaultValues.circle,options);
+        var context = self.getContext();
+        context.save();
+        context.arc(options.x,options.y,options.radius,0,Math.PI);
+        if(context.fillStyle != null && !self.transparentRegex.test(context.fillStyle)){
+            context.fill();
+        }
+
+        if(context.strokeStyle != null && !self.transparentRegex.test(context.strokeStyle)){
+            context.stroke();
+        }
+        context.restore();
+        return self;
+    };
+
+    CanvasLayer.prototype.rect = function(options){
+        var self = this;
+        options = options == undefined?self.defaultValues.rect:_.merge(self.defaultValues.rect,options);
+        self.setContext(options);
+        var context = self.getContext();
+        context.save();
+
+        if(context.fillStyle != null && !self.transparentRegex.test(context.fillStyle)){
+            context.fillRect(options.x,options.y,options.width,options.height);
+        }
+
+        if(context.strokeStyle != null && !self.transparentRegex.test(context.strokeStyle)){
+            context.strokeRect(options.x,options.y,options.width,options.height);
+        }
+
+        context.restore();
+        return self;
+    };
+
+    CanvasLayer.prototype.clearRect = function(options){
+        var self = this;
+        options = options == undefined?self.defaultValues.rect:_.merge(self.defaultValues.rect,options);
+        var context = self.getContext();
+        context.clearRect(options.x,options,y,options.width,options.height);
+        return self;
+    };
+
+    CanvasLayer.prototype.clearCircle = function(options){
+        var self = this;
+        options = options == undefined?self.defaultValues.circle:_.merge(self.defaultValues.circle,options);
+        var context = self.getContext();
+        context.save();
+        context.arc(options.x,options.y,options.radius,0,Math.PI);
+        context.clip();
+        context.clearRect(options.x-options.radius,options.y-options.radius,options.radius*2,options.radius*2);
+        context.restore();
+        return self;
+    };
+
+    CanvasLayer.prototype.setContext = function(options){
+        var self = this;
+        var context = self.getContext();
+        if(options.backgroundColor != undefined){
+            context.fillStyle = options.backgroundColor;
+        }
+        if(options.borderColor != undefined){
+            context.strokeStyle = options.borderColor;
+        }
+        if(options.opacity != undefined){
+            context.globalAlpha = options.opacity/100;
+        }
+        if(options.origin != undefined){
+            context.translate(options.origin.x,options.origin.y);
+        }
+        return self;
+    };
+
 
     return CanvasLayer;
 });

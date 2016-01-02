@@ -21,12 +21,17 @@ define(['AppObject'], function (AppObject) {
         return this.alpha === 0;
     };
 
-    Color.random = function(){
+    Color.random = function(opacity){
+        opacity = opacity == undefined?false:opacity;
         var color = new Color({
             red:Math.floor(Math.random()*255),
             blue:Math.floor(Math.random()*255),
-            green:Math.floor(Math.random()*255)
+            green:Math.floor(Math.random()*255),
+            opacity:Math.random()
         });
+        if(opacity){
+            return color.toRGBA();
+        }
         return color.toHEX();
     };
 
@@ -585,7 +590,7 @@ define(['AppObject'], function (AppObject) {
     Color.Patterns = {
         HEXADECIMAL: /^#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?$/,
         RGB: /^rgb\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\)$/,
-        RGBA: /^rgba\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(0.[0-9]{1,2}|1)\)$/,
+        RGBA: /^rgba\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(0(.[0-9]{1,2})?|1)\)$/,
         NAME: /^[A-Z][a-zA-z0-9]{2,15}$/
     };
 

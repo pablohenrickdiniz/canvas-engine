@@ -14,7 +14,7 @@
         sHeight:32 //altura da área de corte
     });
  */
-define(['AppObject','ImageLoader','Validator'],function(AppObject,ImageLoader,Validator){
+define(['AppObject','Validator'],function(AppObject,Validator){
     'use strict';
     var ImageSet = function(options){
         var self = this;
@@ -93,6 +93,7 @@ define(['AppObject','ImageLoader','Validator'],function(AppObject,ImageLoader,Va
         self._beforeSet('url',Validator.validateString);
         self._accessible(['url','x','y','width','height','sx','sy','sWidth','sHeight','layer']);
 
+        /*
         self._onChange('url',function(url){
             self.loaded = false;
             self.image = new Image();
@@ -100,7 +101,7 @@ define(['AppObject','ImageLoader','Validator'],function(AppObject,ImageLoader,Va
                 self.loaded = true;
                 self.image = img;
             });
-        });
+        });*/
     };
 
     /*

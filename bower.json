@@ -5,7 +5,7 @@
     "Pablo Henrick <phydokz@hotmail.com>"
   ],
   "description": "",
-  "main": "",
+  "main": "src/index.js",
   "moduleType": [],
   "license": "MIT",
   "ignore": [

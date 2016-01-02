@@ -135,7 +135,7 @@ define(['lodash','IdGenerator'],function(_,Id){
 
     AppObject.prototype._propsR = function(prop){
         var self = this;
-        if(_.isArray(prop)){
+        if(prop instanceof Array){
            prop = prop.map(function(child){
                 return self._propsR(child);
            });

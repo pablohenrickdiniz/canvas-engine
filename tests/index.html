@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="../bower_components/jquery/dist/jquery.min.js"></script>
+    <script type="text/javascript" src="../bower_components/lodash/lodash.min.js"></script>
+    <script type="text/javascript" src="../bower_components/quadtree-js/quadtree.min.js"></script>
+    <script type="text/javascript" src="../src/canvas-engine.js"></script>
+    <script type="text/javascript" src="rpg/Event.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function(){
+            var engine = CanvasEngine.createEngine({
+                container:'#container',
+                width:800,
+                height:800
+            });
+
+            var image = document.createElement('img');
+            image.src = 'img/pack_charas.gif';
+
+            var top = new CanvasEngine.Animation({
+                speed:3,
+                repeat:true,
+                image:image,
+                frames:[
+                    {
+
+                    },
+                    {},
+                    {}
+                ]
+            });
+        });
+    </script>
+    <title>Canvas Engine Test</title>
+</head>
+<body>
+<div id="container">
+
+</div>
+</body>
+</html>
