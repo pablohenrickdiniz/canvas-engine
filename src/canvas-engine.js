@@ -1,4 +1,4 @@
-(function() {
+(function(window) {
     var CanvasEngine = {};
     CanvasEngine.AppObject = (function () {
         var AppObject = function () {
@@ -3857,5 +3857,5 @@
         return new CanvasEngine.CE(options);
     };
 
-    window.CanvasEngine = CanvasEngine;
-})();
+    window.CE = CanvasEngine;
+})(window);
