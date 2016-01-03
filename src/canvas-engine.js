@@ -11,6 +11,7 @@
             self._acc = [];
         };
 
+
         AppObject.validate = true;
 
         AppObject.prototype.set = function (options) {
@@ -2873,8 +2874,7 @@
                         self.gridLayer = self.createLayer({element:this},GridLayer);
                     }
                     else{
-                        var layer = self.createLayer({element:this});
-                        self.layers.push(layer);
+                        self.createLayer({element:this});
                     }
                 });
 
@@ -3183,8 +3183,6 @@
             options.zIndex = self.layers.length;
             options.width = Validator.validateNumber(self.getWidth(), options.width);
             options.height = Validator.validateNumber(self.getHeight(), options.height);
-
-
             if (ClassName !== undefined) {
                 layer = new ClassName(options, self);
             }
@@ -3204,7 +3202,9 @@
                     zIndex: self.layers.length - 1
                 });
             }
-            if (self.container !== null) {
+
+
+            if (self.container !== null && !$.contains(self.container,layer.getElement())) {
                 $(self.container).append(layer.getElement());
             }
 
