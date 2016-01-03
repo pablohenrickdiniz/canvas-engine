@@ -11,7 +11,6 @@
             self._acc = [];
         };
 
-
         AppObject.validate = true;
 
         AppObject.prototype.set = function (options) {
