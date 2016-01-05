@@ -1778,6 +1778,7 @@
             self._onChange('element',function(element){
                 var data = $(element).data();
                 self.set(data);
+                self.context = null;
             });
 
 
@@ -2960,15 +2961,29 @@
          CanvasLayer : getGridLayer()
          obtém camada de desenho da grade
          */
-        CE.prototype.getGridLayer = function () {
+        CE.prototype.getGridLayer = function (options) {
             var self = this;
             if (self.gridLayer === null) {
                 self.gridLayer = self.createLayer({
-                    type: 'grid-layer'
+                    type: 'grid-layer',
+                    append:options.append
                 }, GridLayer);
             }
             return self.gridLayer;
         };
+        /*
+           CanvasEngine : destroyGridLayer
+           destroy a camadad de grid
+         */
+        CE.prototype.destroyGridLayer = function(){
+            var self = this;
+            if(self.gridLayer !== null){
+                self.gridLayer.destroy();
+                self.gridLayer = null;
+            }
+            return self;
+        };
+
 
         /*
          Grid : getGrid()
@@ -3182,6 +3197,8 @@
             options.zIndex = self.layers.length;
             options.width = Validator.validateNumber(self.getWidth(), options.width);
             options.height = Validator.validateNumber(self.getHeight(), options.height);
+            options.append = options.append == undefined?true:options.append;
+
             if (ClassName !== undefined) {
                 layer = new ClassName(options, self);
             }
@@ -3190,6 +3207,8 @@
             }
 
             self.layers.push(layer);
+
+
             if (self.gridLayer !== null) {
                 var newLayer = self.layers[self.layers.length - 1];
                 self.layers[self.layers.length - 1] = self.gridLayer;
@@ -3202,9 +3221,10 @@
                 });
             }
 
-
-            if (self.container !== null && !$.contains(self.container,layer.getElement())) {
-                $(self.container).append(layer.getElement());
+            if(options.append){
+                if (self.container !== null && !$.contains(self.container,layer.getElement())) {
+                    $(self.container).append(layer.getElement());
+                }
             }
 
             return layer;
