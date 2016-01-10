@@ -410,7 +410,6 @@
 
         LayerObject.bindProperties = function () {
             var self = this;
-            console.log(self);
             self._beforeSet('x', Validator.validateNumber);
             self._beforeSet('y', Validator.validateNumber);
             self._beforeSet('width', Validator.validateNumber);
@@ -420,10 +419,10 @@
 
         LayerObject.prototype.animate = function (options,callback) {
             var self = this;
-            var x = options.x == undefined ? self.x : options.x;
-            var y = options.y == undefined ? self.y : options.y;
-            var frameRate = options.frameRate == undefined ? 30 : options.frameRate;
-            var time = options.time == undefined ? 1000 : options.time;
+            var x = options.x === undefined ? self.x : options.x;
+            var y = options.y === undefined ? self.y : options.y;
+            var frameRate = options.frameRate === undefined ? 30 : options.frameRate;
+            var time = options.time === undefined ? 1000 : options.time;
             var framesN = (frameRate * time) / 1000;
             var stepTime = 1000/frameRate;
             var init = (new Date()).getTime();
@@ -489,7 +488,7 @@
 
 
     CanvasEngine.Animation = (function () {
-            var FrameSync = CanvasEngine.FrameSync,
+        var FrameSync = CanvasEngine.FrameSync,
             Validator = CanvasEngine.Validator,
             AppObject = CanvasEngine.AppObject;
 
@@ -502,7 +501,7 @@
             self.indexFrame = -1;
             self.frameInterval = null;
             self.frameSync = null;
-            self.onStepCall = null
+            self.onStepCall = null;
             AppObject.call(self);
             Animation.bindProperties.apply(self);
             self.set(options);
@@ -632,15 +631,15 @@
         Animation.createFrameSequence = function (options) {
             if (options.steps != undefined && _.isNumber(options.steps)) {
                 var steps = parseInt(options.steps);
-                var stepX = options.stepX == undefined ? null : options.stepX;
-                var stepY = options.stepY == undefined ? null : options.stepY;
+                var stepX = options.stepX === undefined ? null : options.stepX;
+                var stepY = options.stepY === undefined ? null : options.stepY;
                 var aux = [];
                 for (var i = 0; i < steps; i++) {
                     var step = {};
-                    if (stepX != null) {
+                    if (stepX !== null) {
                         step.sx = i * stepX;
                     }
-                    if (stepY != null) {
+                    if (stepY !== null) {
                         step.sy = i * stepY;
                     }
                     aux.push(step);
@@ -737,7 +736,7 @@
 
         math.rotate = function (va, theta, center) {
             var rad = math.degreeToRadians(theta);
-            center = center == undefined ? {x: 0, y: 0} : center;
+            center = center === undefined ? {x: 0, y: 0} : center;
             var radc = Math.cos(rad);
             var rads = Math.sin(rad);
             var suba = va.x - center.x;
@@ -1013,7 +1012,7 @@
         };
 
         Color.random = function (opacity) {
-            opacity = opacity == undefined ? false : opacity;
+            opacity = opacity === undefined ? false : opacity;
             var color = new Color({
                 red: Math.floor(Math.random() * 255),
                 blue: Math.floor(Math.random() * 255),
@@ -1776,8 +1775,6 @@
             });
 
             self._onChange('element',function(element){
-                var data = $(element).data();
-                self.set(data);
                 self.context = null;
             });
 
@@ -2037,9 +2034,9 @@
 
         CanvasLayer.prototype.image = function (options) {
             var self = this;
-            options = options == undefined ? CanvasLayer.defaultValues.image : _.merge(CanvasLayer.defaultValues.image, options);
+            options = options === undefined ? CanvasLayer.defaultValues.image : _.merge(CanvasLayer.defaultValues.image, options);
             var image = options.image;
-            if (image != null && image instanceof HTMLImageElement) {
+            if (image !== null && image instanceof HTMLImageElement) {
                 var dWidth = options.dWidth;
                 var dHeight = options.dHeight;
                 var sWidth = options.sWidth;
@@ -2050,14 +2047,14 @@
                 var dy = options.dy;
                 var percent;
 
-                if (dWidth == 'auto' && dHeight == 'auto') {
+                if (dWidth === 'auto' && dHeight === 'auto') {
                     dWidth = image.width;
                     dHeight = image.height;
                 }
-                else if (dWidth == 'auto' && _.isNumber(dHeight)) {
+                else if (dWidth === 'auto' && _.isNumber(dHeight)) {
                     dWidth = image.width * (dHeight / image.height);
                 }
-                else if (dHeight == 'auto' && _.isNumber(dWidth)) {
+                else if (dHeight === 'auto' && _.isNumber(dWidth)) {
                     dHeight = image.height * (dWidth / image.width);
                 }
 
@@ -2121,17 +2118,17 @@
 
         CanvasLayer.prototype.circle = function (options) {
             var self = this;
-            options = options == undefined ? CanvasLayer.defaultValues.circle : _.merge(CanvasLayer.defaultValues.circle, options);
+            options = options === undefined ? CanvasLayer.defaultValues.circle : _.merge(CanvasLayer.defaultValues.circle, options);
             var context = self.getContext();
             context.save();
             self.setContext(options);
             context.beginPath();
             context.arc(options.x, options.y, options.radius, 0, 2 * Math.PI);
-            if (context.fillStyle != null && !self.transparentRegex.test(context.fillStyle)) {
+            if (context.fillStyle !== null && !self.transparentRegex.test(context.fillStyle)) {
                 context.fill();
             }
 
-            if (context.strokeStyle != null && !self.transparentRegex.test(context.strokeStyle)) {
+            if (context.strokeStyle !== null && !self.transparentRegex.test(context.strokeStyle)) {
                 context.stroke();
             }
             context.restore();
@@ -2140,15 +2137,15 @@
 
         CanvasLayer.prototype.rect = function (options) {
             var self = this;
-            options = options == undefined ? CanvasLayer.defaultValues.rect : _.merge(CanvasLayer.defaultValues.rect, options);
+            options = options === undefined ? CanvasLayer.defaultValues.rect : _.merge(CanvasLayer.defaultValues.rect, options);
             var context = self.getContext();
             context.save();
             self.setContext(options);
-            if (context.fillStyle != null && !self.transparentRegex.test(context.fillStyle)) {
+            if (context.fillStyle !== null && !self.transparentRegex.test(context.fillStyle)) {
                 context.fillRect(options.x, options.y, options.width, options.height);
             }
 
-            if (context.strokeStyle != null && !self.transparentRegex.test(context.strokeStyle)) {
+            if (context.strokeStyle !== null && !self.transparentRegex.test(context.strokeStyle)) {
                 context.strokeRect(options.x, options.y, options.width, options.height);
             }
 
@@ -2158,7 +2155,7 @@
 
         CanvasLayer.prototype.clearRect = function (options) {
             var self = this;
-            options = options == undefined ? CanvasLayer.defaultValues.rect : _.merge(CanvasLayer.defaultValues.rect, options);
+            options = options === undefined ? CanvasLayer.defaultValues.rect : _.merge(CanvasLayer.defaultValues.rect, options);
             var context = self.getContext();
             context.clearRect(options.x, options.y, options.width, options.height);
             return self;
@@ -2166,7 +2163,7 @@
 
         CanvasLayer.prototype.clearCircle = function (options) {
             var self = this;
-            options = options == undefined ? CanvasLayer.defaultValues.circle : _.merge(CanvasLayer.defaultValues.circle, options);
+            options = options === undefined ? CanvasLayer.defaultValues.circle : _.merge(CanvasLayer.defaultValues.circle, options);
             var context = self.getContext();
             context.save();
             context.arc(options.x, options.y, options.radius, 0, Math.PI);
@@ -2178,7 +2175,7 @@
 
         CanvasLayer.prototype.polygon = function (options) {
             var self = this;
-            options = options == undefined ? CanvasLayer.defaultValues.polygon : _.merge(CanvasLayer.defaultValues.polygon, options);
+            options = options === undefined ? CanvasLayer.defaultValues.polygon : _.merge(CanvasLayer.defaultValues.polygon, options);
             var size = options.points.length;
             var context = self.getContext();
             context.save();
@@ -2196,11 +2193,11 @@
 
                 context.closePath();
 
-                if (context.fillStyle != null && !self.transparentRegex.test(context.fillStyle)) {
+                if (context.fillStyle !== null && !self.transparentRegex.test(context.fillStyle)) {
                     context.fill();
                 }
 
-                if (context.strokeStyle != null && !self.transparentRegex.test(context.strokeStyle)) {
+                if (context.strokeStyle !== null && !self.transparentRegex.test(context.strokeStyle)) {
                     context.stroke();
                 }
             }
@@ -2245,7 +2242,7 @@
                 options.y = options.y - ty;
             }
 
-            if (options.rotate != undefined) {
+            if (options.rotate !== undefined) {
                 var radians = options.rotate * (Math.PI / 180);
                 context.rotate(radians);
             }
@@ -2962,18 +2959,21 @@
          obtém camada de desenho da grade
          */
         CE.prototype.getGridLayer = function (options) {
+            options = options == undefined?{}:options;
             var self = this;
             if (self.gridLayer === null) {
                 self.gridLayer = self.createLayer({
-                    type: 'grid-layer',
-                    append:options.append
+                    type: 'grid',
+                    append:options.append,
+                    width:options.width,
+                    height:options.height
                 }, GridLayer);
             }
             return self.gridLayer;
         };
         /*
-           CanvasEngine : destroyGridLayer
-           destroy a camadad de grid
+         CanvasEngine : destroyGridLayer
+         destroy a camadad de grid
          */
         CE.prototype.destroyGridLayer = function(){
             var self = this;
@@ -2992,8 +2992,8 @@
         CE.prototype.getGrid = function () {
             var self = this;
             if (self.grid === null) {
-                var width = self.getWidth();
-                var height = self.getHeight();
+                var width = self.width;
+                var height = self.height;
                 self.grid = new Grid({
                     sw: width,
                     sh: height,
@@ -3139,9 +3139,7 @@
         CE.prototype.clearAllLayers = function () {
             var self = this;
             this.layers.forEach(function (layer) {
-                if (!(layer instanceof GridLayer)) {
-                    layer.clear();
-                }
+                layer.clear();
             });
             return self;
         };
@@ -3163,10 +3161,8 @@
         CE.prototype.applyToLayers = function (options, conditions) {
             var self = this;
             self.layers.forEach(function (layer) {
-                if (!(layer instanceof GridLayer)) {
-                    if (conditions === undefined || conditions.apply(layer)) {
-                        layer.set(options);
-                    }
+                if (conditions === undefined || conditions.apply(layer)) {
+                    layer.set(options);
                 }
             });
             return self;
@@ -3197,7 +3193,7 @@
             options.zIndex = self.layers.length;
             options.width = Validator.validateNumber(self.getWidth(), options.width);
             options.height = Validator.validateNumber(self.getHeight(), options.height);
-            options.append = options.append == undefined?true:options.append;
+            options.append = options.append === undefined?true:options.append;
 
             if (ClassName !== undefined) {
                 layer = new ClassName(options, self);
@@ -3235,7 +3231,7 @@
          */
         CE.prototype.getLayer = function (index) {
             var self = this;
-            if (self.layers[index] !== undefined && !(self.layers[index] instanceof GridLayer)) {
+            if (self.layers[index] !== undefined) {
                 return self.layers[index];
             }
             return null;
@@ -3517,7 +3513,7 @@
     })();
 
     CanvasEngine.ImageSet = (function () {
-            var LayerObject = CanvasEngine.LayerObject,
+        var LayerObject = CanvasEngine.LayerObject,
             Validator = CanvasEngine.Validator;
 
         var ImageSet = function (options) {
@@ -3787,7 +3783,6 @@
             }
         };
 
-
         ObjectLayer.prototype = Object.create(CanvasLayer.prototype);
         ObjectLayer.prototype.constructor = ObjectLayer;
 
@@ -3796,12 +3791,10 @@
             object.canvasLayer = self;
             object.layer = self.objects.length;
             self.objects.push(object);
-            self.refresh();
             return self;
         };
 
         ObjectLayer.prototype.drawObject = function (object) {
-            console.log(object);
             var graphic = object.getGraphic();
             var self = this;
             if (graphic !== null) {
@@ -3870,7 +3863,7 @@
 
         ObjectLayer.prototype.createSpriteAnimation = function (options) {
             var self = this;
-            options = options == undefined ? _.copy(ObjectLayer.defaultValues.animation) : _.merge(ObjectLayer.defaultValues.animation, options);
+            options = options === undefined ? _.copy(ObjectLayer.defaultValues.animation) : _.merge(ObjectLayer.defaultValues.animation, options);
 
             if (options.defaultOptions !== undefined) {
                 var size = options.frames.length;
