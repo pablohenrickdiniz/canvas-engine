@@ -37,6 +37,7 @@ define(['Color'],function(Color) {
             ctx.drawImage(img,0,0);
             return ctx.getImageData(0, 0, img.width, img.height);
         },
+
         /*
          void: applyFilter(function filter, HTMLImage img)
          aplica o filtro na imagem
