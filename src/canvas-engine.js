@@ -558,7 +558,6 @@
                         self.onStepCall(self.indexFrame);
                     }
 
-                    self.refresh();
                     if (self.indexFrame >= self.frames.length - 1 && !self.repeat) {
                         self.pause();
                     }
@@ -799,6 +798,8 @@
             self.rightup = [];
             self.middleup = [];
             self.mousemove = [];
+            self.mouseout = [];
+            self.mouseenter = [];
             self.element = null;
             self.initialize();
             AppObject.call(self);
@@ -863,11 +864,21 @@
                 });
 
                 $(element).mouseout(function (event) {
+                    event.preventDefault();
                     self.left = false;
                     self.right = false;
                     self.middle = false;
+                    self.mouseout.forEach(function (callback) {
+                        callback.apply(self, [event]);
+                    });
                 });
 
+                $(element).mouseenter(function (event) {
+                    event.preventDefault();
+                    self.mouseenter.forEach(function (callback) {
+                        callback.apply(self, [event]);
+                    });
+                });
 
                 var callback = function (e) {
                     e.preventDefault();
@@ -979,6 +990,17 @@
             var self = this;
             self.mousemove.push(callback);
         };
+
+        MouseReader.prototype.onmouseout = function(callback){
+            var self = this;
+            self.mouseout.push(callback);
+        };
+
+        MouseReader.prototype.onmouseenter = function(callback){
+            var self = this;
+            self.mouseenter.push(callback);
+        };
+
 
         MouseReader.LEFT = 1;
         MouseReader.MIDDLE = 2;
@@ -2214,6 +2236,10 @@
 
             if (options.borderColor !== undefined) {
                 context.strokeStyle = options.borderColor;
+            }
+
+            if(options.lineDash !== undefined){
+                context.setLineDash(options.lineDash);
             }
 
 
@@ -3519,7 +3545,6 @@
         var ImageSet = function (options) {
             var self = this;
             self.loads = [];
-            self.url = '';
             self.sx = 0;
             self.sy = 0;
             self.dx = 0;
@@ -3551,10 +3576,10 @@
         ImageSet.prototype.getBounds = function () {
             var self = this;
             return {
-                x: self.x,
-                y: self.y,
-                width: self.width,
-                height: self.height
+                x: self.dx,
+                y: self.dy,
+                width: self.dWidth,
+                height: self.dHeight
             };
         };
 
@@ -3563,7 +3588,7 @@
             var self = this;
             return {
                 image:self.image,
-                dx:self.x,
+                dx:self.dx,
                 dy:self.dy,
                 sx:self.sx,
                 sy:self.sy,
@@ -3591,18 +3616,18 @@
          });
          */
         ImageSet.bindProperties = function () {
-            var self = this;
-            self._beforeSet('x', Validator.validateNumber);
-            self._beforeSet('y', Validator.validateNumber);
-            self._beforeSet('width', Validator.validateNumber);
-            self._beforeSet('height', Validator.validateNumber);
-            self._beforeSet('sx', Validator.validateNumber);
-            self._beforeSet('sy', Validator.validateNumber);
-            self._beforeSet('sWidth', Validator.validateNumber);
-            self._beforeSet('sHeight', Validator.validateNumber);
-            self._beforeSet('layer', Validator.validateNumber);
-            self._beforeSet('url', Validator.validateString);
-            self._accessible(['url', 'x', 'y', 'width', 'height', 'sx', 'sy', 'sWidth', 'sHeight', 'layer']);
+            //var self = this;
+            //self._beforeSet('x', Validator.validateNumber);
+            //self._beforeSet('y', Validator.validateNumber);
+            //self._beforeSet('width', Validator.validateNumber);
+            //self._beforeSet('height', Validator.validateNumber);
+            //self._beforeSet('sx', Validator.validateNumber);
+            //self._beforeSet('sy', Validator.validateNumber);
+            //self._beforeSet('sWidth', Validator.validateNumber);
+            //self._beforeSet('sHeight', Validator.validateNumber);
+            //self._beforeSet('layer', Validator.validateNumber);
+            //self._beforeSet('url', Validator.validateString);
+            //self._accessible(['url', 'x', 'y', 'width', 'height', 'sx', 'sy', 'sWidth', 'sHeight', 'layer']);
 
             /*
              self._onChange('url',function(url){
@@ -3798,9 +3823,15 @@
             var graphic = object.getGraphic();
             var self = this;
             if (graphic !== null) {
-                graphic.dx = object.x;
-                graphic.dy = object.y;
                 self.image(graphic);
+            }
+            if(object.selected){
+                self.rect({
+                    x:object.dx,
+                    y:object.dy,
+                    width:object.dWidth,
+                    height:object.dHeight
+                });
             }
         };
 
