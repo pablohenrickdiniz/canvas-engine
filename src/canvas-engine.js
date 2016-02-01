@@ -2479,6 +2479,8 @@
         };
 
         KeyReader.Keys = {
+            KEY_GT:190,
+            KEY_LT:188,
             KEY_DOWN: 40,
             KEY_UP: 38,
             KEY_LEFT: 37,
@@ -3830,7 +3832,8 @@
                     x:object.dx,
                     y:object.dy,
                     width:object.dWidth,
-                    height:object.dHeight
+                    height:object.dHeight,
+                    lineDash:[4,4]
                 });
             }
         };
