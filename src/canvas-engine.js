@@ -2459,6 +2459,12 @@
             return self;
         };
 
+        CE.prototype.getPosition = function(point){
+            var self = this;
+            var translate = {x: -self.viewX / self.scale, y: -self.viewY / self.scale};
+            return Math2.vpv(Math2.sdv(self.scale, point), translate);
+        };
+
         return CE;
     })();
 
