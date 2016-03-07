@@ -1,6 +1,36 @@
 (function(window) {
     'use strict';
     var CanvasEngine = {};
+    CanvasEngine.IdGenerator = (function () {
+        return {
+            used:[],
+            getUniqueId: function () {
+                var self = this;
+                var id = self.generateUUID();
+                while(self.used[id] !== undefined){
+                    id = self.generateUUID();
+                }
+                self.used[id] = true;
+                return id;
+            },
+            delete: function (id) {
+                var self = this;
+                if(self.used[id] !== undefined){
+                    delete self.used[id];
+                }
+            },
+            generateUUID:function() {
+                var d = new Date().getTime();
+                var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    var r = (d + Math.random()*16)%16 | 0;
+                    d = Math.floor(d/16);
+                    return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+                });
+                return uuid;
+            }
+        };
+    })();
+
     CanvasEngine.AppObject = (function () {
         var AppObject = function () {
             var self = this;
@@ -9,6 +39,7 @@
             self._changed = [];
             self._aftChange = [];
             self._acc = [];
+            self._id = CanvasEngine.IdGenerator.getUniqueId();
         };
 
         AppObject.validate = true;
@@ -153,6 +184,9 @@
             return prop;
         };
 
+        AppObject.prototype._destroy = function(){
+            CanvasEngine.IdGenerator.delete(this._id);
+        };
 
         return AppObject;
     })();
@@ -244,76 +278,6 @@
         return Validator;
     })();
 
-    CanvasEngine.AbstractGrid = (function () {
-        var AppObject = CanvasEngine.AppObject,
-            Validator = CanvasEngine.Validator;
-
-        var AbstractGrid = function (options) {
-            console.log('initializing Abstract Grid...');
-            var self = this;
-            self.x = 0;
-            self.y = 0;
-            self.width = 0;
-            self.height = 0;
-            self.sw = 0;
-            self.sh = 0;
-            self.parent = null;
-            self.fillStyle = 'transparent';
-            self.strokeStyle = '#000000';
-            AppObject.call(self);
-            AbstractGrid.bindProperties.apply(self);
-            self.set(options);
-        };
-
-        AbstractGrid.prototype = Object.create(AppObject.prototype);
-        AbstractGrid.prototype.constructor = AbstractGrid;
-
-
-        AbstractGrid.bindProperties = function () {
-            var self = this;
-            self._beforeSet('width', Validator.validateNumber);
-            self._beforeSet('height', Validator.validateNumber);
-            self._beforeSet('sh', Validator.validateNumber);
-            self._beforeSet('sw', Validator.validateNumber);
-            self._beforeSet('fillStyle', Validator.validateColor);
-            self._beforeSet('strokeStyle', Validator.validateColor);
-        };
-
-        AbstractGrid.prototype.isDrawable = function () {
-            var self = this;
-            return self.sw > 0 && self.sh > 0 && self.width > 0 && self.height > 0;
-        };
-
-        return AbstractGrid;
-    })();
-
-    CanvasEngine.IdGenerator = (function () {
-        return {
-            free: [],
-            increment: 0,
-            getUniqueId: function () {
-                var self = this;
-                var id;
-                var size = self.free.length;
-
-                if (size > 0) {
-                    var sorted = Math.floor(Math.random() * size);
-                    id = self.free[sorted];
-                    self.free.splice(sorted, 1);
-                }
-                else {
-                    id = ++self.increment;
-                }
-
-                return id;
-            },
-            unlockId: function (id) {
-                var self = this;
-                self.free.push(id);
-            }
-        };
-    })();
-
     CanvasEngine.FrameSync = (function () {
         (function () {
             var lastTime = 0;
@@ -401,21 +365,11 @@
             self.animate_step = null;
             self.animate_sync = null;
             AppObject.call(self);
-            LayerObject.bindProperties.apply(self);
         };
 
         LayerObject.prototype = Object.create(AppObject.prototype);
         LayerObject.prototype.constructor = LayerObject;
 
-
-        LayerObject.bindProperties = function () {
-            var self = this;
-            self._beforeSet('x', Validator.validateNumber);
-            self._beforeSet('y', Validator.validateNumber);
-            self._beforeSet('width', Validator.validateNumber);
-            self._beforeSet('height', Validator.validateNumber);
-            self._accessible('x', 'y', 'width', 'height');
-        };
 
         LayerObject.prototype.animate = function (options,callback) {
             var self = this;
@@ -468,7 +422,7 @@
 
         LayerObject.prototype.refresh = function () {
             var self = this;
-            if (self.canvasLayer != null) {
+            if (self.canvasLayer !== null) {
                 self.canvasLayer.clearRect({
                     x: self.lx,
                     y: self.ly,
@@ -482,6 +436,9 @@
             var self = this;
             self.canvasLayer.remove(self);
         };
+
+
+
 
         return LayerObject;
     })();
@@ -503,21 +460,12 @@
             self.frameSync = null;
             self.onStepCall = null;
             AppObject.call(self);
-            Animation.bindProperties.apply(self);
             self.set(options);
         };
 
         Animation.prototype = Object.create(AppObject.prototype);
         Animation.constructor = Animation;
 
-        Animation.bindProperties = function () {
-            var self = this;
-            self._beforeSet('speed', Validator.validateInt);
-            self._beforeSet('repeat', Validator.validateBoolean);
-            self._beforeSet('frames', Validator.validateArray);
-            self._beforeSet('indexFrame', Validator.validateInt);
-            self._accessible(['speed', 'repeat', 'frames']);
-        };
 
         Animation.prototype.execute = function () {
             var self = this;
@@ -579,16 +527,6 @@
             return self;
         };
 
-        Animation.prototype.swap = function (indexA, indexB) {
-            var self = this;
-            if (self.frames[indexA] !== undefined && self.frames[indexB] !== undefined) {
-                var aux = self.frames[indexA];
-                self.frames[indexA] = self.frames[indexB];
-                self.frames[indexB] = aux;
-            }
-            return self;
-        };
-
         /*
          Animation: remove(int index | Frame frame)
          RCanemove um quadro de animação
@@ -646,6 +584,21 @@
                 return aux;
             }
             return [];
+        };
+
+        Animation.prototype.toJSON = function(){
+            var self = this;
+            var size = self.frames.length;
+            var frames = [];
+            for(var i = 0; i < size;i++){
+                frames[i] = self.frames[i].map(function(graphic){
+                    return graphic.toJSON();
+                });
+            }
+
+            return {
+                frames:frames
+            };
         };
 
         return Animation;
@@ -781,6 +734,28 @@
             }
             return degree;
         };
+
+        math.proportional = function(val,a,b){
+            var proportion = 1;
+            if(a < b){
+                proportion = b/a;
+                b = val;
+                a = b/proportion;
+            }
+            else if(a > b){
+                proportion = a/b;
+                a = val;
+                b = a/proportion;
+            }
+            else{
+                a = val;
+                b = val;
+            }
+
+            return [a,b];
+        };
+
+
         return math;
     })();
 
@@ -1799,18 +1774,6 @@
             self._onChange('element',function(element){
                 self.context = null;
             });
-
-
-            self._beforeSet('_aftResize', Validator.validateFunction);
-            self._beforeSet('opacity', Validator.validateNumber);
-            self._beforeSet('width', Validator.validateNumber);
-            self._beforeSet('height', Validator.validateNumber);
-            self._beforeSet('zIndex', Validator.validateInt);
-            self._beforeSet('left', Validator.validateNumber);
-            self._beforeSet('top', Validator.validateNumber);
-            self._beforeSet('backgroundColor', Validator.validateColor);
-            self._beforeSet('visible', Validator.validateBoolean);
-            self._beforeSet('element',Validator.validateElement);
         };
 
 
@@ -1982,23 +1945,6 @@
             return self;
         };
 
-        /*
-         CanvasLayer: drawImageSet(Object object)
-         Desenha uma área recortade de uma imagem
-         */
-        CanvasLayer.prototype.drawImageSet = function (is) {
-            //console.log('Canvas layer draw image set...');
-            var self = this;
-            var context = self.getContext();
-            is.parent = self;
-            context.drawImage(is.image, is.sx, is.sy, is.sWidth, is.sHeight, is.x, is.y, is.width, is.height);
-            if (is.selected) {
-                context.strokeStyle = 'rgba(0,0,100,0.5)';
-                context.setLineDash([5, 5]);
-                context.strokeRect(is.x, is.y, is.width, is.height);
-            }
-            return self;
-        };
 
         /*
          CanvasLayer : clear()
@@ -2043,14 +1989,6 @@
                 green: p[1],
                 blue: p[2],
                 alpha: p[3]
-            });
-        };
-
-
-        CanvasLayer.prototype.afterResize = function (callback) {
-            var self = this;
-            self.set({
-                _aftResize: callback
             });
         };
 
@@ -2238,7 +2176,7 @@
                 context.strokeStyle = options.borderColor;
             }
 
-            if(options.lineDash !== undefined){
+            if(options.lineDash !== undefined && options.lineDash instanceof Array){
                 context.setLineDash(options.lineDash);
             }
 
@@ -2276,89 +2214,6 @@
         };
 
         return CanvasLayer;
-    })();
-
-    CanvasEngine.GridLayer = (function () {
-        var CanvasLayer = CanvasEngine.CanvasLayer,
-            Color = CanvasEngine.Color;
-
-        var GridLayer = function (options, canvas) {
-            var self = this;
-            CanvasLayer.call(self, options, canvas);
-        };
-
-        GridLayer.prototype = Object.create(CanvasLayer.prototype);
-        GridLayer.prototype.constructor = GridLayer;
-
-        /*
-         GridLayer: drawGrid(Grid grid)
-         desenha a grade grid na camada
-         */
-        GridLayer.prototype.drawGrid = function (grid) {
-            //console.log('Grid layer draw grid...');
-            var self = this;
-            var context = self.getContext();
-            grid.rectSets.forEach(function (row) {
-                row.forEach(function (rectSet) {
-                    context.fillStyle = rectSet.fillStyle;
-                    context.strokeStyle = rectSet.strokeStyle;
-                    context.setLineDash(rectSet.lineDash);
-                    context.lineWidth = rectSet.lineWidth;
-                    context.fillRect(rectSet.x, rectSet.y, rectSet.width, rectSet.height);
-                    context.strokeRect(rectSet.x, rectSet.y, rectSet.width, rectSet.height);
-                });
-            });
-            grid.parent = this;
-            return self;
-        };
-
-        /*
-         GridLayer : drawAbstractGrid(AbstractGrid grid)
-         Desenha a grade grid na camada
-         */
-        GridLayer.prototype.drawAbstractGrid = function (grid) {
-            //console.log('Grid layer draw abstract grid...');
-            var self = this;
-            if (grid.isDrawable()) {
-                var context = self.getContext();
-                context.fillStyle = 'transparent';
-                context.strokeStyle = (new Color({alpha: 0.2})).toRGBA();
-                context.lineWidth = 1;
-                context.lineDash = [];
-                var visibleArea = self.getVisibleArea();
-                var vsi = visibleArea.x !== 0 ? Math.floor(visibleArea.x / grid.sw) : 0;
-                var vsj = visibleArea.y !== 0 ? Math.floor(visibleArea.y / grid.sh) : 0;
-                var vei = Math.ceil((visibleArea.x + visibleArea.width) / grid.sw);
-                var vej = Math.ceil((visibleArea.y + visibleArea.height) / grid.sh);
-
-
-                for (var i = vsi; i < vei; i++) {
-                    for (var j = vsj; j < vej; j++) {
-                        context.strokeRect((i * grid.sw) + grid.x, (j * grid.sh) + grid.y, grid.sw, grid.sh);
-                    }
-                }
-            }
-            return self;
-        };
-
-
-        /*
-         GridLayer : drawRectSet(RectSet set)
-         Desenha um retângulo da grade
-         */
-        GridLayer.prototype.drawRectSet = function (rectSet) {
-            //console.log('Canvas layer draw rect set...');
-            var self = this;
-            var context = self.getContext();
-            context.fillStyle = rectSet.fillStyle;
-            context.strokeStyle = rectSet.strokeStyle;
-            context.fillRect(rectSet.x, rectSet.y, rectSet.width, rectSet.height);
-            context.strokeRect(rectSet.x, rectSet.y, rectSet.width, rectSet.height);
-            return self;
-        };
-
-
-        return GridLayer;
     })();
 
     CanvasEngine.KeyReader = (function () {
@@ -2539,262 +2394,12 @@
         return KeyReader;
     })();
 
-
-    CanvasEngine.RectSet = (function () {
-        var AppObject = CanvasEngine.AppObject,
-            Color = CanvasEngine.Color,
-            Validator = CanvasEngine.Validator;
-
-        var RectSet = function (options) {
-            var self = this;
-            self.width = 32;
-            self.height = 32;
-            self.x = 0;
-            self.y = 0;
-            self.fillStyle = (new Color({alpha: 0})).toRGBA();
-            self.strokeStyle = (new Color({alpha: 1})).toRGBA();
-            self.lineWidth = 1;
-            self.lineDash = [];
-            self.state = 0;
-            self.i = 0;
-            self.j = 0;
-            AppObject.call(self);
-            RectSet.bindProperties.apply(self);
-            self.set(options);
-        };
-
-        RectSet.prototype = Object.create(AppObject.prototype);
-        RectSet.prototype.constructor = RectSet;
-
-        RectSet.prototype.getLine = function () {
-            var self = this;
-            return Math.floor(self.y / self.height);
-        };
-
-        RectSet.prototype.getColumn = function () {
-            var self = this;
-            return Math.floor(self.x / self.width);
-        };
-
-        RectSet.bindProperties = function (options) {
-            var self = this;
-            self._beforeSet('width', Validator.validateNumber);
-            self._beforeSet('height', Validator.validateNumber);
-            self._beforeSet('x', Validator.validateNumber);
-            self._beforeSet('y', Validator.validateNumber);
-            self._beforeSet('state', Validator.validateInt);
-            self._beforeSet('lineDash', Validator.validateArray);
-            self._beforeSet('fillStyle', Validator.validateColor);
-            self._beforeSet('strokeStyle', Validator.validateColor);
-            self._beforeSet('i', Validator.validateInt);
-            self._beforeSet('j', Validator.validateInt);
-            self._accessible(['width', 'height', 'x', 'y']);
-        };
-
-        return RectSet;
-    })();
-
-    CanvasEngine.Grid = (function () {
-        var RectSet = CanvasEngine.RectSet,
-            AbstractGrid = CanvasEngine.AbstractGrid,
-            Color = CanvasEngine.Color;
-
-        var Grid = function (options) {
-            console.log('initializing Grid...');
-            var self = this;
-            self.rectSets = [];
-            self.checkedSets = [];
-            AbstractGrid.call(self, options);
-            Grid.bindProperties.apply(self);
-        };
-
-        Grid.prototype = Object.create(AbstractGrid.prototype);
-        Grid.prototype.constructor = Grid;
-
-
-        Grid.bindProperties = function () {
-            var self = this;
-            self._afterChange(function () {
-                var update = false;
-                if (self._isChanged('sw') || self._isChanged('sh')) {
-                    update = true;
-                    self.rectSets = [];
-                }
-                if (self._isChanged('width') || self._isChanged('height')) {
-                    update = true;
-                }
-                if (update) {
-                    self.update();
-                }
-            });
-        };
-
-        /*
-         Object : getAreaInterval(Object options)
-         dada uma área, é retornado os indices
-         si, sj e ei, ej que representam as linhas e
-         as colunas inicias e finais que estão presentes
-         nessa região, usado para percorrer somente os
-         retângulos de uma região específica, para melhorar
-         o desempeho, exemplo:
-         var grid = new Grid({
-         x:0,
-         width:0,
-         width:100,
-         height:100,
-         sw:10,
-         sh:10
-         });
-         var interval = grid.getAreaInterval({
-         x:10,
-         y:12,
-         width:100,
-         height:100
-         });
-
-         interval => {si:1,sj:1,ei:10,ej:10};
-         si => linha inicial
-         ei => linha final
-         sj => coluna inicial
-         ej => coluna final
-         */
-        Grid.prototype.getAreaInterval = function (options) {
-            var self = this;
-            var x = _.isNumber(options.x) ? options.x : 0;
-            var y = _.isNumber(options.y) ? options.y : 0;
-            var width = _.isNumber(options.width) ? options.width : 0;
-            var height = _.isNumber(options.height) ? options.height : 0;
-
-            var si = parseInt(Math.floor(y / self.sh));
-            var sj = parseInt(Math.floor(x / self.sw));
-            var ei = parseInt(Math.floor((y + height) / self.sh));
-            var ej = parseInt(Math.floor((x + width) / self.sw));
-            return {si: si, sj: sj, ei: ei, ej: ej};
-
-        };
-
-        /*
-         Array<RectSets> : getRectsFromArea(Object object);
-         dada uma determinada, obtém todos os objetos
-         RectSets que estão presentes nessa área
-         */
-        Grid.prototype.getRectsFromArea = function (options) {
-            var rects = [];
-            var self = this;
-            var interval = self.getAreaInterval(options);
-            for (var i = interval.si; i <= interval.ei; i++) {
-                if (self.rectSets[i] !== undefined) {
-                    for (var j = interval.sj; j <= interval.ej; j++) {
-                        if (self.rectSets[i][j] !== undefined) {
-                            rects.push(self.rectSets[i][j]);
-                        }
-                    }
-                }
-            }
-
-            return rects;
-        };
-
-        /*
-         Grid: apply(Object options, Function conditions)
-         Aplica as propriedades options em todos os RectSets
-         que satisfazem a funçao conditions, que deve retorna
-         true ou false
-         */
-        Grid.prototype.apply = function (options, condition) {
-            var self = this;
-            self.fillStyle = Color.isColor(options.fillStyle) ? options.fillStyle : self.fillStyle;
-            self.strokeStyle = Color.isColor(options.strokeStyle) ? options.strokeStyle : self.strokeStyle;
-            self.rectSets.forEach(function (row) {
-                row.forEach(function (rectSet) {
-                    if (condition === undefined || condition.apply(rectSet)) {
-                        rectSet.set(options);
-                    }
-                });
-            });
-            return self;
-        };
-
-        /*
-         Grid : update()
-         Atualiza as dimensões da grade
-         */
-        Grid.prototype.update = function () {
-            var self = this;
-            var sw = self.sw;
-            var sh = self.sh;
-            var w = self.width;
-            var h = self.height;
-            var i;
-            var j;
-
-
-            if (w > 0 && h > 0) {
-                var cols = Math.floor(w / sw);
-                var rows = Math.floor(h / sh);
-                var count = 0;
-
-
-                for (i = self.rectSets.length; i < rows; i++) {
-                    if (self.rectSets[i] === undefined) {
-                        self.rectSets[i] = [];
-                    }
-                    for (j = self.rectSets[i].length; j < cols; j++) {
-                        count++;
-                        self.rectSets[i][j] = new RectSet({
-                            x: j * self.sw,
-                            y: i * self.sh,
-                            width: sw,
-                            height: sh,
-                            fillStyle: self.fillStyle,
-                            strokeStyle: self.strokeStyle,
-                            i: i,
-                            j: j
-                        });
-                    }
-                }
-
-                for (j = self.rectSets[0].length; j < cols; j++) {
-                    for (i = 0; i < self.rectSets.length; i++) {
-                        count++;
-                        self.rectSets[i][j] = new RectSet({
-                            x: j * self.sw,
-                            y: i * self.sh,
-                            width: sw,
-                            height: sh,
-                            fillStyle: self.fillStyle,
-                            strokeStyle: self.strokeStyle,
-                            i: i,
-                            j: j
-                        });
-                    }
-                }
-
-                for (i = 0; i < self.rectSets.length; i++) {
-                    self.rectSets[i].length = cols;
-                }
-                self.rectSets.length = Math.min(rows, self.rectSets.length);
-            }
-            else {
-                self.rectSets = [];
-            }
-
-
-            return self;
-        };
-
-        return Grid;
-    })();
-
-
     CanvasEngine.CE = (function () {
         var AppObject = CanvasEngine.AppObject,
             Math2 = CanvasEngine.Math,
             MouseReader = CanvasEngine.MouseReader,
             CanvasLayer = CanvasEngine.CanvasLayer,
-            GridLayer = CanvasEngine.GridLayer,
             KeyReader = CanvasEngine.KeyReader,
-            Grid = CanvasEngine.Grid,
             jquery = $,
             Validator = CanvasEngine.Validator;
         var CE = function (options) {
@@ -2812,21 +2417,52 @@
             self.keyReader = null;
             self.draggable = false;
             self.scalable = false;
-            self.selectable = false;
-            self.multiSelect = false;
-            self.grid = null;
             self.scale = 1;
-            self.gridLayer = null;
-            self.animationLayer = null;
-            self.areaSelect = null;
             self.container = null;
             AppObject.call(self);
             CE.bindProperties.apply(self);
             self.set(options);
+            CE.initialize.apply(self);
         };
 
         CE.prototype = Object.create(AppObject.prototype);
         CE.prototype.constructor = CE;
+
+        /*
+         Inicializa eventos com mouse
+         */
+        CE.initialize = function(){
+            var self = this;
+            var mouseReader = self.getMouseReader();
+            mouseReader.onmousedown(3, function () {
+                self.lastViewX = self.viewX;
+                self.lastViewY = self.viewY;
+            });
+
+            mouseReader.onmousemove(function (e) {
+                var reader = this;
+                if (self.draggable && reader.right) {
+                    var pa = reader.lastDown.right;
+                    var pb = reader.lastMove;
+                    var p = Math2.vmv(pa, pb);
+                    var x = self.lastViewX - p.x;
+                    var y = self.lastViewY - p.y;
+
+
+                    var layer = self.getLayer(0);
+                    var min_x = self.getWidth() - layer.width;
+                    var min_y = self.getHeight() - layer.height;
+                    min_x = min_x > 0 ? 0 : min_x;
+                    min_y = min_y > 0 ? 0 : min_y;
+                    x = Math.min(Math.max(x, min_x), 0);
+                    y = Math.min(Math.max(y, min_y), 0);
+                    self.set({
+                        viewX: x,
+                        viewY: y
+                    });
+                }
+            });
+        };
 
         CE.bindProperties = function () {
             var self = this;
@@ -2846,23 +2482,6 @@
                 });
             });
 
-            /*
-             self._onChange('scale',function(newValue){
-             self.layers.forEach(function(layer) {
-             $(layer.getElement()).css({
-             transform: 'scale(' + newValue + ',' + newValue + ')',
-             transformOrigin: '0 0',
-             webkitTransform: 'scale(' + newValue + ',' + newValue + ')',
-             webkitTransformOrigin: '0 0',
-             mozTransform: 'scale(' + newValue+ ')',
-             mozTransformOrigin: '0 0',
-             oTransform: 'scale(' + newValue+ ',' + newValue + ')',
-             oTransformOrigin: '0 0',
-             msTransform: 'scale(' + newValue+ ',' + newValue+ ')',
-             msTransformOrigin: '0 0'
-             });
-             });
-             });*/
 
             self._beforeSet('scale', function () {
                 return 1;
@@ -2891,19 +2510,6 @@
                     e.preventDefault();
                 });
 
-                $(container).find('canvas').each(function(){
-                    var data = $(this).data();
-
-
-                    if(data.type === 'grid-layer' && self.gridLayer === null){
-                        self.gridLayer = self.createLayer({element:this},GridLayer);
-                    }
-                    else{
-                        self.createLayer({element:this});
-                    }
-                });
-
-
                 self.getMouseReader().set({
                     element: container
                 });
@@ -2920,119 +2526,6 @@
         };
 
         /*
-         Object : getDrawedArea()
-         obter a área selecionada
-         */
-        CE.prototype.getDrawedArea = function () {
-            var self = this;
-            var reader = self.getMouseReader();
-            var translate = {x: -self.viewX / self.scale, y: -self.viewY / self.scale};
-            var pa = Math2.vpv(Math2.sdv(self.scale, reader.lastDown.left), translate);
-            var pb = Math2.vpv(Math2.sdv(self.scale, reader.lastMove), translate);
-            var width = Math.abs(pb.x - pa.x);
-            var height = Math.abs(pb.y - pa.y);
-
-            var area = {
-                x: pa.x,
-                y: pa.y,
-                width: width,
-                height: height
-            };
-
-            area.x = pa.x > pb.x ? area.x - width : area.x;
-            area.y = pa.y > pb.y ? area.y - height : area.y;
-            return area;
-        };
-
-
-        /*
-         CE: refreshGridLayer()
-         */
-        CE.prototype.refreshGridLayer = function () {
-            var self = this;
-            self.getGridLayer().clear().drawGrid(self.getGrid());
-        };
-
-        /*
-         CE : onAreaSelect(function callback)
-         chama callback quando uma área for selecionada
-         */
-        CE.prototype.onAreaSelect = function (callback) {
-            var self = this;
-            self.areaSelect = callback;
-            return self;
-        };
-
-        /*
-         CE: update engine grid
-         atualiza camada de grade
-         */
-        CE.prototype.updateGrid = function (options) {
-            var self = this;
-            self.getGridLayer().set(options).clear().drawGrid(self.getGrid().set(options));
-            return self;
-        };
-
-        /*
-         CE
-         */
-        CE.prototype.redrawGrid = function () {
-            var self = this;
-            self.getGridLayer().clear().drawGrid(self.getGrid());
-            return self;
-        };
-
-        /*
-         CanvasLayer : getGridLayer()
-         obtém camada de desenho da grade
-         */
-        CE.prototype.getGridLayer = function (options) {
-            options = options == undefined?{}:options;
-            var self = this;
-            if (self.gridLayer === null) {
-                self.gridLayer = self.createLayer({
-                    type: 'grid',
-                    append:options.append,
-                    width:options.width,
-                    height:options.height
-                }, GridLayer);
-            }
-            return self.gridLayer;
-        };
-        /*
-         CanvasEngine : destroyGridLayer
-         destroy a camadad de grid
-         */
-        CE.prototype.destroyGridLayer = function(){
-            var self = this;
-            if(self.gridLayer !== null){
-                self.gridLayer.destroy();
-                self.gridLayer = null;
-            }
-            return self;
-        };
-
-
-        /*
-         Grid : getGrid()
-         obtém objeto grid
-         */
-        CE.prototype.getGrid = function () {
-            var self = this;
-            if (self.grid === null) {
-                var width = self.width;
-                var height = self.height;
-                self.grid = new Grid({
-                    sw: width,
-                    sh: height,
-                    width: width,
-                    height: height
-                });
-            }
-            return self.grid;
-        };
-
-        /*
          MouseReader : getMouseReader() obtém instância
          do leitor de mouse
          */
@@ -3041,95 +2534,6 @@
             if (self.mouseReader === null) {
                 self.mouseReader = new MouseReader({
                     element: self.container
-                });
-
-                self.mouseReader.onmousedown(3, function () {
-                    self.lastViewX = self.viewX;
-                    self.lastViewY = self.viewY;
-                });
-
-                self.mouseReader.onmousemove(function (e) {
-                    var reader = this;
-                    if (self.draggable && reader.right) {
-                        var pa = reader.lastDown.right;
-                        var pb = reader.lastMove;
-                        var p = Math2.vmv(pa, pb);
-                        var x = self.lastViewX - p.x;
-                        var y = self.lastViewY - p.y;
-                        var layer = self.getLayer(0);
-                        var min_x = self.getWidth() - layer.width;
-                        var min_y = self.getHeight() - layer.height;
-                        min_x = min_x > 0 ? 0 : min_x;
-                        min_y = min_y > 0 ? 0 : min_y;
-                        x = Math.min(Math.max(x, min_x), 0);
-                        y = Math.min(Math.max(y, min_y), 0);
-                        self.set({
-                            viewX: x,
-                            viewY: y
-                        });
-                    }
-                });
-
-                /*
-                 self.mouseReader.onmousewheel(function(e){
-                 console.log('mouse wheel..');
-                 var reader = this;
-                 if(self.scalable){
-                 var y = reader.lastWheel;
-                 if(y < 0){
-                 if(self.scale > 0.2){
-                 self.set({
-                 scale:self.scale-0.1
-                 });
-                 }
-                 }
-                 else if(y > 0){
-                 self.set({
-                 scale:self.scale+0.1
-                 });
-                 }
-                 }
-                 });*/
-
-                /*
-                 Calcula e redesenha um retângulo selecionado no tileset
-                 */
-                self.mouseReader.onmousedown(1, function () {
-                    if (self.selectable && typeof self.areaSelect === 'function') {
-                        var reader = this;
-                        var translate = {x: Math.abs(self.viewX / self.scale), y: Math.abs(self.viewY / self.scale)};
-                        var pa = Math2.vpv(Math2.sdv(self.scale, reader.lastDown.left), translate);
-                        var area = {
-                            x: pa.x,
-                            y: pa.y
-                        };
-                        var grid = self.getGrid();
-                        self.areaSelect.apply(self, [area, grid]);
-                        self.refreshGridLayer();
-                    }
-                });
-
-
-                /*
-                 Calcula e redesenha uma área selecionada no tileset
-                 */
-                self.mouseReader.onmousemove(function (e) {
-                    if (self.multiSelect && self.selectable && typeof self.areaSelect === 'function') {
-                        var reader = this;
-                        var grid = self.getGrid();
-                        var area = null;
-                        if (reader.left) {
-                            area = self.getDrawedArea();
-                        }
-                        else {
-                            area = Math2.vpv(Math2.sdv(self.scale, reader.lastMove), {
-                                x: -self.viewX / self.scale,
-                                y: -self.viewY / self.scale
-                            });
-                        }
-                        self.areaSelect.apply(self, [area, grid]);
-                        self.refreshGridLayer();
-                    }
                 });
             }
             return self.mouseReader;
@@ -3232,19 +2636,6 @@
 
             self.layers.push(layer);
 
-
-            if (self.gridLayer !== null) {
-                var newLayer = self.layers[self.layers.length - 1];
-                self.layers[self.layers.length - 1] = self.gridLayer;
-                self.layers[self.gridLayer.zIndex] = newLayer;
-                newLayer.set({
-                    zIndex: self.gridLayer.zIndex
-                });
-                self.gridLayer.set({
-                    zIndex: self.layers.length - 1
-                });
-            }
-
             if(options.append){
                 if (self.container !== null && !$.contains(self.container,layer.getElement())) {
                     $(self.container).append(layer.getElement());
@@ -3280,7 +2671,7 @@
             var self = this;
 
             var index = -1;
-            if (!(layer instanceof GridLayer) && layer instanceof CanvasLayer) {
+            if (layer instanceof CanvasLayer) {
                 index = self.layers.indexOf(layer);
             }
             else if (Validator.isInt(layer) && self.layers[layer] !== undefined) {
@@ -3297,60 +2688,6 @@
                 }
             }
             return self;
-        };
-
-
-        /*
-         CE: renderMap(Map map)
-         Renderiza o mapa nas camadas de canvas
-         */
-
-        CE.prototype.renderMap = function (map) {
-            var self = this;
-            self.clearAllLayers();
-            var sets = map.imageSets;
-            var size1 = sets.length;
-            map.renderIntervals.forEach(function (interval) {
-                clearInterval(interval);
-            });
-
-
-            for (var i = 0; i < size1; i++) {
-                if (sets[i] !== undefined) {
-                    var size2 = sets[i].length;
-                    for (var j = 0; j < size2; j++) {
-                        if (sets[i][j] !== undefined) {
-                            sets[i][j].forEach(function (imageSet) {
-                                map.renderIntervals.push(setTimeout(function () {
-                                    var layer = self.getLayer(imageSet.layer);
-                                    if (layer !== null) {
-                                        layer.set({
-                                            width: map.width * map.tile_w,
-                                            height: map.height * map.tile_h
-                                        });
-                                        layer.drawImageSet(imageSet);
-                                    }
-                                }, (20 * i) + (j * 20)));
-                            });
-                        }
-                    }
-                }
-            }
-
-            map.parent = self;
-        };
-        /*
-         Cria uma instância de CE
-         CE : createEntine(Object options)
-         exemplo:
-         CE.createEngine({
-         container:'#canvas-container',
-         width:500,
-         height:500
-         });
-         */
-        CE.createEngine = function (options) {
-            return new CE(options);
         };
 
         return CE;
@@ -3559,7 +2896,6 @@
             self.loaded = false;
             self.image = null;
             LayerObject.call(self);
-            ImageSet.bindProperties.apply(self);
             self.set(options);
         };
 
@@ -3601,6 +2937,23 @@
             };
         };
 
+        ImageSet.prototype.toJSON = function(){
+            var self = this;
+            var graphic = self.image === null?'':self.image.src;
+            return {
+                graphic:graphic,
+                dx:self.dx,
+                dy:self.dy,
+                sx:self.sx,
+                sy:self.sy,
+                sWidth:self.sWidth,
+                sHeight:self.sHeight,
+                dWidth:self.dWidth,
+                dHeight:self.dHeight
+            };
+        };
+
+
         /*
          ImageSet : set(Object options)
          Altera as propriedades de ImageSet
@@ -3617,30 +2970,7 @@
          sHeight:32 //altura da área de corte
          });
          */
-        ImageSet.bindProperties = function () {
-            //var self = this;
-            //self._beforeSet('x', Validator.validateNumber);
-            //self._beforeSet('y', Validator.validateNumber);
-            //self._beforeSet('width', Validator.validateNumber);
-            //self._beforeSet('height', Validator.validateNumber);
-            //self._beforeSet('sx', Validator.validateNumber);
-            //self._beforeSet('sy', Validator.validateNumber);
-            //self._beforeSet('sWidth', Validator.validateNumber);
-            //self._beforeSet('sHeight', Validator.validateNumber);
-            //self._beforeSet('layer', Validator.validateNumber);
-            //self._beforeSet('url', Validator.validateString);
-            //self._accessible(['url', 'x', 'y', 'width', 'height', 'sx', 'sy', 'sWidth', 'sHeight', 'layer']);
 
-            /*
-             self._onChange('url',function(url){
-             self.loaded = false;
-             self.image = new Image();
-             ImageLoader.load(url,function(img){
-             self.loaded = true;
-             self.image = img;
-             });
-             });*/
-        };
 
         /*
          boolean isLoaded()
@@ -3708,7 +3038,6 @@
             self.parent = null;
             self.renderIntervals = [];
             AppObject.call(self);
-            Map.bindProperties.apply(self);
             self.set(options);
         };
 
@@ -3763,27 +3092,6 @@
             return self.height * self.tile_h;
         };
 
-        /*
-         Map : set(Object options)
-         Altera as propriedades do mapa
-         */
-
-        Map.bindProperties = function () {
-            var self = this;
-            self._beforeSet('tile_w', Validator.validateNumber);
-            self._beforeSet('tile_h', Validator.validateNumber);
-            self._beforeSet('width', Validator.validateNumber);
-            self._beforeSet('height', Validator.validateNumber);
-            self._beforeSet('imageSets', Validator.validateArray);
-
-            self._afterChange(function () {
-                if (self.parent !== null && (self._isChanged('tile_w') || self._isChanged('tile_h') || self._isChanged('width') || self._isChanged('height'))) {
-                    self.parent.applyToLayers({width: self.width * self.tile_w, height: self.height * self.tile_h});
-                }
-            });
-            self._accessible(['width', 'height', 'tile_w', 'tile_h', 'imageSets']);
-        };
-
         return Map;
     })();
 
@@ -3828,12 +3136,112 @@
                 self.image(graphic);
             }
             if(object.selected){
+                /*square selector*/
                 self.rect({
                     x:object.dx,
                     y:object.dy,
                     width:object.dWidth,
                     height:object.dHeight,
+                    backgroundColor:'transparent',
                     lineDash:[4,4]
+                });
+
+
+                var width = 6;
+                var height = 6;
+                var half_width = width/2;
+                var half_height = height/2;
+
+                var xa = object.dx-half_width;
+                var xb = xa+(object.dWidth/2);
+                var xc = xa+object.dWidth;
+
+
+                var ya = object.dy-half_height;
+                var yb = ya+(object.dHeight/2);
+                var yc = ya+object.dHeight;
+
+                /* vertices */
+                self.rect({
+                    x:xa,
+                    y:ya,
+                    width:width,
+                    height:height,
+                    borderColor:'#000000',
+                    lineDash:null,
+                    backgroundColor:'transparent'
+                });
+
+                self.rect({
+                    x:xb,
+                    y:ya,
+                    width:6,
+                    height:6,
+                    borderColor:'#000000',
+                    lineDash:null,
+                    backgroundColor:'transparent'
+                });
+
+                self.rect({
+                    x:xc,
+                    y:ya,
+                    width:6,
+                    height:6,
+                    borderColor:'#000000',
+                    lineDash:null,
+                    backgroundColor:'transparent'
+                });
+
+
+                self.rect({
+                    x:xa,
+                    y:yb,
+                    width:6,
+                    height:6,
+                    borderColor:'#000000',
+                    lineDash:null,
+                    backgroundColor:'transparent'
+                });
+
+                self.rect({
+                    x:xc,
+                    y:yb,
+                    width:6,
+                    height:6,
+                    borderColor:'#000000',
+                    lineDash:null,
+                    backgroundColor:'transparent'
+                });
+
+                self.rect({
+                    x:xa,
+                    y:yc,
+                    width:6,
+                    height:6,
+                    borderColor:'#000000',
+                    lineDash:null,
+                    backgroundColor:'transparent'
+                });
+
+                self.rect({
+                    x:xb,
+                    y:yc,
+                    width:6,
+                    height:6,
+                    borderColor:'#000000',
+                    lineDash:null,
+                    backgroundColor:'transparent'
+                });
+
+
+                self.rect({
+                    x:xc,
+                    y:yc,
+                    width:6,
+                    height:6,
+                    borderColor:'#000000',
+                    lineDash:null,
+                    backgroundColor:'transparent'
                 });
             }
         };
@@ -3932,8 +3340,11 @@
         return ObjectLayer;
     })();
 
-    CanvasEngine.createEngine = function (options) {
-        return new CanvasEngine.CE(options);
+    CanvasEngine.createEngine = function (options,className) {
+        if(className === undefined){
+            return new CanvasEngine.CE(options);
+        }
+        return new className(options);
     };
 
     window.CE = CanvasEngine;
