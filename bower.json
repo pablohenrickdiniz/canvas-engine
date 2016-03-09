@@ -15,10 +15,6 @@
     "tests",
     "**/.*"
   ],
-  "dependencies": {
-    "requirejs": "~2.1.22",
-    "quadtree-js": "https://github.com/timohausmann/quadtree-js.git"
-  },
   "keywords": [
     "canvas",
     "engine",
