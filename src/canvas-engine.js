@@ -557,18 +557,18 @@
         MouseReader.bindProperties = function () {
             var self = this;
             self._beforeSet('element', function (oldVal, newVal) {
-                newVal = Validator.validateElement(oldVal, newVal);
-                if (oldVal !== newVal) {
-                    $(oldVal).unbind('mousemove');
-                    $(oldVal).unbind('mousedown');
-                    $(oldVal).unbind('mousewheel');
-                }
+                $(oldVal).unbind('mousemove');
+                $(oldVal).unbind('mousedown');
+                $(oldVal).unbind('mousewheel');
+                $(oldVal).unbind('mouseout');
+                $(oldVal).unbind('mouseenter');
+
                 return newVal;
             });
 
             self._onChange('element', function (element) {
                 self.initializeVars();
-                $(element).mousemove(function (event) {
+                $(element).on('mousemove',function (event) {
                     event.preventDefault();
                     var target = event.target;
                     var x = event.offsetX;
@@ -579,7 +579,7 @@
                     });
                 });
 
-                $(element).mousedown(function (event) {
+                $(element).on('mousedown',function (event) {
                     event.preventDefault();
                     var pos = {x: event.offsetX, y: event.offsetY};
                     switch (event.which) {
@@ -607,7 +607,7 @@
 
                 });
 
-                $(element).mouseout(function (event) {
+                $(element).on('mouseout',function (event) {
                     event.preventDefault();
                     self.left = false;
                     self.right = false;
@@ -617,7 +617,7 @@
                     });
                 });
 
-                $(element).mouseenter(function (event) {
+                $(element).on('mouseenter',function (event) {
                     event.preventDefault();
                     self.mouseenter.forEach(function (callback) {
                         callback.apply(self, [event]);
@@ -633,12 +633,8 @@
                 };
 
                 var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
-                if ($(element)[0].attachEvent) { //if IE (and Opera depending on user setting)
-                    $(element)[0].attachEvent("on" + mousewheelevt, callback);
-                }
-                else if ($(self.element)[0].addEventListener) { //WC3 browsers
-                    $(element)[0].addEventListener(mousewheelevt, callback, false);
-                }
+
+                $(element).on(mousewheelevt,callback);
             });
         };
 
@@ -2203,6 +2199,7 @@
         CE.initialize = function(){
             var self = this;
             var mouseReader = self.getMouseReader();
+
             mouseReader.onmousedown(3, function () {
                 self.lastViewX = self.viewX;
                 self.lastViewY = self.viewY;
@@ -2284,13 +2281,6 @@
                 });
 
                 self.keyReader = null;
-            });
-
-            self._beforeSet('container', function (oldVal, newVal) {
-                oldVal = $(oldVal)[0];
-                newVal = $(newVal)[0];
-                newVal = Validator.validateElement(oldVal, newVal);
-                return newVal;
             });
         };
 
@@ -2394,7 +2384,7 @@
             options.zIndex = self.layers.length;
             options.width = Validator.validateNumber(self.getWidth(), options.width);
             options.height = Validator.validateNumber(self.getHeight(), options.height);
-            options.append = options.append === undefined?true:options.append;
+
 
             if (ClassName !== undefined) {
                 layer = new ClassName(options, self);
@@ -2405,11 +2395,10 @@
 
             self.layers.push(layer);
 
-            if(options.append){
-                if (self.container !== null && !$.contains(self.container,layer.getElement())) {
-                    $(self.container).append(layer.getElement());
-                }
+            if (self.container !== null && $(self.container).length > 0) {
+                $(self.container).append(layer.getElement());
             }
+
 
             return layer;
         };
@@ -2466,397 +2455,6 @@
         };
 
         return CE;
-    })();
-
-    CanvasEngine.ImageSet = (function () {
-        var LayerObject = CanvasEngine.LayerObject,
-            Validator = CanvasEngine.Validator;
-
-        var ImageSet = function (options) {
-            var self = this;
-            self.loads = [];
-            self.sx = 0;
-            self.sy = 0;
-            self.dx = 0;
-            self.dy = 0;
-            self.sWidth = 0;
-            self.sHeight = 0;
-            self.dWidth = 0;
-            self.dHeight = 0;
-            self.layer = 0;
-            self.loaded = false;
-            self.image = null;
-            LayerObject.call(self);
-            self.set(options);
-        };
-
-        ImageSet.prototype = Object.create(LayerObject.prototype);
-        ImageSet.prototype.constructor = ImageSet;
-
-
-        ImageSet.prototype.clone = function () {
-            return new ImageSet(this._props());
-        };
-
-        /*
-         Object : getBounds()
-         obtém o AABB
-         */
-        ImageSet.prototype.getBounds = function () {
-            var self = this;
-            return {
-                x: self.dx,
-                y: self.dy,
-                width: self.dWidth,
-                height: self.dHeight
-            };
-        };
-
-
-        ImageSet.prototype.getGraphic = function(){
-            var self = this;
-            return {
-                image:self.image,
-                dx:self.dx,
-                dy:self.dy,
-                sx:self.sx,
-                sy:self.sy,
-                sWidth:self.sWidth,
-                sHeight:self.sHeight,
-                dWidth:self.dWidth,
-                dHeight:self.dHeight
-            };
-        };
-
-        ImageSet.prototype.toJSON = function(){
-            var self = this;
-            var graphic = self.image === null?'':self.image.src;
-            return {
-                graphic:graphic,
-                dx:self.dx,
-                dy:self.dy,
-                sx:self.sx,
-                sy:self.sy,
-                sWidth:self.sWidth,
-                sHeight:self.sHeight,
-                dWidth:self.dWidth,
-                dHeight:self.dHeight
-            };
-        };
-
-
-        /*
-         ImageSet : set(Object options)
-         Altera as propriedades de ImageSet
-         exemplo:
-         imageSet.set({
-         url:'http;//www.example.com/img/image.png' // caminho para a imagem,
-         x:0, //posição x da imagem
-         y:0, //posição y da imagem
-         width:32, //largura da imagem
-         height:32, //altura da imagem
-         sx: 0, //posição x do qual o corte inicia
-         sy: 0, //posição y do qual o corte inicia
-         sWidth:32, //largura da área de corte
-         sHeight:32 //altura da área de corte
-         });
-         */
-
-
-        /*
-         boolean isLoaded()
-         Verifica se a imagem de imageSet já foi carregada
-         */
-        ImageSet.prototype.isLoaded = function () {
-            return this.loaded;
-        };
-
-        ImageSet.prototype.isTransparent = function (x, y) {
-            var self = this;
-            if (self.image !== null && x < self.width && y < self.height && x >= 0 && y >= 0) {
-                var canvas = document.createElement('canvas');
-                canvas.width = 1;
-                canvas.height = 1;
-                var ctx = canvas.getContext('2d');
-                ctx.drawImage(self.image, self.sx + x, self.sy + y, 1, 1, 0, 0, 1, 1);
-                var p = ctx.getImageData(0, 0, 1, 1).data;
-                return p[3] === undefined || p[3] === 0;
-            }
-
-            return true;
-        };
-
-
-        /*
-         ImageSet: trim()
-         corta a imagem de acordo com os pixels transparentes
-
-         ImageSet.prototype.trim = function(){
-         var self = this;
-         if(self.image != null){
-         var canvas = document.createElement('canvas');
-         canvas.width = self.width;
-         canvas.height = self.height;
-         var ctx = canvas.getContext('2d');
-         ctx.drawImage(self.image,self.sx,self.sy,self.sWidth,self.sHeight,self.x,self.y,self.width,self.height);
-         var imageData = ctx.getImageData(0,0,self.width,self.height);
-         var bounds = Filter.trim(imageData);
-         self.sx += bounds.x;
-         self.sy += bounds.y;
-         self.width = bounds.width;
-         self.height = bounds.height;
-         self.sWidth = bounds.width;
-         self.sHeight = bounds.sHeight;
-         }
-         return self;
-         }; */
-
-        return ImageSet;
-    })();
-
-    CanvasEngine.ObjectLayer = (function () {
-        var CanvasLayer = CanvasEngine.CanvasLayer,
-            Animation = CanvasEngine.Animation;
-
-        var ObjectLayer = function (options, canvas) {
-            var self = this;
-            self.objects = [];
-            CanvasLayer.call(self, options, canvas);
-        };
-
-        ObjectLayer.defaultValues = {
-            animation: {
-                x: 0,
-                y: 0,
-                width: 32,
-                height: 32,
-                frames: [],
-                speed: 5,
-                autoStart: false,
-                repeat: true
-            }
-        };
-
-        ObjectLayer.prototype = Object.create(CanvasLayer.prototype);
-        ObjectLayer.prototype.constructor = ObjectLayer;
-
-        ObjectLayer.prototype.add = function (object) {
-            var self = this;
-            object.canvasLayer = self;
-            object.layer = self.objects.length;
-            self.objects.push(object);
-            return self;
-        };
-
-        ObjectLayer.prototype.drawObject = function (object) {
-            var graphic = object.getGraphic();
-            var self = this;
-            if (graphic !== null) {
-                self.image(graphic);
-            }
-            if(object.selected){
-                /*square selector*/
-                self.rect({
-                    x:object.dx,
-                    y:object.dy,
-                    width:object.dWidth,
-                    height:object.dHeight,
-                    backgroundColor:'transparent',
-                    lineDash:[4,4]
-                });
-
-
-                var width = 6;
-                var height = 6;
-                var half_width = width/2;
-                var half_height = height/2;
-
-                var xa = object.dx-half_width;
-                var xb = xa+(object.dWidth/2);
-                var xc = xa+object.dWidth;
-
-
-                var ya = object.dy-half_height;
-                var yb = ya+(object.dHeight/2);
-                var yc = ya+object.dHeight;
-
-                /* vertices */
-                self.rect({
-                    x:xa,
-                    y:ya,
-                    width:width,
-                    height:height,
-                    borderColor:'#000000',
-                    lineDash:null,
-                    backgroundColor:'transparent'
-                });
-
-                self.rect({
-                    x:xb,
-                    y:ya,
-                    width:6,
-                    height:6,
-                    borderColor:'#000000',
-                    lineDash:null,
-                    backgroundColor:'transparent'
-                });
-
-                self.rect({
-                    x:xc,
-                    y:ya,
-                    width:6,
-                    height:6,
-                    borderColor:'#000000',
-                    lineDash:null,
-                    backgroundColor:'transparent'
-                });
-
-
-                self.rect({
-                    x:xa,
-                    y:yb,
-                    width:6,
-                    height:6,
-                    borderColor:'#000000',
-                    lineDash:null,
-                    backgroundColor:'transparent'
-                });
-
-                self.rect({
-                    x:xc,
-                    y:yb,
-                    width:6,
-                    height:6,
-                    borderColor:'#000000',
-                    lineDash:null,
-                    backgroundColor:'transparent'
-                });
-
-                self.rect({
-                    x:xa,
-                    y:yc,
-                    width:6,
-                    height:6,
-                    borderColor:'#000000',
-                    lineDash:null,
-                    backgroundColor:'transparent'
-                });
-
-                self.rect({
-                    x:xb,
-                    y:yc,
-                    width:6,
-                    height:6,
-                    borderColor:'#000000',
-                    lineDash:null,
-                    backgroundColor:'transparent'
-                });
-
-
-                self.rect({
-                    x:xc,
-                    y:yc,
-                    width:6,
-                    height:6,
-                    borderColor:'#000000',
-                    lineDash:null,
-                    backgroundColor:'transparent'
-                });
-            }
-        };
-
-        ObjectLayer.prototype.moveUp = function (object) {
-            var self = this;
-            var index = self.objects.indexOf(object);
-            if (index !== -1 && index < self.objects.length - 1) {
-                var objectB = self.objects[index + 1];
-                objectB.layer = index;
-                object.layer = index + 1;
-                self.objects[index] = objectB;
-                self.objects[index + 1] = object;
-                self.refresh();
-            }
-            return self;
-        };
-
-        ObjectLayer.prototype.moveDown = function (object) {
-            var self = this;
-            var index = self.objects.indexOf(object);
-            if (index !== -1 && index > 0) {
-                var objectB = self.objects[index - 1];
-                objectB.layer = index;
-                object.layer = index - 1;
-                self.objects[index] = objectB;
-                self.objects[index - 1] = object;
-                self.refresh();
-            }
-            return self;
-        };
-
-        ObjectLayer.prototype.remove = function (object) {
-            var self = this;
-            var index = self.objects.indexOf(object);
-            if (index !== -1) {
-                self.objects.splice(index, 1);
-                var size = self.objects.length;
-                for (var i = index; i < size; i++) {
-                    self.objects[index].layer = index;
-                }
-                self.refresh();
-            }
-            return self;
-        };
-
-        ObjectLayer.prototype.unselectObjects = function () {
-            var self = this;
-            self.objects.forEach(function (object) {
-                object.selected = false;
-            });
-            self.refresh();
-        };
-
-        ObjectLayer.prototype.refresh = function () {
-            var self = this;
-            self.clear().objects.forEach(function (object) {
-                self.drawObject(object);
-            });
-        };
-
-        ObjectLayer.prototype.createSpriteAnimation = function (options) {
-            var self = this;
-            options = options === undefined ? _.copy(ObjectLayer.defaultValues.animation) : _.merge(ObjectLayer.defaultValues.animation, options);
-
-            if (options.defaultOptions !== undefined) {
-                var size = options.frames.length;
-                for (var i = 0; i < size; i++) {
-                    options.frames[i] = _.merge(options.frames[i], options.defaultOptions);
-                }
-                delete options.defaultOptions;
-            }
-
-
-            var animation = new Animation(options);
-
-            if (options.autoStart) {
-                animation.execute();
-            }
-            self.add(animation);
-            return animation;
-        };
-
-        ObjectLayer.prototype.drawQuadTree = function(quadTree){
-            var self = this;
-
-            quadTree.objects.forEach(function(object){
-                self.rect(object);
-            });
-
-            quadTree.nodes.forEach(function(node){
-                self.drawQuadTree(node);
-            });
-        };
-
-        return ObjectLayer;
     })();
 
     CanvasEngine.createEngine = function (options,className) {
