@@ -1,142 +1,19 @@
 (function(window) {
+        var MouseReader = window.MouseReader,
+            KeyReader = window.KeyReader,
+            AppObject = window.AppObject;
+
+    var merge_options = function(defaultOptions,options){
+        Object.keys(defaultOptions).forEach(function(key){
+            if(options[key] === undefined){
+                options[key] = defaultOptions[key];
+            }
+        });
+        return options;
+    };
+
+
     var CanvasEngine = {};
-    var IdGenerator = {
-        used:[],
-        getUniqueId: function () {
-            var self = this;
-            var id = self.generateUUID();
-            while(self.used[id] !== undefined){
-                id = self.generateUUID();
-            }
-            self.used[id] = true;
-            return id;
-        },
-        drop: function (id) {
-            var self = this;
-            if(self.used[id] !== undefined){
-                delete self.used[id];
-            }
-        },
-        generateUUID:function() {
-            var d = new Date().getTime();
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = (d + Math.random()*16)%16 | 0;
-                d = Math.floor(d/16);
-                return (c=='x' ? r : (r&0x3|0x8)).toString(16);
-            });
-        }
-    };
-
-    var AppObject = function () {
-        var self = this;
-        self._changeCallbacks = [];
-        self._bfrSet = [];
-        self._changed = [];
-        self._aftChange = [];
-        self._acc = [];
-        self._id = IdGenerator.getUniqueId();
-    };
-
-
-    AppObject.validate = true;
-
-    AppObject.prototype.set = function (options) {
-        var self = this;
-        if (options instanceof Object) {
-            Object.keys(self).forEach(function (key) {
-                if (options[key] !== undefined) {
-                    var newValue = options[key];
-                    var oldValue = self[key];
-                    if (!_.isEqual(oldValue, newValue)) {
-                        if (AppObject.validate) {
-                            if (self._bfrSet === undefined) {
-                                self._bfrSet = {};
-                            }
-
-                            if (self._bfrSet[key] !== undefined) {
-                                newValue = self._bfrSet[key](oldValue, newValue);
-                            }
-                        }
-
-                        if (!_.isEqual(oldValue, newValue)) {
-                            self[key] = newValue;
-                            if (self._changed === undefined) {
-                                self._changed = {};
-                            }
-                            self._changed[key] = true;
-
-
-                            if (self._changeCallbacks[key] !== undefined) {
-                                self._changeCallbacks[key](newValue);
-                            }
-                        }
-                    }
-                }
-            });
-
-
-            if (self._aftChange !== undefined && self._aftChange.length > 0 && Object.keys(self._changed).length > 0) {
-                self._aftChange.forEach(function (callback) {
-                    callback();
-                });
-            }
-            self._changed = [];
-        }
-        return self;
-    };
-
-    AppObject.prototype._afterChange = function (callback) {
-        var self = this;
-        if (self._aftChange === undefined) {
-            self._aftChange = [];
-        }
-        self._aftChange.push(callback);
-    };
-
-    AppObject.prototype._isChanged = function (key) {
-        var self = this;
-        return self._changed[key] !== undefined;
-    };
-
-    AppObject.prototype._beforeSet = function (key, callback) {
-        var self = this;
-        if (self[key] !== undefined || self[key] === null) {
-            if (self._bfrSet === undefined) {
-                self._bfrSet = {};
-            }
-            self._bfrSet[key] = callback;
-        }
-        return self;
-    };
-
-    AppObject.prototype._onChange = function (key, callback) {
-        var self = this;
-        if (self[key] !== undefined || self[key] === null) {
-            if (self._changeCallbacks === undefined) {
-                self._changeCallbacks = {};
-            }
-
-            self._changeCallbacks[key] = callback;
-        }
-        return self;
-    };
-
-    AppObject.prototype._unbindChange = function (key) {
-        var self = this;
-        if (self._changeCallbacks !== undefined && self._changeCallbacks[key] !== undefined) {
-            delete self._changeCallbacks[key];
-        }
-    };
-
-    AppObject.prototype.props = function () {
-        return Object.keys(this);
-    };
-
-    AppObject.prototype._destroy = function(){
-        IdGenerator.drop(this._id);
-    };
-
-
     var Validator = {
         regex: {
             PERCENT: /^[0-9]+(\.[0-9]+)?%$/,
@@ -370,218 +247,6 @@
         return [a,b];
     };
 
-
-    var MouseReader = function (properties) {
-        var self = this;
-        self.leftdown = [];
-        self.rightdown = [];
-        self.middledown = [];
-        self.leftup = [];
-        self.rightup = [];
-        self.middleup = [];
-        self.mousemove = [];
-        self.mouseout = [];
-        self.mouseenter = [];
-        self.element = null;
-        self.initialize();
-        AppObject.call(self);
-        MouseReader.bindProperties.apply(self);
-        self.set(properties);
-    };
-
-    MouseReader.prototype = Object.create(AppObject.prototype);
-    MouseReader.prototype.constructor = MouseReader;
-
-    MouseReader.bindProperties = function () {
-        var self = this;
-        self._beforeSet('element', function (oldVal, newVal) {
-            $(oldVal).unbind('mousemove');
-            $(oldVal).unbind('mousedown');
-            $(oldVal).unbind('mousewheel');
-            $(oldVal).unbind('mouseout');
-            $(oldVal).unbind('mouseenter');
-
-            return newVal;
-        });
-
-        self._onChange('element', function (element) {
-            self.initializeVars();
-            $(element).on('mousemove',function (event) {
-                event.preventDefault();
-                var target = event.target;
-                var x = event.offsetX;
-                var y = event.offsetY;
-                self.lastMove = {x: x, y: y};
-                self.mousemove.forEach(function (callback) {
-                    callback.apply(self, [event]);
-                });
-            });
-
-            $(element).on('mousedown',function (event) {
-                event.preventDefault();
-                var pos = {x: event.offsetX, y: event.offsetY};
-                switch (event.which) {
-                    case 1:
-                        self.left = true;
-                        self.lastDown.left = pos;
-                        self.leftdown.forEach(function (callback) {
-                            callback.apply(self, [event]);
-                        });
-                        break;
-                    case 2:
-                        self.middle = true;
-                        self.lastDown.middle = pos;
-                        self.middledown.forEach(function (callback) {
-                            callback.apply(self, [event]);
-                        });
-                        break;
-                    case 3:
-                        self.right = true;
-                        self.lastDown.right = pos;
-                        self.rightdown.forEach(function (callback) {
-                            callback.apply(self, [event]);
-                        });
-                }
-
-            });
-
-            $(element).on('mouseout',function (event) {
-                event.preventDefault();
-                self.left = false;
-                self.right = false;
-                self.middle = false;
-                self.mouseout.forEach(function (callback) {
-                    callback.apply(self, [event]);
-                });
-            });
-
-            $(element).on('mouseenter',function (event) {
-                event.preventDefault();
-                self.mouseenter.forEach(function (callback) {
-                    callback.apply(self, [event]);
-                });
-            });
-
-            var callback = function (e) {
-                e.preventDefault();
-                self.lastWheel = e.detail ? e.detail * (-120) : e.wheelDelta;
-                self.mouseWheel.forEach(function (callback) {
-                    callback.apply(self, [e]);
-                });
-            };
-
-            var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
-
-            $(element).on(mousewheelevt,callback);
-        });
-    };
-
-
-    MouseReader.prototype.initializeVars = function () {
-        var self = this;
-        self.left = false;
-        self.middle = false;
-        self.right = false;
-        self.lastDown = {
-            left: {x: 0, y: 0},
-            right: {x: 0, y: 0},
-            middle: {x: 0, y: 0}
-        };
-        self.lastUp = {
-            left: {x: 0, y: 0},
-            right: {x: 0, y: 0},
-            middle: {x: 0, y: 0}
-        };
-        self.lastMove = {x: 0, y: 0};
-        self.lastWheel = 0;
-        self.mouseWheel = [];
-    };
-
-
-    MouseReader.prototype.initialize = function () {
-        var self = this;
-        self.initializeVars();
-        $(document).mouseup(function (event) {
-            event.preventDefault();
-            if (self.element !== null) {
-                var pos = {x: event.offsetX, y: event.offsetY};
-                switch (event.which) {
-                    case 1:
-                        self.left = false;
-                        self.lastUp.left = pos;
-                        self.leftup.forEach(function (callback) {
-                            callback.apply(self, [event]);
-                        });
-                        break;
-                    case 2:
-                        self.middle = false;
-                        self.lastUp.middle = pos;
-                        self.middleup.forEach(function (callback) {
-                            callback.apply(self, [event]);
-                        });
-                        break;
-                    case 3:
-                        self.right = false;
-                        self.lastUp.right = pos;
-                        self.rightup.forEach(function (callback) {
-                            callback.apply(self, [event]);
-                        });
-                }
-            }
-        });
-    };
-
-    MouseReader.prototype.onmousewheel = function (callback) {
-        var self = this;
-        self.mouseWheel.push(callback);
-    };
-
-    MouseReader.prototype.onmousedown = function (which, callback) {
-        var self = this;
-        switch (which) {
-            case 1:
-                self.leftdown.push(callback);
-                break;
-            case 2:
-                self.middledown.push(callback);
-                break;
-            case 3:
-                self.rightdown.push(callback);
-        }
-    };
-
-    MouseReader.prototype.onmouseup = function (which, callback) {
-        var self = this;
-        switch (which) {
-            case 1:
-                self.leftup.push(callback);
-                break;
-            case 2:
-                self.middleup.push(callback);
-                break;
-            case 3:
-                self.rightup.push(callback);
-        }
-    };
-
-    MouseReader.prototype.onmousemove = function (callback) {
-        var self = this;
-        self.mousemove.push(callback);
-    };
-
-    MouseReader.prototype.onmouseout = function(callback){
-        var self = this;
-        self.mouseout.push(callback);
-    };
-
-    MouseReader.prototype.onmouseenter = function(callback){
-        var self = this;
-        self.mouseenter.push(callback);
-    };
-
-    MouseReader.LEFT = 1;
-    MouseReader.MIDDLE = 2;
-    MouseReader.RIGHT = 3;
 
     var Color = function (options) {
         var self = this;
@@ -1580,7 +1245,7 @@
 
     CanvasLayer.prototype.image = function (options) {
         var self = this;
-        options = options === undefined ? CanvasLayer.defaultValues.image : _.merge(CanvasLayer.defaultValues.image, options);
+        options = options === undefined ? CanvasLayer.defaultValues.image : merge_options(CanvasLayer.defaultValues.image, options);
         var image = options.image;
         if (image !== null && image instanceof HTMLImageElement) {
             var dWidth = options.dWidth;
@@ -1593,18 +1258,21 @@
             var dy = options.dy;
             var percent;
 
+
+
+
             if (dWidth === 'auto' && dHeight === 'auto') {
                 dWidth = image.width;
                 dHeight = image.height;
             }
-            else if (dWidth === 'auto' && _.isNumber(dHeight)) {
+            else if (dWidth === 'auto' && !isNaN(parseFloat(dHeight))) {
                 dWidth = image.width * (dHeight / image.height);
             }
-            else if (dHeight === 'auto' && _.isNumber(dWidth)) {
+            else if (dHeight === 'auto' && !isNaN(parseFloat(dWidth))) {
                 dHeight = image.height * (dWidth / image.width);
             }
 
-            if (_.isNumber(options.sWidth) && options.sWidth > 0) {
+            if (!isNaN(parseFloat(options.sWidth)) && options.sWidth > 0) {
                 sWidth = options.sWidth;
             }
             else if (Validator.isPercent(options.sWidth)) {
@@ -1615,7 +1283,7 @@
                 sWidth = image.width;
             }
 
-            if (_.isNumber(options.sHeight) && options.sHeight > 0) {
+            if (!isNaN(parseFloat(options.sHeight)) && options.sHeight > 0) {
                 sHeight = options.sHeight;
             }
             else if (Validator.isPercent(options.sHeight)) {
@@ -1630,7 +1298,7 @@
                 percent = parseFloat(options.dWidth.replace('%', ''));
                 dWidth = sWidth * (percent / 100);
             }
-            else if (_.isNumber(options.dWidth) && options.dWidth > 0) {
+            else if (!isNaN(parseFloat(options.dWidth)) && options.dWidth > 0) {
                 dWidth = options.dWidth;
             }
 
@@ -1638,7 +1306,7 @@
                 percent = parseFloat(options.dHeight.replace('%', ''));
                 dHeight = sHeight * (percent / 100);
             }
-            else if (_.isNumber(options.dHeight) && options.dHeight > 0) {
+            else if (!isNaN(parseFloat(options.dHeight)) && options.dHeight > 0) {
                 dHeight = options.dHeight;
             }
 
@@ -1664,7 +1332,7 @@
 
     CanvasLayer.prototype.circle = function (options) {
         var self = this;
-        options = options === undefined ? CanvasLayer.defaultValues.circle : _.merge(CanvasLayer.defaultValues.circle, options);
+        options = options === undefined ? CanvasLayer.defaultValues.circle : merge_options(CanvasLayer.defaultValues.circle, options);
         var context = self.getContext();
         context.save();
         self.setContext(options);
@@ -1683,7 +1351,7 @@
 
     CanvasLayer.prototype.rect = function (options) {
         var self = this;
-        options = options === undefined ? CanvasLayer.defaultValues.rect : _.merge(CanvasLayer.defaultValues.rect, options);
+        options = options === undefined ? CanvasLayer.defaultValues.rect : _merge_options(CanvasLayer.defaultValues.rect, options);
         var context = self.getContext();
         context.save();
         self.setContext(options);
@@ -1701,7 +1369,7 @@
 
     CanvasLayer.prototype.clearRect = function (options) {
         var self = this;
-        options = options === undefined ? CanvasLayer.defaultValues.rect : _.merge(CanvasLayer.defaultValues.rect, options);
+        options = options === undefined ? CanvasLayer.defaultValues.rect :merge_options(CanvasLayer.defaultValues.rect, options);
         var context = self.getContext();
         context.clearRect(options.x, options.y, options.width, options.height);
         return self;
@@ -1709,7 +1377,7 @@
 
     CanvasLayer.prototype.clearCircle = function (options) {
         var self = this;
-        options = options === undefined ? CanvasLayer.defaultValues.circle : _.merge(CanvasLayer.defaultValues.circle, options);
+        options = options === undefined ? CanvasLayer.defaultValues.circle : merge_options(CanvasLayer.defaultValues.circle, options);
         var context = self.getContext();
         context.save();
         context.arc(options.x, options.y, options.radius, 0, Math.PI);
@@ -1721,7 +1389,7 @@
 
     CanvasLayer.prototype.polygon = function (options) {
         var self = this;
-        options = options === undefined ? CanvasLayer.defaultValues.polygon : _.merge(CanvasLayer.defaultValues.polygon, options);
+        options = options === undefined ? CanvasLayer.defaultValues.polygon : merge_options(CanvasLayer.defaultValues.polygon, options);
         var size = options.points.length;
         var context = self.getContext();
         context.save();
@@ -1799,178 +1467,7 @@
         return self;
     };
 
-    var KeyReader = function (element) {
-        var self = this;
-        self.element = element;
-        self.deny = false;
-        self.keySequence = [];
-        self.allowedSequences = [];
-        self.lastKeyDown = null;
-        self.lastKeyUp = null;
-        self.onSequenceCallbacks = [];
-        self.initialize();
-    };
 
-    KeyReader.prototype.key = function (name) {
-        if (KeyReader.Keys[name] !== undefined) {
-            return KeyReader.Keys[name];
-        }
-        return null;
-    };
-
-
-    KeyReader.prototype.onSequence = function (sequence, callback) {
-        var self = this;
-        self.onSequenceCallbacks.push({
-            sequence: sequence,
-            callback: callback
-        });
-    };
-
-    KeyReader.prototype.sequenceIs = function (sequence, ordered, exactLength) {
-        var self = this;
-        ordered = ordered === undefined ? false : ordered;
-        exactLength = exactLength === undefined ? false : exactLength;
-        if (exactLength && sequence.length !== self.keySequence.length) {
-            return false;
-        }
-
-        for (var i = 0; i < sequence.length; i++) {
-            if (ordered) {
-                if (sequence[i] !== self.keySequence[i]) {
-                    return false;
-                }
-            }
-            else {
-                if (self.keySequence.indexOf(sequence[i]) === -1) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    };
-
-    KeyReader.prototype.denyAll = function () {
-        this.deny = true;
-    };
-
-    KeyReader.prototype.allowAll = function () {
-        this.deny = false;
-    };
-
-    KeyReader.prototype.allow = function () {
-        var self = this;
-        var size = arguments.length;
-        for (var i = 0; i < size; i++) {
-            var sequence = arguments[i];
-            if (!(sequence instanceof Array)) {
-                sequence = [sequence];
-            }
-            self.allowedSequences.push(sequence);
-        }
-    };
-
-    KeyReader.prototype.initialize = function () {
-        var self = this;
-        $(document).ready(function () {
-            console.log('key reader initialize...');
-            $(self.element).attr('tabindex', 1);
-            $(self.element).click(function () {
-                $(this).focus();
-            });
-            $(self.element).keydown(function (e) {
-                if (self.keySequence.indexOf(e.which) === -1) {
-                    self.keySequence.push(e.which);
-                }
-
-                if (self.deny) {
-                    var size = self.allowedSequences.length;
-                    var allowed = false;
-                    for (var i = 0; i < size; i++) {
-                        var sequence = self.allowedSequences[i];
-                        if (self.sequenceIs(sequence, false, true)) {
-                            allowed = true;
-                        }
-                    }
-                    if (!allowed) {
-                        e.preventDefault();
-                    }
-                }
-
-                self.onSequenceCallbacks.forEach(function (sequence) {
-                    if (self.sequenceIs(sequence.sequence)) {
-                        sequence.callback();
-                    }
-                });
-            });
-
-            $(self.element).keyup(function (e) {
-                var index = self.keySequence.indexOf(e.which);
-                if (index !== -1) {
-                    self.keySequence.splice(index, 1);
-                }
-            });
-        });
-    };
-
-    KeyReader.Keys = {
-        KEY_GT:190,
-        KEY_LT:188,
-        KEY_DOWN: 40,
-        KEY_UP: 38,
-        KEY_LEFT: 37,
-        KEY_RIGHT: 39,
-        KEY_END: 35,
-        KEY_BEGIN: 36,
-        KEY_BACK_TAB: 8,
-        KEY_TAB: 9,
-        KEY_SH_TAB: 16,
-        KEY_ENTER: 13,
-        KEY_ESC: 27,
-        KEY_SPACE: 32,
-        KEY_DEL: 46,
-        KEY_A: 65,
-        KEY_B: 66,
-        KEY_C: 67,
-        KEY_D: 68,
-        KEY_E: 69,
-        KEY_F: 70,
-        KEY_G: 71,
-        KEY_H: 72,
-        KEY_I: 73,
-        KEY_J: 74,
-        KEY_K: 75,
-        KEY_L: 76,
-        KEY_M: 77,
-        KEY_N: 78,
-        KEY_O: 79,
-        KEY_P: 80,
-        KEY_Q: 81,
-        KEY_R: 82,
-        KEY_S: 83,
-        KEY_T: 84,
-        KEY_U: 85,
-        KEY_V: 86,
-        KEY_W: 87,
-        KEY_X: 88,
-        KEY_Y: 89,
-        KEY_Z: 90,
-        KEY_PLUS: 107,
-        KEY_MINUS: 109,
-        KEY_PF1: 112,
-        KEY_PF2: 113,
-        KEY_PF3: 114,
-        KEY_PF4: 115,
-        KEY_PF5: 116,
-        KEY_PF6: 117,
-        KEY_PF7: 118,
-        KEY_PF8: 119,
-        KEY_CTRL: 17,
-        KEY_ALT_GR: 18,
-        KEY_SBL: 221,
-        KEY_SBR: 220
-    };
 
     var CE = function (options) {
         console.log('initializing canvas engine...');
@@ -2183,12 +1680,15 @@
      layer2 => {zIndex:0, width:300,height:200}
      */
     CE.prototype.createLayer = function (options, ClassName) {
-        options = Validator.validateObject({}, options);
+        options = options === undefined?{}:options;
         var layer = null;
         var self = this;
         options.zIndex = self.layers.length;
-        options.width = Validator.validateNumber(self.getWidth(), options.width);
-        options.height = Validator.validateNumber(self.getHeight(), options.height);
+
+        var width = parseFloat(options.width);
+        var height = parseFloat(options.height);
+        options.width = isNaN(width)?self.getWidth():width;
+        options.height = isNaN(height)?self.getHeight():height;
 
 
         if (ClassName !== undefined) {
@@ -2269,13 +1769,10 @@
     };
 
     CanvasEngine.Color = Color;
-    CanvasEngine.IdGenerator = IdGenerator;
     CanvasEngine.AppObject = AppObject;
     CanvasEngine.Validator = Validator;
     CanvasEngine.CE = CE;
     CanvasEngine.CanvasLayer = CanvasLayer;
-    CanvasEngine.MouseReader = MouseReader;
-    CanvasEngine.KeyReader = KeyReader;
     CanvasEngine.Math = math;
 
 
