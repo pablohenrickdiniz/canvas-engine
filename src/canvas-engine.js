@@ -1351,7 +1351,7 @@
 
     CanvasLayer.prototype.rect = function (options) {
         var self = this;
-        options = options === undefined ? CanvasLayer.defaultValues.rect : _merge_options(CanvasLayer.defaultValues.rect, options);
+        options = options === undefined ? CanvasLayer.defaultValues.rect : merge_options(CanvasLayer.defaultValues.rect, options);
         var context = self.getContext();
         context.save();
         self.setContext(options);
@@ -1430,6 +1430,7 @@
             context.strokeStyle = options.borderColor;
         }
 
+
         if(options.lineDash !== undefined && options.lineDash instanceof Array){
             context.setLineDash(options.lineDash);
         }
@@ -1442,7 +1443,7 @@
         if (options.origin !== undefined) {
             var tx = 0;
             var ty = 0;
-            if (_.isString(options.origin)) {
+            if (typeof options.origin === 'string') {
                 switch (options.origin) {
                     case 'center':
                         tx = options.x + (options.width / 2);
@@ -1450,7 +1451,7 @@
                         break;
                 }
             }
-            else if (_.isObject(options.origin)) {
+            else if (typeof options === 'object') {
                 tx = options.origin.x;
                 ty = options.origin.y;
             }
@@ -1576,6 +1577,8 @@
                 height: self.height
             }).addClass('transparent-background canvas-engine').on('contextmenu', function (e) {
                 e.preventDefault();
+            }).css({
+                outline:'none'
             });
 
             self.getMouseReader().set({
