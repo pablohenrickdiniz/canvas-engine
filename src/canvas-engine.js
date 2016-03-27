@@ -1150,6 +1150,7 @@
                 backgroundColor: self.backgroundColor,
                 opacity: self.opacity
             });
+            $(self.element).addClass('canvas-layer');
         }
         return self.element;
     };
@@ -1169,6 +1170,18 @@
             }
         }
         return self.context;
+    };
+
+
+    CanvasLayer.prototype.getRatio = function(){
+        var self = this;
+        var context = self.getContext();
+        var ratio = context.webkitBackingStorePixelRatio ||
+        context.mozBackingStorePixelRatio ||
+        context.msBackingStorePixelRatio ||
+        context.oBackingStorePixelRatio ||
+        context.backingStorePixelRatio || 1;
+        return ratio;
     };
 
     /*
@@ -1259,8 +1272,6 @@
             var percent;
 
 
-
-
             if (dWidth === 'auto' && dHeight === 'auto') {
                 dWidth = image.width;
                 dHeight = image.height;
@@ -1321,11 +1332,9 @@
                 sy = image.height * (percent / 100);
             }
 
-            //console.log('sx:',sx,'sy:',sy,'sWidth:',sWidth,'sHeight:',sHeight,'dx:',dx,'dy:',dy,'dWidth:',dWidth,'dHeight:',dHeight);
-
-
+            var scale = self.canvas.scale;
             if (dWidth > 0 && dHeight > 0) {
-                this.getContext().drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+                this.getContext().drawImage(image, sx, sy, sWidth, sHeight, dx*scale, dy*scale, dWidth*scale, dHeight*scale);
             }
         }
     };
@@ -1371,7 +1380,8 @@
         var self = this;
         options = options === undefined ? CanvasLayer.defaultValues.rect :merge_options(CanvasLayer.defaultValues.rect, options);
         var context = self.getContext();
-        context.clearRect(options.x, options.y, options.width, options.height);
+        var scale = self.canvas.scale;
+        context.clearRect(options.x*scale, options.y*scale, options.width*scale, options.height*scale);
         return self;
     };
 
@@ -1552,9 +1562,24 @@
         });
 
 
-        self._beforeSet('scale', function () {
-            return 1;
+        self._beforeSet('viewX',function(oldValue,newValue){
+            if(newValue > 0){
+                return oldValue;
+            }
+            return newValue;
         });
+
+        self._beforeSet('viewY',function(oldValue,newValue){
+            if(newValue > 0){
+                return oldValue;
+            }
+            return newValue;
+        });
+
+
+        //self._beforeSet('scale', function () {
+        //    return 1;
+        //});
 
         self._onChange('width', function (width) {
             $(self.container).css({
