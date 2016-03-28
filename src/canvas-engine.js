@@ -1,7 +1,7 @@
 (function(window) {
-        var MouseReader = window.MouseReader,
-            KeyReader = window.KeyReader,
-            AppObject = window.AppObject;
+    var MouseReader = window.MouseReader,
+        KeyReader = window.KeyReader,
+        AppObject = window.AppObject;
 
     var merge_options = function(defaultOptions,options){
         Object.keys(defaultOptions).forEach(function(key){
@@ -1177,10 +1177,10 @@
         var self = this;
         var context = self.getContext();
         var ratio = context.webkitBackingStorePixelRatio ||
-        context.mozBackingStorePixelRatio ||
-        context.msBackingStorePixelRatio ||
-        context.oBackingStorePixelRatio ||
-        context.backingStorePixelRatio || 1;
+            context.mozBackingStorePixelRatio ||
+            context.msBackingStorePixelRatio ||
+            context.oBackingStorePixelRatio ||
+            context.backingStorePixelRatio || 1;
         return ratio;
     };
 
@@ -1497,6 +1497,11 @@
         self.scalable = false;
         self.scale = 1;
         self.container = null;
+        self.aligner_width = null;
+        self.aligner_height = null;
+        self.aligner = null;
+        self.moving_x = false;
+        self.moving_y = false;
         AppObject.call(self);
         CE.bindProperties.apply(self);
         self.set(options);
@@ -1546,32 +1551,27 @@
     CE.bindProperties = function () {
         var self = this;
         self._onChange('viewX', function (newValue) {
-            self.layers.forEach(function (layer) {
-                $(layer.getElement()).css({
-                    left: newValue
-                }).data('left',newValue);
+            $(self.aligner).css({
+                left: newValue
             });
         });
 
         self._onChange('viewY', function (newValue) {
-            self.layers.forEach(function (layer) {
-                $(layer.getElement()).css({
-                    top: newValue
-                }).data('top',newValue);
+            $(self.aligner).css({
+                top: newValue
             });
         });
 
-
         self._beforeSet('viewX',function(oldValue,newValue){
             if(newValue > 0){
-                return oldValue;
+                return 0;
             }
             return newValue;
         });
 
         self._beforeSet('viewY',function(oldValue,newValue){
             if(newValue > 0){
-                return oldValue;
+                return 0;
             }
             return newValue;
         });
@@ -1593,8 +1593,32 @@
             });
         });
 
+        self._onChange('aligner_width',function(width){
+            $(self.aligner).css({
+                width:width
+            });
+        });
+
+
+        self._onChange('aligner_height',function(height){
+            $(self.aligner).css({
+                height:height
+            });
+        });
+
+
 
         self._onChange('container', function (container) {
+            var aligner = document.createElement('div');
+            $(aligner).css({
+                position:'relative',
+                width:self.width,
+                height:self.height,
+                left:0,
+                top:0
+            }).addClass('aligner');
+            self.aligner = aligner;
+
             $(container).css({
                 position: 'relative',
                 overflow: 'hidden',
@@ -1605,6 +1629,8 @@
             }).css({
                 outline:'none'
             });
+
+            $(container).append(self.aligner);
 
             self.getMouseReader().set({
                 element: container
@@ -1728,8 +1754,8 @@
 
         self.layers.push(layer);
 
-        if (self.container !== null && $(self.container).length > 0) {
-            $(self.container).append(layer.getElement());
+        if (self.container !== null && $(self.container).length > 0 && self.aligner !== null) {
+            $(self.aligner).append(layer.getElement());
         }
 
 
