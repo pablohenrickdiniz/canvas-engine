@@ -990,10 +990,20 @@
 
         self._onChange('width', function (width) {
             $(self.getElement()).prop('width', width);
+            if(self.canvas.aligner_width < width){
+                self.canvas.set({
+                    aligner_width:width
+                });
+            }
         });
 
         self._onChange('height', function (height) {
             $(self.getElement()).prop('height', height);
+            if(self.canvas.aligner_height < height){
+                self.canvas.set({
+                    aligner_height:height
+                });
+            }
         });
 
         self._onChange('name', function (name) {
@@ -1497,8 +1507,8 @@
         self.scalable = false;
         self.scale = 1;
         self.container = null;
-        self.aligner_width = null;
-        self.aligner_height = null;
+        self.aligner_width = 400;
+        self.aligner_height = 400;
         self.aligner = null;
         self.moving_x = false;
         self.moving_y = false;
@@ -1540,6 +1550,8 @@
                 min_y = min_y > 0 ? 0 : min_y;
                 x = Math.min(Math.max(x, min_x), 0);
                 y = Math.min(Math.max(y, min_y), 0);
+
+
                 self.set({
                     viewX: x,
                     viewY: y
@@ -1550,18 +1562,6 @@
 
     CE.bindProperties = function () {
         var self = this;
-        self._onChange('viewX', function (newValue) {
-            $(self.aligner).css({
-                left: newValue
-            });
-        });
-
-        self._onChange('viewY', function (newValue) {
-            $(self.aligner).css({
-                top: newValue
-            });
-        });
-
         self._beforeSet('viewX',function(oldValue,newValue){
             if(newValue > 0){
                 return 0;
@@ -1574,6 +1574,35 @@
                 return 0;
             }
             return newValue;
+        });
+
+
+        self._onChange('viewX', function (newValue) {
+            $(self.aligner).css({
+                left: newValue
+            });
+        });
+
+        self._onChange('viewY', function (newValue) {
+            $(self.aligner).css({
+                top: newValue
+            });
+        });
+
+
+
+
+        self._onChange('aligner_width',function(width){
+            $(self.getAligner()).css({
+                width:width
+            });
+        });
+
+
+        self._onChange('aligner_height',function(height){
+            $(self.getAligner()).css({
+                height:height
+            });
         });
 
 
@@ -1593,44 +1622,20 @@
             });
         });
 
-        self._onChange('aligner_width',function(width){
-            $(self.aligner).css({
-                width:width
-            });
-        });
-
-
-        self._onChange('aligner_height',function(height){
-            $(self.aligner).css({
-                height:height
-            });
-        });
-
-
-
         self._onChange('container', function (container) {
-            var aligner = document.createElement('div');
-            $(aligner).css({
-                position:'relative',
-                width:self.width,
-                height:self.height,
-                left:0,
-                top:0
-            }).addClass('aligner');
-            self.aligner = aligner;
-
             $(container).css({
                 position: 'relative',
                 overflow: 'hidden',
                 width: self.width,
-                height: self.height
+                height: self.height,
+                padding:0
             }).addClass('transparent-background canvas-engine').on('contextmenu', function (e) {
                 e.preventDefault();
             }).css({
                 outline:'none'
             });
 
-            $(container).append(self.aligner);
+            $(container).append(self.getAligner());
 
             self.getMouseReader().set({
                 element: container
@@ -1638,6 +1643,25 @@
 
             self.keyReader = null;
         });
+    };
+
+
+    CE.prototype.getAligner = function(){
+        var self = this;
+        if(self.aligner === null){
+            var aligner = document.createElement('div');
+            $(aligner).css({
+                pointerEvents: 'none',
+                userSelect: 'none',
+                position:'relative',
+                width:self.width,
+                height:self.height,
+                left:0,
+                top:0
+            }).addClass('aligner');
+            self.aligner = aligner;
+        }
+        return self.aligner;
     };
 
     /*
@@ -1754,9 +1778,9 @@
 
         self.layers.push(layer);
 
-        if (self.container !== null && $(self.container).length > 0 && self.aligner !== null) {
-            $(self.aligner).append(layer.getElement());
-        }
+
+        $(self.getAligner()).append(layer.getElement());
+
 
 
         return layer;
