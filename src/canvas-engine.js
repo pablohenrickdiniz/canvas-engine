@@ -23,77 +23,8 @@
             RGB_COLOR: /^rgb\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\)$/,
             RGBA_COLOR: /^rgba\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2}),(0.[0-9]{1,2}|1)\)$/
         },
-        validateInt: function (oldVal, newVal) {
-            if (Validator.regex.INT.test(newVal)) {
-                return newVal;
-            }
-
-            return oldVal;
-        },
-        validateNumber: function (oldVal, newVal) {
-            if (_.isNumber(newVal)) {
-                return newVal;
-            }
-
-            return oldVal;
-        },
-        validateObject: function (oldVal, newVal) {
-            if (_.isObject(newVal)) {
-                return newVal;
-            }
-            return oldVal;
-        },
-        validateColor: function (oldVal, newVal) {
-            var regex = Validator.regex;
-            if (
-                newVal === 'transparent' ||
-                regex.HEXADECIMAL_COLOR.test(newVal) ||
-                regex.RGB_COLOR.test(newVal) ||
-                regex.RGBA_COLOR.test(newVal)) {
-                return newVal;
-            }
-            return oldVal;
-        },
-
-        validateString: function (oldVal, newVal) {
-            if (_.isString(newVal)) {
-                return newVal;
-            }
-            return oldVal;
-        },
-
-        validateArray: function (oldVal, newVal) {
-            if (_.isArray(newVal)) {
-                return newVal;
-            }
-            return oldVal;
-        },
-        validateBoolean: function (oldVal, newVal) {
-            if (_.isBoolean(newVal)) {
-                return newVal;
-            }
-            return oldVal;
-        },
-        validateFunction: function (oldVal, newVal) {
-            if (_.isFunction(newVal)) {
-                return newVal;
-            }
-            return oldVal;
-        },
-        validateElement: function (oldVal, newVal) {
-            if (_.isElement(newVal)) {
-                return newVal;
-            }
-            return oldVal;
-        },
         isPercent: function (percent) {
             return this.regex.PERCENT.test(percent);
-        },
-        isInt: function (val) {
-            return Validator.regex.INT.test(val);
-        },
-        isNumber: function (val) {
-
         }
     };
 
@@ -896,6 +827,51 @@
         return color;
     };
 
+
+    var default_options = {
+        rect: {
+            x: 0,
+            y: 0,
+            width: 10,
+            height: 10,
+            fillStyle: 'transparent',
+            strokeStyle: 'black',
+            opacity: 100,
+            origin: {x: 0, y: 0}
+        },
+        circle: {
+            x: 0,
+            y: 0,
+            radius: 10,
+            fillStyle: 'transparent',
+            strokeStyle: 'black',
+            opacity: 100,
+            origin: {x: 0, y: 0}
+        },
+        polygon: {
+            fillStyle: 'transparent',
+            strokeStyle: 'black',
+            origin: {x: 0, y: 0},
+            opacity: 100,
+            points: []
+        },
+        image: {
+            image: null,
+            sx: 0,
+            sy: 0,
+            sWidth: 'auto',
+            sHeight: 'auto',
+            dx: 0,
+            dy: 0,
+            dWidth: 'auto',
+            dHeight: 'auto'
+        },
+        text:{
+            text:'',
+            fillStyle:'black'
+        }
+    };
+
     var CanvasLayer = function (options, canvas) {
         console.log('Canvas Layer initialize...');
         var self = this;
@@ -922,46 +898,6 @@
 
     CanvasLayer.prototype = Object.create(AppObject.prototype);
     CanvasLayer.prototype.constructor = CanvasLayer;
-
-    CanvasLayer.defaultValues = {
-        rect: {
-            x: 0,
-            y: 0,
-            width: 10,
-            height: 10,
-            backgroundColor: 'transparent',
-            borderColor: 'black',
-            opacity: 100,
-            origin: {x: 0, y: 0}
-        },
-        circle: {
-            x: 0,
-            y: 0,
-            radius: 10,
-            backgroundColor: 'transparent',
-            borderColor: 'black',
-            opacity: 100,
-            origin: {x: 0, y: 0}
-        },
-        polygon: {
-            backgroundColor: 'transparent',
-            borderColor: 'black',
-            origin: {x: 0, y: 0},
-            opacity: 100,
-            points: []
-        },
-        image: {
-            image: null,
-            sx: 0,
-            sy: 0,
-            sWidth: 'auto',
-            sHeight: 'auto',
-            dx: 0,
-            dy: 0,
-            dWidth: 'auto',
-            dHeight: 'auto'
-        }
-    };
 
     CanvasLayer.bindProperties = function () {
         var self = this;
@@ -1266,9 +1202,16 @@
         });
     };
 
+    CanvasLayer.prototype.text = function(options) {
+        var self = this;
+        options = options === undefined? default_options.text:merge_options(default_options.text,options);
+        self.setContext(options);
+        self.getContext().fill();
+    };
+
     CanvasLayer.prototype.image = function (options) {
         var self = this;
-        options = options === undefined ? CanvasLayer.defaultValues.image : merge_options(CanvasLayer.defaultValues.image, options);
+        options = options === undefined ? default_options.image : merge_options(default_options.image, options);
         var image = options.image;
         if (image !== null && image instanceof HTMLImageElement) {
             var dWidth = options.dWidth;
@@ -1279,6 +1222,7 @@
             var sy = options.sy;
             var dx = options.dx;
             var dy = options.dy;
+            var opacity = parseFloat(options.opacity);
             var percent;
 
 
@@ -1342,16 +1286,24 @@
                 sy = image.height * (percent / 100);
             }
 
+            var context = self.getContext();
+            context.save();
+
+            if(!isNaN(opacity)){
+                self.getContext().globalAlpha = opacity / 100;
+            }
+
             var scale = self.canvas.scale;
             if (dWidth > 0 && dHeight > 0) {
-                this.getContext().drawImage(image, sx, sy, sWidth, sHeight, dx*scale, dy*scale, dWidth*scale, dHeight*scale);
+                context.drawImage(image, sx, sy, sWidth, sHeight, dx*scale, dy*scale, dWidth*scale, dHeight*scale);
             }
+            context.restore();
         }
     };
 
     CanvasLayer.prototype.circle = function (options) {
         var self = this;
-        options = options === undefined ? CanvasLayer.defaultValues.circle : merge_options(CanvasLayer.defaultValues.circle, options);
+        options = options === undefined ? default_options.circle : merge_options(default_options.circle, options);
         var context = self.getContext();
         context.save();
         self.setContext(options);
@@ -1370,7 +1322,7 @@
 
     CanvasLayer.prototype.rect = function (options) {
         var self = this;
-        options = options === undefined ? CanvasLayer.defaultValues.rect : merge_options(CanvasLayer.defaultValues.rect, options);
+        options = options === undefined ? CanvasLayer.default_options.rect : merge_options(CanvasLayer.default_options.rect, options);
         var context = self.getContext();
         context.save();
         self.setContext(options);
@@ -1388,7 +1340,7 @@
 
     CanvasLayer.prototype.clearRect = function (options) {
         var self = this;
-        options = options === undefined ? CanvasLayer.defaultValues.rect :merge_options(CanvasLayer.defaultValues.rect, options);
+        options = options === undefined ? default_options.rect :merge_options(default_options.rect, options);
         var context = self.getContext();
         var scale = self.canvas.scale;
         context.clearRect(options.x*scale, options.y*scale, options.width*scale, options.height*scale);
@@ -1397,7 +1349,7 @@
 
     CanvasLayer.prototype.clearCircle = function (options) {
         var self = this;
-        options = options === undefined ? CanvasLayer.defaultValues.circle : merge_options(CanvasLayer.defaultValues.circle, options);
+        options = options === undefined ? CanvasLayer.default_options.circle : merge_options(CanvasLayer.default_options.circle, options);
         var context = self.getContext();
         context.save();
         context.arc(options.x, options.y, options.radius, 0, Math.PI);
@@ -1409,7 +1361,7 @@
 
     CanvasLayer.prototype.polygon = function (options) {
         var self = this;
-        options = options === undefined ? CanvasLayer.defaultValues.polygon : merge_options(CanvasLayer.defaultValues.polygon, options);
+        options = options === undefined ? default_options.polygon : merge_options(default_options.polygon, options);
         var size = options.points.length;
         var context = self.getContext();
         context.save();
@@ -1442,12 +1394,12 @@
     CanvasLayer.prototype.setContext = function (options) {
         var self = this;
         var context = self.getContext();
-        if (options.backgroundColor !== undefined) {
-            context.fillStyle = options.backgroundColor;
+        if (options.fillStyle !== undefined) {
+            context.fillStyle = options.fillStyle;
         }
 
-        if (options.borderColor !== undefined) {
-            context.strokeStyle = options.borderColor;
+        if (options.strokeStyle !== undefined) {
+            context.strokeStyle = options.strokeStyle;
         }
 
 
@@ -1765,6 +1717,7 @@
 
         var width = parseFloat(options.width);
         var height = parseFloat(options.height);
+        var fixed = options.fixed === undefined?false:options.fixed;
         options.width = isNaN(width)?self.getWidth():width;
         options.height = isNaN(height)?self.getHeight():height;
 
@@ -1778,8 +1731,13 @@
 
         self.layers.push(layer);
 
+        if(fixed){
+            $(self.container).append(layer.getElement());
+        }
+        else{
+            $(self.getAligner()).append(layer.getElement());
+        }
 
-        $(self.getAligner()).append(layer.getElement());
 
 
 
