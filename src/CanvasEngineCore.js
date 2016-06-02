@@ -51,7 +51,7 @@
         self.lastViewY = 0;
         self.width = 400;
         self.mouseReader = null;
-        self.keyReader = null;
+        self.keyboardReader = null;
         self.draggable = false;
         self.scalable = false;
         self.scale = 1;
@@ -171,7 +171,7 @@
             });
             container.appendChild(self.getAligner());
             self.getMouseReader().setElement(container);
-            self.keyReader = null;
+            self.keyboardReader = null;
         });
     };
 
@@ -204,15 +204,15 @@
         return self.mouseReader;
     };
     /*
-     KeyReader: getKeyReader() obtém instância
+     KeyboardReader: getKeyboardReader() obtém instância
      de leitor de teclado
      */
-    CE.prototype.getKeyReader = function () {
+    CE.prototype.getKeyboardReader = function () {
         var self = this;
-        if (self.keyReader === null) {
-            self.keyReader = new KeyReader(self.container);
+        if (self.keyboardReader === null) {
+            self.keyboardReader = new KeyboardReader(self.container);
         }
-        return self.keyReader;
+        return self.keyboardReader;
     };
 
     /*
