@@ -3,13 +3,19 @@
         throw new Error('Canvas Engine requires Math lib');
     }
     else if(w.CanvasLayer == undefined){
-        throw  new Error('Canvas Engine requires Canvas Layer');
+        throw  new Error('Canvas Engine requires CanvasLayer');
     }
     else if(w.Validator== undefined){
         throw  new Error('Canvas Engine requires Validator');
     }
     else if(w.MouseReader == undefined){
         throw new Error('Canvas Engine requires MouseReader');
+    }
+    else if(w.AppObject == undefined){
+        throw new Error('Canvas Engine requires AppObject');
+    }
+    else if(w.KeyboardReader == undefined){
+        throw  new Error('Canvas Engine requires KeyboardReader');
     }
 
     var CanvasLayer = w.CanvasLayer,
@@ -141,11 +147,15 @@
         //});
 
         self._onChange('width', function (width) {
-            self.container.style.width = width;
+            if(self.container != null){
+                self.container.style.width = width+'px';
+            }
         });
 
         self._onChange('height', function (height) {
-            self.container.style.height = height+'px';
+            if(self.container!=null){
+                self.container.style.height = height+'px';
+            }
         });
 
         self._onChange('container', function (container) {
