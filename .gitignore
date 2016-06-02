@@ -2,6 +2,7 @@
 .idea
 node_modules
 bower_components
+plugins
 *.min.min.js
 *.min.min.css
 build

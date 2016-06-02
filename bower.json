@@ -22,5 +22,8 @@
     "drawing",
     "animations"
   ],
-  "private": true
+  "private": true,
+  "dependencies": {
+    "jasmine-core": "jasmine#^2.4.1"
+  }
 }

@@ -1805,7 +1805,6 @@
     };
 
     CanvasEngine.Color = Color;
-    CanvasEngine.AppObject = AppObject;
     CanvasEngine.Validator = Validator;
     CanvasEngine.CE = CE;
     CanvasEngine.CanvasLayer = CanvasLayer;
