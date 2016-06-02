@@ -1,5 +1,5 @@
 (function(w){
-    if(w.Math2 == undefined){
+    if(Math.version == undefined){
         throw new Error('Canvas Engine requires Math lib');
     }
     else if(w.CanvasLayer == undefined){
@@ -12,8 +12,7 @@
         throw new Error('Canvas Engine requires MouseReader');
     }
 
-    var math = w.Math2,
-        CanvasLayer = w.CanvasLayer,
+    var CanvasLayer = w.CanvasLayer,
         Validator = w.Validator,
         MouseReader = w.MouseReader;
 

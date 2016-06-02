@@ -5,9 +5,6 @@
 
     var AppObject = w.AppObject;
 
-
-
-
     var merge_options = function(defaultOptions,options){
         Object.keys(defaultOptions).forEach(function(key){
             if(options[key] === undefined){
