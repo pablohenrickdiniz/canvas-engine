@@ -87,7 +87,7 @@
             if (self.draggable && reader.right) {
                 var pa = reader.lastdown.right;
                 var pb = {x:x,y:y};
-                var p = math.vmv(pa, pb);
+                var p = Math.vmv(pa, pb);
                 var x = self.lastViewX - p.x;
                 var y = self.lastViewY - p.y;
 
@@ -363,7 +363,7 @@
     CE.prototype.getPosition = function(point){
         var self = this;
         var translate = {x: -self.viewX / self.scale, y: -self.viewY / self.scale};
-        return math.vpv(math.sdv(self.scale, point), translate);
+        return Math.vpv(Math.sdv(self.scale, point), translate);
     };
 
     CE.create = function(options,className){
