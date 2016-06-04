@@ -18,11 +18,6 @@
         throw  new Error('Canvas Engine requires KeyboardReader');
     }
 
-    var CanvasLayer = w.CanvasLayer,
-        Validator = w.Validator,
-        MouseReader = w.MouseReader;
-
-
     var add_class = function(element,className){
         var original = element.className;
         original = original.trim();
