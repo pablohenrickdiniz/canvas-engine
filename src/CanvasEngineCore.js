@@ -43,13 +43,12 @@
         console.log('initializing canvas engine...');
         var self = this;
         self.layers = [];
-        self.height = 400;
-        self.width = 400;
+        self.height = null;
+        self.width = null;
         self.viewX = 0;
         self.viewY = 0;
         self.lastViewX = 0;
         self.lastViewY = 0;
-        self.width = 400;
         self.mouseReader = null;
         self.keyboardReader = null;
         self.draggable = false;
@@ -61,6 +60,9 @@
         self.aligner = null;
         self.moving_x = false;
         self.moving_y = false;
+        self.resizeCallback = null;
+        self.resizeInterval = null;
+        self.onresizecallbacks = [];
         AppObject.call(self);
         CE.bindProperties.apply(self);
         self.set(options);
@@ -148,21 +150,35 @@
 
         self._onChange('width', function (width) {
             if(self.container != null){
-                self.container.style.width = width+'px';
+                if(/^[0-9]+(\.[0-9]+)?%$/.test(width)){
+                    self.container.style.width = width;
+                }
+                else{
+                    self.container.style.width = self.getWidth()+'px';
+                }
             }
         });
 
         self._onChange('height', function (height) {
             if(self.container!=null){
-                self.container.style.height = height+'px';
+                if(/^[0-9]+(\.[0-9]+)?%$/.test(height)){
+                    self.container.style.height = height;
+                }
+                else{
+                    self.container.style.height = self.getHeight()+'px';
+                }
             }
         });
 
         self._onChange('container', function (container) {
             container.style.position = 'relative';
             container.style.overflow = 'hidden';
-            container.style.width = self.width+'px';
-            container.style.height = self.height+'px';
+            if(self.width !== null){
+                container.style.width = self.width+'px';
+            }
+            if(self.height !== null){
+                container.style.height = self.height+'px';
+            }
             container.style.padding = 0;
             container.style.outline = 'none';
             add_class(container,'transparent-background canvas-engine');
@@ -173,6 +189,48 @@
             self.getMouseReader().setElement(container);
             self.keyboardReader = null;
         });
+
+        self.resizeCallback = function(){
+            clearInterval(self.resizeInterval);
+            self.resizeInterval = setTimeout(function(){
+                self.layers.forEach(function(layer){
+                    var element = layer.getElement();
+                    if(/^[0-9]+(\.[0-9]+)?%$/.test(layer.width)){
+                        var newWidth =  layer.getWidth();
+                        if(element.width != newWidth){
+                            element.width =  newWidth;
+                        }
+                    }
+
+                    if(/^[0-9]+(\.[0-9]+)?%$/.test(layer.height)){
+                        var newHeight =  layer.getHeight();
+                        if(element.height != newHeight){
+                            element.height =  newHeight;
+                        }
+                    }
+                });
+
+                self.onresizecallbacks.forEach(function(callback){
+                    callback.apply(self);
+                });
+            },200);
+        };
+
+        w.addEventListener("resize",self.resizeCallback);
+    };
+
+
+    CE.prototype.onresize =function(callback){
+        var self = this;
+        self.onresizecallbacks.push(callback);
+    };
+
+    CE.prototype.removeonresize = function(callback){
+        var self = this;
+        var index =self.onresizecallbacks.indexOf(callback);
+        if(index != -1){
+            self.onresizecallbacks.splice(index,1);
+        }
     };
 
     CE.prototype.getAligner = function(){
@@ -219,16 +277,37 @@
      int : getWidth() Obtém largura do container de canvas em pixels
      */
     CE.prototype.getWidth = function () {
-        return this.width;
+        var self= this;
+        if(self.width != null){
+            var width = parseFloat(self.width);
+            if(/^[0-9]+(\.[0-9]+)?%$/.test(self.width)){
+                var parentWidth = parseFloat(w.getComputedStyle(self.container.parentNode).width);
+                return parentWidth*(width/100);
+            }
+            if(!isNaN(width)){
+                return width;
+            }
+        }
+        return parseFloat(w.getComputedStyle(self.container).width);
     };
 
     /*
      int : getHeight() Obtém altura do container de canvas em pixels
      */
     CE.prototype.getHeight = function () {
-        return this.height;
+        var self= this;
+        if(self.height != null){
+            var height = parseFloat(self.height);
+            if(/^[0-9]+(\.[0-9]+)?%$/.test(self.height)){
+                var parentHeight = parseFloat(w.getComputedStyle(self.container.parentNode).height);
+                return parentHeight*(height/100);
+            }
+            if(!isNaN(height)){
+                return height;
+            }
+        }
+        return parseFloat(w.getComputedStyle(self.container).height);
     };
-
 
     /*
      CE: clearAllLayers() Remove todo o conteúdo desenhado nas camadas
@@ -289,13 +368,7 @@
         var self = this;
         options.zIndex = self.layers.length;
 
-        var width = parseFloat(options.width);
-        var height = parseFloat(options.height);
         var fixed = options.fixed === undefined?false:options.fixed;
-        options.width = isNaN(width)?self.getWidth():width;
-        options.height = isNaN(height)?self.getHeight():height;
-
-
         if (ClassName !== undefined) {
             layer = new ClassName(options, self);
         }

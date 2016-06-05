@@ -3,27 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <title>Test</title>
-    <script type="text/javascript" src="../src/Math.js"></script>
-    <script type="text/javascript" src="../plugins/phydokz/app-object/app-object.js"></script>
+    <style type="text/css">
+        #container{
+            border: 1px solid black;
+        }
+
+    </style>
+    <script type="text/javascript" src="../plugins/math-lib/src/Math.js"></script>
+    <script type="text/javascript" src="../plugins/app-object/app-object.js"></script>
     <script type="text/javascript" src="../src/CanvasLayer.js"></script>
     <script type="text/javascript" src="../src/Validator.js"></script>
-    <script type="text/javascript" src="../plugins/phydokz/mouse-reader/src/mouse-reader.js"></script>
+    <script type="text/javascript" src="../plugins/mouse-reader/src/mouse-reader.js"></script>
+    <script type="text/javascript" src="../plugins/keyboard-reader/src/keyboard-reader.js"></script>
     <script type="text/javascript" src="../src/CanvasEngineCore.js"></script>
     <script type="text/javascript">
         function start(){
             var container = document.getElementById('container');
             var engine= CE.create({
                 container:container,
-                draggable:true
+                draggable:true,
+                width:400,
+                height:400
             });
 
             var layer = engine.createLayer();
+
             var layer2= engine.createLayer();
+
             layer.rect({
                 x:100,
                 y:100,
-                width:100,
-                height:100
+                width:10,
+                height:10
             });
         }
     </script>

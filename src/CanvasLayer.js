@@ -77,10 +77,11 @@
         self.element = null;
         self.canvas = canvas;
         self.zIndex = 0;
-        self.width = 300;
-        self.height = 300;
+        self.width = null;
+        self.height = null;
         self.left = 0;
         self.top = 0;
+        self.style = {};
         self.savedStates = [];
         self.name = '';
         self.mouseReader = null;
@@ -98,6 +99,13 @@
 
     CanvasLayer.bindProperties = function () {
         var self = this;
+
+        self._onChange('style',function(style){
+            Object.keys(style).forEach(function(key){
+                self.element.style[key] = style[key];
+            });
+        });
+
 
         self._onChange('zIndex', function (zIndex) {
             var element = self.getElement();
@@ -121,7 +129,8 @@
             self.getElement().setAttribute('data-visible',visible);
         });
 
-        self._onChange('width', function (width) {
+        self._onChange('width', function () {
+            var width = self.getWidth();
             self.getElement().width = width;
             if(self.canvas.aligner_width < width){
                 self.canvas.set({
@@ -130,8 +139,9 @@
             }
         });
 
-        self._onChange('height', function (height) {
-            self.getElement().height = height;
+        self._onChange('height', function () {
+            var height = self.getHeight();
+            self.getElement().height = self.getHeight();
             if(self.canvas.aligner_height < height){
                 self.canvas.set({
                     aligner_height:height
@@ -190,6 +200,34 @@
             width: width,
             height: height
         };
+    };
+
+    CanvasLayer.prototype.getWidth = function(){
+        var self= this;
+        if(self.width != null){
+            var width = parseFloat(self.width);
+            if(/^[0-9]+(\.[0-9]+)?%$/.test(self.width) && self.canvas != null){
+                return self.canvas.getWidth()*(width/100);
+            }
+            if(!isNaN(width)){
+                return width;
+            }
+        }
+        return parseFloat(w.getComputedStyle(self.element).width);
+    };
+
+    CanvasLayer.prototype.getHeight = function(){
+        var self= this;
+        if(self.height != null){
+            var height = parseFloat(self.height);
+            if(/^[0-9]+(\.[0-9]+)?%$/.test(self.height) && self.canvas != null){
+                return self.canvas.getHeight()*(height/100);
+            }
+            if(!isNaN(height)){
+                return height;
+            }
+        }
+        return parseFloat(w.getComputedStyle(self.element).height);
     };
 
     /*
