@@ -2,19 +2,24 @@
     if(Math.version == undefined){
         throw new Error('Canvas Engine requires Math lib');
     }
-    else if(w.CanvasLayer == undefined){
+
+    if(w.CanvasLayer == undefined){
         throw  new Error('Canvas Engine requires CanvasLayer');
     }
-    else if(w.Validator== undefined){
+
+    if(w.Validator== undefined){
         throw  new Error('Canvas Engine requires Validator');
     }
-    else if(w.MouseReader == undefined){
+
+    if(w.MouseReader == undefined){
         throw new Error('Canvas Engine requires MouseReader');
     }
-    else if(w.AppObject == undefined){
+
+    if(w.AppObject == undefined){
         throw new Error('Canvas Engine requires AppObject');
     }
-    else if(w.KeyboardReader == undefined){
+
+    if(w.KeyboardReader == undefined){
         throw  new Error('Canvas Engine requires KeyboardReader');
     }
 
@@ -120,16 +125,16 @@
             return newValue;
         });
 
-        self._onChange('viewX', function (newValue) {
-            self.getAligner().style.left = newValue;
+        self._onChange('viewX', function (left) {
+            self.getAligner().style.left = left+'px'
         });
 
-        self._onChange('viewY', function (newValue) {
-            self.getAligner().style.top = newValue;
+        self._onChange('viewY', function (top) {
+            self.getAligner().style.top = top+'px';
         });
 
         self._onChange('aligner_width',function(width){
-            self.getAligner().style.width = width;
+            self.getAligner().style.width = width+'px';
         });
 
 
@@ -179,8 +184,8 @@
             aligner.style.position = 'relative';
             aligner.style.width = self.width+'px';
             aligner.style.height = self.height+'px';
-            aligner.style.left = self.left;
-            aligner.style.top = self.top;
+            aligner.style.left = self.left+'px';
+            aligner.style.top = self.top+'px';
             add_class(aligner,'aligner');
             self.aligner = aligner;
         }
