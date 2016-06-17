@@ -1,22 +1,22 @@
 (function(w){
     if(Math.version == undefined){
-        throw new Error('Canvas Engine requires Math lib');
+        throw new Error('canvas-engine requires math-lib');
     }
 
     if(w.CanvasLayer == undefined){
-        throw  new Error('Canvas Engine requires CanvasLayer');
+        throw  new Error('canvas-engine requires canvas-layer');
     }
 
     if(w.MouseReader == undefined){
-        throw new Error('Canvas Engine requires MouseReader');
+        throw new Error('canvas-engine requires mouse-reader');
     }
 
     if(w.AppObject == undefined){
-        throw new Error('Canvas Engine requires AppObject');
+        throw new Error('canvas-engine requires app-object');
     }
 
     if(w.KeyboardReader == undefined){
-        throw  new Error('Canvas Engine requires KeyboardReader');
+        throw  new Error('canvas-engine requires keyboard-reader');
     }
 
     var add_class = function(element,className){
@@ -191,14 +191,16 @@
             self.resizeInterval = setTimeout(function(){
                 self.layers.forEach(function(layer){
                     var element = layer.getElement();
-                    if(/^[0-9]+(\.[0-9]+)?%$/.test(layer.width)){
+                    var float_regex = /^[0-9]+(\.[0-9]+)?%$/;
+
+                    if(float_regex.test(layer.width)){
                         var newWidth =  layer.getWidth();
                         if(element.width != newWidth){
                             element.width =  newWidth;
                         }
                     }
 
-                    if(/^[0-9]+(\.[0-9]+)?%$/.test(layer.height)){
+                    if(float_regex.test(layer.height)){
                         var newHeight =  layer.getHeight();
                         if(element.height != newHeight){
                             element.height =  newHeight;
