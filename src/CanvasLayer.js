@@ -451,6 +451,9 @@
             var percent;
 
 
+            var percent_regex = /^[0-9]+(\.[0-9]+)?%$/;
+
+
             if (dWidth === 'auto' && dHeight === 'auto') {
                 dWidth = image.width;
                 dHeight = image.height;
@@ -465,7 +468,7 @@
             if (!isNaN(parseFloat(options.sWidth)) && options.sWidth > 0) {
                 sWidth = options.sWidth;
             }
-            else if (Validator.isPercent(options.sWidth)) {
+            else if (percent_regex.test(options.sWidth)) {
                 percent = parseFloat(options.sWidth.replace('%', ''));
                 sWidth = image.width * (percent / 100);
             }
@@ -476,7 +479,7 @@
             if (!isNaN(parseFloat(options.sHeight)) && options.sHeight > 0) {
                 sHeight = options.sHeight;
             }
-            else if (Validator.isPercent(options.sHeight)) {
+            else if (percent_regex.test(options.sHeight)) {
                 percent = parseFloat(options.sHeight.replace('%', ''));
                 sHeight = image.height * (percent / 100);
             }
@@ -484,7 +487,7 @@
                 sHeight = image.height;
             }
 
-            if (Validator.isPercent(options.dWidth)) {
+            if (percent_regex.test(options.dWidth)) {
                 percent = parseFloat(options.dWidth.replace('%', ''));
                 dWidth = sWidth * (percent / 100);
             }
@@ -492,7 +495,7 @@
                 dWidth = options.dWidth;
             }
 
-            if (Validator.isPercent(options.dHeight)) {
+            if (percent_regex.test(options.dHeight)) {
                 percent = parseFloat(options.dHeight.replace('%', ''));
                 dHeight = sHeight * (percent / 100);
             }
@@ -501,12 +504,12 @@
             }
 
 
-            if (Validator.isPercent(sx)) {
+            if (percent_regex.test(sx)) {
                 percent = parseFloat(sx.replace('%', ''));
                 sx = image.width * (percent / 100);
             }
 
-            if (Validator.isPercent(sy)) {
+            if (percent_regex.test(sy)) {
                 percent = parseFloat(sy.replace('%', ''));
                 sy = image.height * (percent / 100);
             }
