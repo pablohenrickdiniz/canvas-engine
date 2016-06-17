@@ -7,10 +7,6 @@
         throw  new Error('Canvas Engine requires CanvasLayer');
     }
 
-    if(w.Validator== undefined){
-        throw  new Error('Canvas Engine requires Validator');
-    }
-
     if(w.MouseReader == undefined){
         throw new Error('Canvas Engine requires MouseReader');
     }
@@ -417,7 +413,7 @@
         if (layer instanceof CanvasLayer) {
             index = self.layers.indexOf(layer);
         }
-        else if (Validator.isInt(layer) && self.layers[layer] !== undefined) {
+        else if (/^[0-9]+$/.test(layer) && self.layers[layer] !== undefined) {
             index = layer;
         }
 
