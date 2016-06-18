@@ -434,20 +434,32 @@
         self.getContext().fill();
     };
 
-    CanvasLayer.prototype.image = function (options) {
+    CanvasLayer.prototype.image = function () {
         var self = this;
-        options = options === undefined ? default_options.image : merge_options(default_options.image, options);
-        var image = options.image;
-        if (image !== null && image instanceof HTMLImageElement) {
-            var dWidth = options.dWidth;
-            var dHeight = options.dHeight;
-            var sWidth = options.sWidth;
-            var sHeight = options.sHeight;
-            var sx = options.sx;
-            var sy = options.sy;
-            var dx = options.dx;
-            var dy = options.dy;
-            var opacity = parseFloat(options.opacity);
+        var opt = {};
+        if(arguments.length > 0){
+            for(var i = 0; i < arguments.length;i++){
+                if(arguments[i].constructor == {}.constructor){
+                    opt = merge_options(opt,arguments[i]);
+                }
+            }
+            opt = merge_options(default_options.image, opt);
+        }
+        else{
+            opt = default_options.image;
+        }
+
+        var image = opt.image;
+        if (image !== null && (image instanceof Image || image instanceof HTMLImageElement)) {
+            var dWidth = opt.dWidth;
+            var dHeight = opt.dHeight;
+            var sWidth = opt.sWidth;
+            var sHeight = opt.sHeight;
+            var sx = opt.sx;
+            var sy = opt.sy;
+            var dx = opt.dx;
+            var dy = opt.dy;
+            var opacity = parseFloat(opt.opacity);
             var percent;
 
 
@@ -465,42 +477,42 @@
                 dHeight = image.height * (dWidth / image.width);
             }
 
-            if (!isNaN(parseFloat(options.sWidth)) && options.sWidth > 0) {
-                sWidth = options.sWidth;
+            if (!isNaN(parseFloat(opt.sWidth)) && opt.sWidth > 0) {
+                sWidth = opt.sWidth;
             }
-            else if (percent_regex.test(options.sWidth)) {
-                percent = parseFloat(options.sWidth.replace('%', ''));
+            else if (percent_regex.test(opt.sWidth)) {
+                percent = parseFloat(opt.sWidth.replace('%', ''));
                 sWidth = image.width * (percent / 100);
             }
             else {
                 sWidth = image.width;
             }
 
-            if (!isNaN(parseFloat(options.sHeight)) && options.sHeight > 0) {
-                sHeight = options.sHeight;
+            if (!isNaN(parseFloat(opt.sHeight)) && opt.sHeight > 0) {
+                sHeight = opt.sHeight;
             }
-            else if (percent_regex.test(options.sHeight)) {
-                percent = parseFloat(options.sHeight.replace('%', ''));
+            else if (percent_regex.test(opt.sHeight)) {
+                percent = parseFloat(opt.sHeight.replace('%', ''));
                 sHeight = image.height * (percent / 100);
             }
             else {
                 sHeight = image.height;
             }
 
-            if (percent_regex.test(options.dWidth)) {
-                percent = parseFloat(options.dWidth.replace('%', ''));
+            if (percent_regex.test(opt.dWidth)) {
+                percent = parseFloat(opt.dWidth.replace('%', ''));
                 dWidth = sWidth * (percent / 100);
             }
-            else if (!isNaN(parseFloat(options.dWidth)) && options.dWidth > 0) {
-                dWidth = options.dWidth;
+            else if (!isNaN(parseFloat(opt.dWidth)) && opt.dWidth > 0) {
+                dWidth = opt.dWidth;
             }
 
-            if (percent_regex.test(options.dHeight)) {
-                percent = parseFloat(options.dHeight.replace('%', ''));
+            if (percent_regex.test(opt.dHeight)) {
+                percent = parseFloat(opt.dHeight.replace('%', ''));
                 dHeight = sHeight * (percent / 100);
             }
-            else if (!isNaN(parseFloat(options.dHeight)) && options.dHeight > 0) {
-                dHeight = options.dHeight;
+            else if (!isNaN(parseFloat(opt.dHeight)) && opt.dHeight > 0) {
+                dHeight = opt.dHeight;
             }
 
 
