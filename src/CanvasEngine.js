@@ -234,8 +234,8 @@
     CE.prototype.getVisibleArea = function(){
         var self = this;
         return {
-            x:-self.viewX,
-            y:-self.viewY,
+            x:self.viewX,
+            y:self.viewY,
             width:self.getWidth(),
             height:self.getHeight()
         };
