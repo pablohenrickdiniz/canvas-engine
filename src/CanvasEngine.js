@@ -181,7 +181,6 @@
             container.addEventListener("contextmenu",function(e){
                 e.preventDefault();
             });
-            container.appendChild(self.getAligner());
             self.getMouseReader().setElement(container);
             self.keyboardReader = null;
         });
@@ -254,8 +253,25 @@
             aligner.style.top = self.top+'px';
             add_class(aligner,'aligner');
             self.aligner = aligner;
+            self.updateParentNode();
         }
+
         return self.aligner;
+    };
+
+
+    /*
+     updateParentNode():void
+     atualiza o nó no container pai
+     */
+    CE.prototype.updateParentNode = function(){
+        var self = this;
+        var parent = self.canvas;
+        var aligner = self.getAligner();
+
+        if(aligner.parentNode == null){
+           self.container.appendChild(aligner);
+        }
     };
 
     /*

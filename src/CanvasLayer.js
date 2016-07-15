@@ -334,15 +334,17 @@
     CanvasLayer.prototype.updateParentNode = function(){
         var self = this;
         var parent = self.canvas;
+        var element = self.getElement();
 
-        if(self.element.parentNode == null && parent != null){
+        if(element.parentNode == null && parent != null){
             if(parent.fixed){
-                parent.container.appendChild(self.element);
+                parent.container.appendChild(element);
             }
             else{
-                parent.getAligner().appendChild(self.element);
+                parent.getAligner().appendChild(element);
             }
         }
+        parent.updateParentNode();
     };
 
     /*
