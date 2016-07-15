@@ -311,7 +311,7 @@
     CanvasLayer.prototype.getElement = function () {
         //console.log('Canvas layer get element...')
         var self = this;
-        if (self.element === null) {
+        if (self.element === null ) {
             self.element = document.createElement('canvas');
             self.element.style.pointerEvents = 'none';
             self.element.style.userSelect = 'none';
@@ -321,10 +321,29 @@
             self.element.style.backgroundColor = self.backgroundColor;
             self.element.style.opacity = self.opacity;
             self.element.setAttribute("class","canvas-layer");
+            self.updateParentNode();
         }
+
         return self.element;
     };
 
+    /*
+        updateParentNode():void
+        atualiza o nó no container pai
+     */
+    CanvasLayer.prototype.updateParentNode = function(){
+        var self = this;
+        var parent = self.canvas;
+
+        if(self.element.parentNode == null && parent != null){
+            if(parent.fixed){
+                parent.container.appendChild(self.element);
+            }
+            else{
+                parent.getAligner().appendChild(self.element);
+            }
+        }
+    };
 
     /*
      CanvasRenderingContext2D: getContext()
@@ -338,6 +357,9 @@
             if (self.context.setLineDash === undefined) {
                 self.context.setLineDash = function () {};
             }
+        }
+        else{
+            self.updateParentNode();
         }
         return self.context;
     };

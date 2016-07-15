@@ -386,15 +386,10 @@
 
         self.layers.push(layer);
 
-        if(fixed){
-            self.container.appendChild(layer.getElement());
-        }
-        else{
-            self.getAligner().appendChild(layer.getElement());
-        }
-
         return layer;
     };
+
+
     /*
      CanvasLayer: getLayer(int zIndex)
      Obtém a camada pelo zIndex
