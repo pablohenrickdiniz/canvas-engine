@@ -4,37 +4,21 @@
     <meta charset="UTF-8">
     <title>Test</title>
     <link rel="stylesheet" href="../src/dist/css/canvas-engine.css">
-    <script type="text/javascript" src="../plugins/math-lib/src/Math.js"></script>
-    <script type="text/javascript" src="../plugins/app-object/app-object.js"></script>
-    <script type="text/javascript" src="../src/dist/js/CanvasLayer.js"></script>
-    <script type="text/javascript" src="../plugins/mouse-reader/src/mouse-reader.js"></script>
-    <script type="text/javascript" src="../plugins/keyboard-reader/src/keyboard-reader.js"></script>
     <script type="text/javascript" src="../src/dist/js/CanvasEngine.js"></script>
+    <script type="text/javascript" src="../src/dist/js/CanvasLayer.js"></script>
     <script type="text/javascript">
-        function start(){
+        function start() {
             var container = document.getElementById('container');
-            var engine= CE.create({
-                container:container,
-                draggable:true,
-                width:400,
-                height:400
+            var engine = CE.create(container,{
+                width:500,
+                height:500,
+                style:{
+                    backgroundColor:'black'
+                }
             });
 
             var layer = engine.createLayer();
-
-            var layer2= engine.createLayer();
-
-            layer.rect({
-                x:100,
-                y:100,
-                width:10,
-                height:10
-            });
-
-
-            engine.getMouseReader().onmousedown(function(){
-                layer.getContext().fillRect(0,0,200,200);
-            });
+            layer.image();
         }
     </script>
 </head>

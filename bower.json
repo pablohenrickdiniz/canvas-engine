@@ -19,14 +19,7 @@
     "canvas",
     "engine",
     "graphics",
-    "drawing",
-    "animations"
+    "drawing"
   ],
-  "private": true,
-  "dependencies": {
-    "mouse-reader": "git@github.com:pablohenrickdiniz/mouse-reader.git",
-    "math-lib": "git@github.com:pablohenrickdiniz/math-lib.git",
-    "app-object": "git@github.com:pablohenrickdiniz/app-object.git",
-    "keyboard-reader": "git@github.com:pablohenrickdiniz/keyboard-reader.git"
-  }
+  "private": true
 }

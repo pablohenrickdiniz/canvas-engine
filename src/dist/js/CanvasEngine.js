@@ -1,257 +1,222 @@
-(function(w){
-    if(Math.version == undefined){
-        throw new Error('canvas-engine requires math-lib');
-    }
-
-    if(w.CanvasLayer == undefined){
-        throw  new Error('canvas-engine requires canvas-layer');
-    }
-
-    if(w.MouseReader == undefined){
-        throw new Error('canvas-engine requires mouse-reader');
-    }
-
-    if(w.AppObject == undefined){
-        throw new Error('canvas-engine requires app-object');
-    }
-
-    if(w.KeyboardReader == undefined){
-        throw  new Error('canvas-engine requires keyboard-reader');
-    }
-
-    var add_class = function(element,className){
+(function (w) {
+    var add_class = function (element, className) {
         var original = element.className;
         original = original.trim();
         className = className.split(" ");
-        for(var i =0; i < className.length;i++){
-            if(!has_class(element,className[i])){
-                original += " "+className[i];
+        for (var i = 0; i < className.length; i++) {
+            if (!has_class(element, className[i])) {
+                original += " " + className[i];
             }
         }
         element.className = original;
     };
 
-    var has_class = function(element, className){
+    var has_class = function (element, className) {
         return element.className.indexOf(className) != -1;
     };
 
-    var CE = function (options) {
-        console.log('initializing canvas engine...');
-        var self = this;
-        self.layers = [];
-        self.height = null;
-        self.width = null;
-        self.viewX = 0;
-        self.viewY = 0;
-        self.lastViewX = 0;
-        self.lastViewY = 0;
-        self.mouseReader = null;
-        self.keyboardReader = null;
-        self.draggable = false;
-        self.scalable = false;
-        self.scale = 1;
-        self.container = null;
-        self.aligner_width = 400;
-        self.aligner_height = 400;
-        self.aligner = null;
-        self.moving_x = false;
-        self.moving_y = false;
-        self.resizeCallback = null;
-        self.resizeInterval = null;
-        self.onresizecallbacks = [];
-        AppObject.call(self);
-        CE.bindProperties.apply(self);
-        self.set(options);
-        CE.initialize.apply(self);
+    var remove_class = function(element, classname){
+        classname = classname.split(' ');
+        var str = element.className;
+        var length = classname.length;
+        var i;
+        for(i = 0; i < length;i++){
+            str = str.replace(classname[i],'');
+        }
+        element.className = str;
     };
 
-    CE.prototype = Object.create(AppObject.prototype);
-    CE.prototype.constructor = CE;
+    var CE = function (container,options) {
+        console.log('initializing canvas engine...');
+        options = options || {};
+        var self = this;
+        self.aligner = null;
+        self.layers = [];
+        self.initialize(container);
+        self.width = options.width || 400;
+        self.height = options.height || 400;
+        self.style = options.style;
+        self.viewX = options.viewX || 0;
+        self.viewY = options.viewY || 0;
+        self.scale = options.scale || 1;
+        self.alignerWidth = options.alignerWidth || 400;
+        self.alignerHeight = options.alignerHeight || 400;
+    };
 
     /*
-     Inicializa eventos com mouse
+     Inicializa vari√°veis
      */
-    CE.initialize = function(){
+    CE.prototype.initialize = function (container) {
         var self = this;
-        var mouseReader = self.getMouseReader();
-
-        mouseReader.onmousedown(function () {
-            self.lastViewX = self.viewX;
-            self.lastViewY = self.viewY;
-        },'right');
-
-        mouseReader.onmousemove(function (x,y,e) {
-            var reader = this;
-            if (self.draggable && reader.right) {
-                var pa = reader.lastdown.right;
-                var pb = {x:x,y:y};
-                var p = Math.vmv(pa, pb);
-                var x = self.lastViewX - p.x;
-                var y = self.lastViewY - p.y;
-
-
-                var layer = self.getLayer(0);
-                var min_x = self.getWidth() - layer.width;
-                var min_y = self.getHeight() - layer.height;
-                min_x = min_x > 0 ? 0 : min_x;
-                min_y = min_y > 0 ? 0 : min_y;
-                x = Math.min(Math.max(x, min_x), 0);
-                y = Math.min(Math.max(y, min_y), 0);
-
-
-                self.set({
-                    viewX: x,
-                    viewY: y
-                });
-            }
-        });
-    };
-
-    CE.bindProperties = function () {
-        var self = this;
-        self._beforeSet('viewX',function(oldValue,newValue){
-            if(newValue > 0){
-                return 0;
-            }
-            return newValue;
-        });
-
-        self._beforeSet('viewY',function(oldValue,newValue){
-            if(newValue > 0){
-                return 0;
-            }
-            return newValue;
-        });
-
-        self._onChange('viewX', function (left) {
-            self.getAligner().style.left = left+'px'
-        });
-
-        self._onChange('viewY', function (top) {
-            self.getAligner().style.top = top+'px';
-        });
-
-        self._onChange('aligner_width',function(width){
-            self.getAligner().style.width = width+'px';
-        });
-
-
-        self._onChange('aligner_height',function(height){
-            self.getAligner().style.height = height+'px';
-        });
-
-        //self._beforeSet('scale', function () {
-        //    return 1;
-        //});
-
-        self._onChange('width', function (width) {
-            if(self.container != null){
-                if(/^[0-9]+(\.[0-9]+)?%$/.test(width)){
-                    self.container.style.width = width;
-                }
-                else{
-                    self.container.style.width = self.getWidth()+'px';
-                }
-            }
-        });
-
-        self._onChange('height', function (height) {
-            if(self.container!=null){
-                if(/^[0-9]+(\.[0-9]+)?%$/.test(height)){
-                    self.container.style.height = height;
-                }
-                else{
-                    self.container.style.height = self.getHeight()+'px';
-                }
-            }
-        });
-
-        self._onChange('container', function (container) {
-            container.style.position = 'relative';
-            container.style.overflow = 'hidden';
-            if(self.width !== null){
-                container.style.width = self.width+'px';
-            }
-            if(self.height !== null){
-                container.style.height = self.height+'px';
-            }
-            container.style.padding = 0;
-            container.style.outline = 'none';
-            add_class(container,'transparent-background canvas-engine');
-            container.addEventListener("contextmenu",function(e){
-                e.preventDefault();
-            });
-            self.getMouseReader().setElement(container);
-            self.keyboardReader = null;
-        });
-
-        self.resizeCallback = function(){
-            clearInterval(self.resizeInterval);
-            self.resizeInterval = setTimeout(function(){
-                self.layers.forEach(function(layer){
-                    var element = layer.getElement();
-                    var float_regex = /^[0-9]+(\.[0-9]+)?%$/;
-
-                    if(float_regex.test(layer.width)){
-                        var newWidth =  layer.getWidth();
-                        if(element.width != newWidth){
-                            element.width =  newWidth;
-                        }
-                    }
-
-                    if(float_regex.test(layer.height)){
-                        var newHeight =  layer.getHeight();
-                        if(element.height != newHeight){
-                            element.height =  newHeight;
-                        }
-                    }
-                });
-
-                self.onresizecallbacks.forEach(function(callback){
-                    callback.apply(self);
-                });
-            },200);
+        var context_menu = function (e) {
+            e.preventDefault();
         };
 
-        w.addEventListener("resize",self.resizeCallback);
+        Object.defineProperty(self, 'width', {
+            get: function () {
+                if (container.style.width) {
+                    return parseFloat(container.style.width);
+                }
+                return parseFloat(w.getComputedStyle(container).width);
+            },
+            set: function (width) {
+                width = parseFloat(width);
+                if (!isNaN(width) && width >= 0 && self.width != width) {
+                    container.style.width = width + 'px';
+                }
+            }
+        });
+
+        Object.defineProperty(self, 'height', {
+            get: function () {
+                if (container.style.height) {
+                    return parseFloat(container.style.height);
+                }
+                return parseFloat(w.getComputedStyle(container).height);
+            },
+            set: function (height) {
+                height = parseInt(height);
+                if (!isNaN(height) && height >= 0 && self.height != height) {
+                    container.style.height = height + 'px';
+                }
+            }
+        });
+
+
+        Object.defineProperty(self, 'alignerWidth', {
+            get: function () {
+                var aligner = self.getAligner();
+                if (aligner.style.width) {
+                    return parseFloat(aligner.style.width);
+                }
+                return parseFloat(w.getComputedStyle(aligner).width);
+            },
+            set: function (alignerWidth) {
+                alignerWidth = parseFloat(alignerWidth);
+                if (!isNaN(alignerWidth) && alignerWidth >= 0 && alignerWidth != self.alignerWidth) {
+                    self.getAligner().style.width = alignerWidth + 'px';
+                }
+            }
+        });
+
+        Object.defineProperty(self, 'alignerHeight', {
+            get: function () {
+                var aligner = self.getAligner();
+                if (aligner.style.height) {
+                    return parseFloat(aligner.style.height);
+                }
+                return parseFloat(w.getComputedStyle(aligner).height);
+            },
+            set: function (alignerHeight) {
+                if (!isNaN(alignerHeight) && alignerHeight >= 0 && alignerHeight != self.alignerHeight) {
+                    self.getAligner().style.height = alignerHeight + 'px';
+                }
+            }
+        });
+
+        Object.defineProperty(self, 'viewX', {
+            get: function () {
+                var aligner = self.getAligner();
+                if(aligner.style.left){
+                    return parseFloat(aligner.style.left);
+                }
+                return parseFloat(w.getComputedStyle(aligner).left);
+            },
+            set: function (viewX) {
+                viewX = parseFloat(viewX);
+                if (!isNaN(viewX) && viewX <= 0 && self.viewX != viewX) {
+                    self.getAligner().style.left = viewX + 'px'
+                }
+            }
+        });
+
+        Object.defineProperty(self, 'viewY', {
+            get: function () {
+                var aligner = self.getAligner();
+                if(aligner.style.top){
+                    return parseFloat(aligner.style.top);
+                }
+                return parseFloat(w.getComputedStyle(aligner).top);
+            },
+            set: function (viewY) {
+                viewY = parseFloat(viewY);
+                if (!isNaN(viewY) && viewY <= 0 && self.viewX != viewY) {
+                    self.getAligner().style.top = viewY + 'px'
+                }
+            }
+        });
+
+        Object.defineProperty(self,'style',{
+            get:function(){
+                return w.getComputedStyle(container);
+            },
+            set:function(style){
+                style = style || {};
+                var keys = Object.keys(style);
+                var length = keys.length;
+                var  k;
+                for(k = 0; k < length;k++){
+                    var key = keys[k];
+                    switch(key){
+                        case 'width':
+                            self.width = style[key];
+                            break;
+                        case 'height':
+                            self.height = style[key];
+                            break;
+                        default:
+                            container.style[key] = style[key];
+                    }
+                }
+            }
+        });
+
+        Object.defineProperty(self,'container',{
+            get:function(){
+                return container;
+            },
+            set:function(cont){
+                if (container != cont && cont instanceof Element) {
+                    cont.style.position = 'relative';
+                    cont.style.overflow = 'hidden';
+                    cont.style.padding = 0;
+                    cont.style.outline = 'none';
+
+                    if(container instanceof Element){
+                        remove_class(container,'trasparent-background canvas-engine');
+                        container.removeEventListener("contextmenu",context_menu);
+                    }
+
+                    add_class(cont, 'transparent-background canvas-engine');
+                    cont.addEventListener("contextmenu", context_menu);
+                    container = cont;
+                }
+            }
+        });
     };
 
-
-    CE.prototype.onresize =function(callback){
-        var self = this;
-        self.onresizecallbacks.push(callback);
-    };
-
-    CE.prototype.removeonresize = function(callback){
-        var self = this;
-        var index =self.onresizecallbacks.indexOf(callback);
-        if(index != -1){
-            self.onresizecallbacks.splice(index,1);
-        }
-    };
-
-    CE.prototype.getVisibleArea = function(){
+    CE.prototype.getVisibleArea = function () {
         var self = this;
         return {
-            x:self.viewX,
-            y:self.viewY,
-            width:self.getWidth(),
-            height:self.getHeight()
+            x: self.viewX,
+            y: self.viewY,
+            width: self.width,
+            height: self.height
         };
     };
 
-    CE.prototype.getAligner = function(){
+    CE.prototype.getAligner = function () {
         var self = this;
-        if(self.aligner === null){
+        if (self.aligner === null) {
             var aligner = document.createElement('div');
             aligner.style.pointerEvents = 'none';
             aligner.style.userSelect = 'none';
             aligner.style.position = 'relative';
-            aligner.style.width = self.width+'px';
-            aligner.style.height = self.height+'px';
-            aligner.style.left = self.left+'px';
-            aligner.style.top = self.top+'px';
-            add_class(aligner,'aligner');
+            aligner.style.width = self.width + 'px';
+            aligner.style.height = self.height + 'px';
+            aligner.style.left = self.left + 'px';
+            aligner.style.top = self.top + 'px';
+            add_class(aligner, 'aligner');
             self.aligner = aligner;
             self.updateParentNode();
         }
@@ -262,85 +227,28 @@
 
     /*
      updateParentNode():void
-     atualiza o nÛ no container pai
+     atualiza o n√≥ no container pai
      */
-    CE.prototype.updateParentNode = function(){
+    CE.prototype.updateParentNode = function () {
         var self = this;
         var parent = self.canvas;
         var aligner = self.getAligner();
 
-        if(aligner.parentNode == null){
-           self.container.appendChild(aligner);
+        if (aligner.parentNode == null && self.container != null) {
+            self.container.appendChild(aligner);
         }
     };
 
     /*
-     MouseReader : getMouseReader() obtÈm inst‚ncia
-     do leitor de mouse
+     CE: clearAll() Remove todo o conte√∫do desenhado nas camadas
      */
-    CE.prototype.getMouseReader = function () {
+    CE.prototype.clearAll = function () {
         var self = this;
-        if (self.mouseReader === null) {
-            self.mouseReader = new MouseReader(self.container);
+        var length = self.layers.length;
+        var i;
+        for (i = 0; i < length; i++) {
+            self.layers[i].clear();
         }
-        return self.mouseReader;
-    };
-    /*
-     KeyboardReader: getKeyboardReader() obtÈm inst‚ncia
-     de leitor de teclado
-     */
-    CE.prototype.getKeyboardReader = function () {
-        var self = this;
-        if (self.keyboardReader === null) {
-            self.keyboardReader = new KeyboardReader(self.container);
-        }
-        return self.keyboardReader;
-    };
-
-    /*
-     int : getWidth() ObtÈm largura do container de canvas em pixels
-     */
-    CE.prototype.getWidth = function () {
-        var self= this;
-        if(self.width != null){
-            var width = parseFloat(self.width);
-            if(/^[0-9]+(\.[0-9]+)?%$/.test(self.width)){
-                var parentWidth = parseFloat(w.getComputedStyle(self.container.parentNode).width);
-                return parentWidth*(width/100);
-            }
-            if(!isNaN(width)){
-                return width;
-            }
-        }
-        return parseFloat(w.getComputedStyle(self.container).width);
-    };
-
-    /*
-     int : getHeight() ObtÈm altura do container de canvas em pixels
-     */
-    CE.prototype.getHeight = function () {
-        var self= this;
-        if(self.height != null){
-            var height = parseFloat(self.height);
-            if(/^[0-9]+(\.[0-9]+)?%$/.test(self.height)){
-                var parentHeight = parseFloat(w.getComputedStyle(self.container.parentNode).height);
-                return parentHeight*(height/100);
-            }
-            if(!isNaN(height)){
-                return height;
-            }
-        }
-        return parseFloat(w.getComputedStyle(self.container).height);
-    };
-
-    /*
-     CE: clearAllLayers() Remove todo o conte˙do desenhado nas camadas
-     */
-    CE.prototype.clearAllLayers = function () {
-        var self = this;
-        this.layers.forEach(function (layer) {
-            layer.clear();
-        });
         return self;
     };
 
@@ -356,22 +264,31 @@
      return this.zIndex > 3;
      });
      no exemplo, todas as camadas de canvas que possuem o zIndex maior que 3
-     v„o receber as propriedades
+     v√£o receber as propriedades
      */
     CE.prototype.applyToLayers = function (options, conditions) {
         var self = this;
-        self.layers.forEach(function (layer) {
+        var length = self.layers.length;
+        var i;
+        for (i = 0; i < length; i++) {
+            var layer = self.layers[i];
             if (conditions === undefined || conditions.apply(layer)) {
-                layer.set(options);
+                layer.zIndex = options.zIndex || layer.zIndex;
+                layer.left = options.left || layer.left;
+                layer.top = options.top || layer.top;
+                layer.width = options.width || layer.width;
+                layer.height = options.height || layer.height;
+                layer.opacity = options.opacity || layer.opacity;
             }
-        });
+        }
+
         return self;
     };
     /*
      CanvasLayer: createLayer(Object options)
      cria uma camada de canvas com as propriedades options,
-     caso j· exista uma camada com o mesmo zIndex passado como
-     par‚metro nas propriedades, ele retorna essa camada j· existente
+     caso j√° exista uma camada com o mesmo zIndex passado como
+     par√¢metro nas propriedades, ele retorna essa camada j√° existente
      e aplica as outras propriedades sobre esse camada
      exemplo:
      var layer = engine.createLayer({
@@ -387,17 +304,17 @@
      layer2 => {zIndex:0, width:300,height:200}
      */
     CE.prototype.createLayer = function (options, ClassName) {
-        options = options === undefined?{}:options;
+        options = options || {};
         var layer = null;
         var self = this;
         options.zIndex = self.layers.length;
+        var CanvasLayer = CE.CanvasLayer;
 
-        var fixed = options.fixed === undefined?false:options.fixed;
         if (ClassName !== undefined) {
-            layer = new ClassName(options, self);
+            layer = new ClassName(self, options);
         }
         else {
-            layer = new CanvasLayer(options, self);
+            layer = new CanvasLayer(self, options);
         }
 
         self.layers.push(layer);
@@ -408,11 +325,11 @@
 
     /*
      CanvasLayer: getLayer(int zIndex)
-     ObtÈm a camada pelo zIndex
+     Obt√©m a camada pelo zIndex
      */
     CE.prototype.getLayer = function (index) {
         var self = this;
-        if (self.layers[index] !== undefined) {
+        if (self.layers[index]) {
             return self.layers[index];
         }
         return null;
@@ -420,9 +337,9 @@
 
     CE.prototype.removeLayers = function (layers) {
         var self = this;
-        layers.forEach(function (layer) {
-            self.removeLayer(layer);
-        });
+        while (layers.length > 0) {
+            self.removeLayer(layers.pop());
+        }
     };
 
     /*
@@ -436,7 +353,7 @@
         if (layer instanceof CanvasLayer) {
             index = self.layers.indexOf(layer);
         }
-        else if (/^[0-9]+$/.test(layer) && self.layers[layer] !== undefined) {
+        else if (/^[0-9]+$/.test(layer) && self.layers[layer]) {
             index = layer;
         }
 
@@ -444,25 +361,14 @@
             self.layers[index].destroy();
             self.layers.splice(index, 1);
             for (var i = index; i < self.layers.length; i++) {
-                self.layers[i].set({
-                    zIndex: i
-                });
+                self.layers[i].zIndex = i;
             }
         }
         return self;
     };
 
-    CE.prototype.getPosition = function(point){
-        var self = this;
-        var translate = {x: -self.viewX / self.scale, y: -self.viewY / self.scale};
-        return Math.vpv(Math.sdv(self.scale, point), translate);
-    };
-
-    CE.create = function(options,className){
-        if(className === undefined){
-            return new CE(options);
-        }
-        return new className(options);
+    CE.create = function (container,options) {
+        return new CE(container,options);
     };
 
     w.CE = CE;

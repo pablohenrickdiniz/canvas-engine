@@ -1,185 +1,200 @@
-(function(w){
-    if(w.AppObject == undefined){
-        throw new Error('Canvas Layer requires AppObject');
-    }
-
-    var merge_options = function(defaultOptions,options){
-        Object.keys(defaultOptions).forEach(function(key){
-            if(options[key] === undefined){
-                options[key] = defaultOptions[key];
-            }
-        });
-        return options;
-    };
-
-    var remove_element = function(element){
-        if(element instanceof  Element){
+(function (root,w) {
+    var remove_element = function (element) {
+        if (element instanceof  Element) {
             element.parentElement.removeChild(element);
         }
-        else if(element instanceof NodeList){
-            for(var i = element.length - 1; i >= 0; i--) {
-                if(element[i] && element[i].parentElement) {
+        else if (element instanceof NodeList) {
+            for (var i = element.length - 1; i >= 0; i--) {
+                if (element[i] && element[i].parentElement) {
                     element[i].parentElement.removeChild(element[i]);
                 }
             }
         }
     };
 
-    var default_options = {
-        rect: {
-            x: 0,
-            y: 0,
-            width: 10,
-            height: 10,
-            fillStyle: 'transparent',
-            strokeStyle: 'black',
-            opacity: 100,
-            origin: {x: 0, y: 0}
-        },
-        circle: {
-            x: 0,
-            y: 0,
-            radius: 10,
-            fillStyle: 'transparent',
-            strokeStyle: 'black',
-            opacity: 100,
-            origin: {x: 0, y: 0}
-        },
-        polygon: {
-            fillStyle: 'transparent',
-            strokeStyle: 'black',
-            origin: {x: 0, y: 0},
-            opacity: 100,
-            points: []
-        },
-        image: {
-            image: null,
-            sx: 0,
-            sy: 0,
-            sWidth: 'auto',
-            sHeight: 'auto',
-            dx: 0,
-            dy: 0,
-            dWidth: 'auto',
-            dHeight: 'auto'
-        },
-        text:{
-            text:'',
-            fillStyle:'black'
-        }
-    };
+    const TRANSPARENT_REG = /^\s*transparent\s*|rgba\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*0\s*\)\s*$/;
 
-    var CanvasLayer = function (options, canvas) {
+    var CanvasLayer = function (canvas,options) {
         console.log('Canvas Layer initialize...');
         var self = this;
         self.type = 'layer';
         self.context = null;
         self.element = null;
         self.canvas = canvas;
-        self.zIndex = 0;
-        self.width = null;
-        self.height = null;
-        self.left = 0;
-        self.top = 0;
-        self.style = {};
         self.savedStates = [];
         self.name = '';
-        self.mouseReader = null;
-        self.opacity = 1;
-        self.visible = true;
-        self.backgroundColor = 'transparent';
-        self.transparentRegex = /^\s*transparent\s*|rgba\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*0\s*\)\s*$/;
-        AppObject.call(self);
-        CanvasLayer.bindProperties.apply(self);
-        self.set(options);
+        self.initialize();
+        options = options || {};
+        self.zIndex = options.zIndex || 0;
+        self.left = options.left || 0;
+        self.top = options.top || 0;
+        self.width = options.width || canvas.width;
+        self.height = options.height || canvas.height;
+        self.opacity = options.opacity || 1;
+        self.visible = options.visible || true;
     };
 
-    CanvasLayer.prototype = Object.create(AppObject.prototype);
-    CanvasLayer.prototype.constructor = CanvasLayer;
-
-    CanvasLayer.bindProperties = function () {
+    CanvasLayer.prototype.initialize = function () {
         var self = this;
-
-        self._onChange('style',function(style){
-            Object.keys(style).forEach(function(key){
-                self.element.style[key] = style[key];
-            });
-        });
-
-
-        self._onChange('zIndex', function (zIndex) {
-            var element = self.getElement();
-            element.style.zIndex = zIndex;
-            element.setAttribute("data-zindex",zIndex);
-        });
-
-        self._onChange('opacity', function (opacity) {
-            var element = self.getElement();
-            element.style.opacity = opacity;
-            element.setAttribute("data-opacity",opacity);
-        });
-
-        self._onChange('visible', function (visible) {
-            if (visible) {
-                self.show();
-            }
-            else {
-                self.hide();
-            }
-            self.getElement().setAttribute('data-visible',visible);
-        });
-
-        self._onChange('width', function () {
-            var width = self.getWidth();
-            self.getElement().width = width;
-            if(self.canvas.aligner_width < width){
-                self.canvas.set({
-                    aligner_width:width
-                });
+        Object.defineProperty(self, 'zIndex', {
+            get: function () {
+                var element = self.getElement();
+                return element.style.zIndex || w.getComputedStyle(element).zIndex || 0;
+            },
+            set: function (zIndex) {
+                if (self.zIndex != zIndex) {
+                    var element = self.getElement();
+                    element.style.zIndex = zIndex;
+                    element.setAttribute('data-zindex', zIndex);
+                }
             }
         });
 
-        self._onChange('height', function () {
-            var height = self.getHeight();
-            self.getElement().height = self.getHeight();
-            if(self.canvas.aligner_height < height){
-                self.canvas.set({
-                    aligner_height:height
-                });
+        Object.defineProperty(self, 'left', {
+            get: function () {
+                var element = self.getElement();
+                if (element.style.left) {
+                    return parseFloat(element.style.left);
+                }
+                return parseFloat(w.getComputedStyle(element).left);
+            },
+            set: function (left) {
+                left = parseFloat(left);
+                if (!isNaN(left) && self.left != left) {
+                    var element = self.getElement();
+                    element.style.left = left + 'px';
+                    element.setAttribute('data-left', left);
+                }
             }
         });
 
-        self._onChange('name', function (name) {
-            self.getElement().setAttribute('data-name', name);
+        Object.defineProperty(self, 'top', {
+            get: function () {
+                var element = self.getElement();
+                if (element.style.top) {
+                    return parseFloat(element.style.top);
+                }
+                return parseFloat(w.getComputedStyle(element).top);
+            },
+            set: function (top) {
+                top = parseFloat(top);
+                if (!isNaN(top) && self.top != top) {
+                    var element = self.getElement();
+                    element.style.top = top + 'px';
+                    element.setAttribute('data-top', top);
+                }
+            }
         });
 
-        self._onChange('left', function (left) {
-            var element = self.getElement();
-            element.style.left = left;
-            element.setAttribute('data-left',left);
+        Object.defineProperty(self, 'width', {
+            get: function () {
+                var element = self.getElement();
+                if (element.style.width) {
+                    return parseFloat(element.style.width);
+                }
+                return parseFloat(w.getComputedStyle(self.element).width);
+            },
+            set: function (width) {
+                width = parseFloat(width);
+                if (!isNaN(width) && width >= 0 && self.width != width) {
+                    self.getElement().width = width;
+                    if (self.canvas.alignerWidth < width) {
+                        self.canvas.alignerWidth = width;
+                    }
+                }
+            }
         });
 
-        self._onChange('top', function (top) {
-            var element = self.getElement();
-            element.style.top = top;
-            element.setAttribute('data-top',top);
+        Object.defineProperty(self, 'height', {
+            get: function () {
+                var element = self.getElement();
+                if (element.style.height) {
+                    return parseFloat(element.style.height);
+                }
+                return parseFloat(w.getComputedStyle(self.element).height);
+            },
+            set: function (height) {
+                height = parseFloat(height);
+                if (!isNaN(height) && height >= 0 && self.height != height) {
+                    self.getElement().height = height;
+                    if (self.canvas.alignerHeight < height) {
+                        self.canvas.alignerHeight = height;
+                    }
+                }
+            }
         });
 
-        self._onChange('backgroundColor', function (backgroundColor) {
-            var element = self.getElement();
-            element.style.backgroundColor = backgroundColor;
-            element.setAttribute('data-backgroundcolor',backgroundColor);
+        Object.defineProperty(self, 'opacity', {
+            get: function () {
+                var element = self.getElement();
+                if (element.style.opacity) {
+                    return parseFloat(element.style.opacity);
+                }
+                return parseFloat(w.getComputedStyle(self.element).opacity);
+            },
+            set: function (opacity) {
+                if (opacity != self.opacity) {
+                    self.getElement().style.opacity = opacity;
+                }
+            }
         });
 
-        self._onChange('element',function(element){
-            self.context = null;
+        Object.defineProperty(self,'visible',{
+            get:function(){
+                var element = self.getElement();
+                if(element.style.visibility){
+                    return element.style.visibility == 'visible';
+                }
+                return w.getComputedStyle(self.element).visibility == 'visible';
+            },
+            set:function(visible){
+                var element = self.getElement();
+                if(visible){
+                    element.style.visibility = 'visible';
+                    element.setAttribute('data-visible', '1');
+                }
+                else{
+                    element.style.visibility = 'hidden';
+                    element.setAttribute('data-visible', '0');
+                }
+            }
         });
     };
 
+    CanvasLayer.prototype.setElement = function (element) {
+        var self = this;
+        if (self.element != element) {
+            self.element = element;
+            self.context = null;
+        }
+    };
+
+    CanvasLayer.prototype.setStyle = function (style) {
+        var self = this;
+        var element = self.getElement();
+        Object.keys(style).forEach(function (key) {
+            switch (key) {
+                case 'width':
+                    self.width = style[key];
+                    break;
+                case 'height':
+                    self.height = style[key];
+                    break;
+                case 'left':
+                    self.left = style[key];
+                    break;
+                case 'top':
+                    self.top = style[key];
+                    break;
+                default:
+                    element.style[key] = style[key];
+            }
+        });
+    };
 
     /*
      object: getVisibleArea()
-     obtém a área visível do mapa
+     obtÃ©m a Ã¡rea visÃ­vel do mapa
      exemplo:
      {
      x:0,
@@ -190,8 +205,8 @@
      */
     CanvasLayer.prototype.getVisibleArea = function () {
         var self = this;
-        var width = Math.min(self.width, self.canvas.getWidth());
-        var height = Math.min(self.height, self.canvas.getHeight());
+        var width = Math.min(self.width, self.canvas.width);
+        var height = Math.min(self.height, self.canvas.height);
         var x = Math.abs(self.canvas.viewX);
         var y = Math.abs(self.canvas.viewY);
         return {
@@ -202,37 +217,9 @@
         };
     };
 
-    CanvasLayer.prototype.getWidth = function(){
-        var self= this;
-        if(self.width != null){
-            var width = parseFloat(self.width);
-            if(/^[0-9]+(\.[0-9]+)?%$/.test(self.width) && self.canvas != null){
-                return self.canvas.getWidth()*(width/100);
-            }
-            if(!isNaN(width)){
-                return width;
-            }
-        }
-        return parseFloat(w.getComputedStyle(self.element).width);
-    };
-
-    CanvasLayer.prototype.getHeight = function(){
-        var self= this;
-        if(self.height != null){
-            var height = parseFloat(self.height);
-            if(/^[0-9]+(\.[0-9]+)?%$/.test(self.height) && self.canvas != null){
-                return self.canvas.getHeight()*(height/100);
-            }
-            if(!isNaN(height)){
-                return height;
-            }
-        }
-        return parseFloat(w.getComputedStyle(self.element).height);
-    };
-
     /*
      boolean: isSetvisible(Object rectSet)
-     verifica se uma área retangular está visível
+     verifica se uma Ã¡rea retangular estÃ¡ visÃ­vel
      */
     CanvasLayer.prototype.isSetVisible = function (rectSet) {
         // console.log('Canvas Layer is set visible...');
@@ -242,32 +229,10 @@
     };
 
     /*
-     CanvasLayer : show()
-     Mostra a camada de canvas
-     */
-    CanvasLayer.prototype.show = function () {
-        //console.log('Canvas layer show...');
-        var self = this;
-        self.getElement().style.visibility = 'visible';
-        return self;
-    };
-
-    /*
-     CanvasLayer: hide()
-     Esconde a camada de canvas
-     */
-    CanvasLayer.prototype.hide = function () {
-        //console.log('Canvas layer hide...');
-        var self = this;
-        self.getElement().style.visibility= 'hidden';
-        return self;
-    };
-
-    /*
      CanvasLayer : saveState(String name)
-     Salva o gráfico do canvas para o alias name
+     Salva o grÃ¡fico do canvas para o alias name
      Nota: quanto maior a imagem, mas tempo de processamento
-     será necessário para copiála
+     serÃ¡ necessÃ¡rio para copiÃ¡la
      */
     CanvasLayer.prototype.saveState = function (name) {
         //console.log('Canvas layer save state...');
@@ -281,7 +246,7 @@
 
     /*
      CanvasLayer : restoreState(name)
-     Redesenha o gráfico do canvas previamente salvo
+     Redesenha o grÃ¡fico do canvas previamente salvo
      */
     CanvasLayer.prototype.restoreState = function (name) {
         //console.log('Canvas layer restore state...');
@@ -295,7 +260,7 @@
 
     /*
      CanvasLayer : clearStates()
-     Remove todos os gráficos que foram salvos
+     Remove todos os grÃ¡ficos que foram salvos
      */
     CanvasLayer.prototype.clearStates = function () {
         //console.log('Canvas layer restore states...');
@@ -306,21 +271,21 @@
 
     /*
      Canvas: getElement()
-     obtém o elemento html canvas
+     obtÃ©m o elemento html canvas
      */
     CanvasLayer.prototype.getElement = function () {
         //console.log('Canvas layer get element...')
         var self = this;
-        if (self.element === null ) {
+        if (self.element === null) {
             self.element = document.createElement('canvas');
             self.element.style.pointerEvents = 'none';
             self.element.style.userSelect = 'none';
             self.element.style.position = 'absolute';
-            self.element.style.left = self.left;
-            self.element.style.top = self.top;
-            self.element.style.backgroundColor = self.backgroundColor;
-            self.element.style.opacity = self.opacity;
-            self.element.setAttribute("class","canvas-layer");
+            self.element.style.left = 0;
+            self.element.style.top = 0;
+            self.element.style.backgroundColor = 'transparent';
+            self.element.style.opacity = 1;
+            self.element.setAttribute("class", "canvas-layer");
             self.updateParentNode();
         }
 
@@ -328,19 +293,19 @@
     };
 
     /*
-        updateParentNode():void
-        atualiza o nó no container pai
+     updateParentNode():void
+     atualiza o nÃ³ no container pai
      */
-    CanvasLayer.prototype.updateParentNode = function(){
+    CanvasLayer.prototype.updateParentNode = function () {
         var self = this;
         var parent = self.canvas;
         var element = self.getElement();
 
-        if(element.parentNode == null && parent != null){
-            if(parent.fixed){
+        if (element.parentNode == null && parent != null) {
+            if (parent.fixed) {
                 parent.container.appendChild(element);
             }
-            else{
+            else {
                 parent.getAligner().appendChild(element);
             }
         }
@@ -349,7 +314,7 @@
 
     /*
      CanvasRenderingContext2D: getContext()
-     Obtém o contexto do canvas
+     ObtÃ©m o contexto do canvas
      */
     CanvasLayer.prototype.getContext = function () {
         //console.log('Canvas layer get context...');
@@ -357,30 +322,30 @@
         if (self.context === null) {
             self.context = self.getElement().getContext('2d');
             if (self.context.setLineDash === undefined) {
-                self.context.setLineDash = function () {};
+                self.context.setLineDash = function () {
+                };
             }
         }
-        else{
+        else {
             self.updateParentNode();
         }
         return self.context;
     };
 
 
-    CanvasLayer.prototype.getRatio = function(){
+    CanvasLayer.prototype.getRatio = function () {
         var self = this;
         var context = self.getContext();
-        var ratio = context.webkitBackingStorePixelRatio ||
+        return context.webkitBackingStorePixelRatio ||
             context.mozBackingStorePixelRatio ||
             context.msBackingStorePixelRatio ||
             context.oBackingStorePixelRatio ||
             context.backingStorePixelRatio || 1;
-        return ratio;
     };
 
     /*
      CanvasLayer:destroy()
-     Remove a camada da árvore DOM e da CanvasEngine correspondentes
+     Remove a camada da Ã¡rvore DOM e da CanvasEngine correspondentes
      */
     CanvasLayer.prototype.destroy = function () {
         //console.log('Canvas layer destroy...');
@@ -404,37 +369,6 @@
         return self;
     };
 
-
-    /*
-     CanvasLayer : clear()
-     Remove o conteúdo da camada de canvas
-     */
-    CanvasLayer.prototype.clear = function () {
-        //console.log('Canvas layer clear...');
-        var self = this;
-        self.getContext().clearRect(0, 0, self.width, self.height);
-        return self;
-    };
-
-    /*
-     CanvasLayer: drawAnimation(Animation animation)
-     Draw the current frame of animation
-     */
-    CanvasLayer.prototype.drawAnimation = function (animation) {
-        var self = this;
-        self.clearRect({
-            x: animation.x,
-            y: animation.y,
-            width: animation.width,
-            height: animation.height
-        });
-        if (animation.frames[animation.indexFrame] !== undefined) {
-            var frame = animation.frames[animation.indexFrame];
-            self.image(frame);
-        }
-        return self;
-    };
-
     /*
      CanvasLayer: getPixel(int i, int j)
      get canvas pixel
@@ -451,42 +385,31 @@
         });
     };
 
-    CanvasLayer.prototype.text = function(options) {
+    CanvasLayer.prototype.text = function (options) {
         var self = this;
-        options = options === undefined? default_options.text:merge_options(default_options.text,options);
+        options.text = options.text || '';
+        options.fillStyle = options.fillStyle || 'black';
+
         self.setContext(options);
         self.getContext().fill();
     };
 
-    CanvasLayer.prototype.image = function () {
+    CanvasLayer.prototype.image = function (image,options) {
         var self = this;
-        var opt = {};
-        if(arguments.length > 0){
-            for(var i = 0; i < arguments.length;i++){
-                if(arguments[i].constructor == {}.constructor){
-                    opt = merge_options(opt,arguments[i]);
-                }
-            }
-            opt = merge_options(default_options.image, opt);
-        }
-        else{
-            opt = default_options.image;
-        }
 
-        var image = opt.image;
-        if (image !== null && (image instanceof Image || image instanceof HTMLImageElement)) {
-            var dWidth = opt.dWidth;
-            var dHeight = opt.dHeight;
-            var sWidth = opt.sWidth;
-            var sHeight = opt.sHeight;
-            var sx = opt.sx;
-            var sy = opt.sy;
-            var dx = opt.dx;
-            var dy = opt.dy;
-            var opacity = parseFloat(opt.opacity);
+        if (image && image instanceof HTMLImageElement) {
+            options = options || {};
+            var sx = options.sx || 0;
+            var sy = options.sy || 0;
+            var sWidth = options.sWidth || 'auto';
+            var sHeight = options.sHeight || 'auto';
+            var dx = options.dx || 0;
+            var dy = options.dy || 0;
+            var dWidth = options.dWidth || 'auto';
+            var dHeight = options.dHeight || 'auto';
+            var opacity = options.opacity || 100;
+
             var percent;
-
-
             var percent_regex = /^[0-9]+(\.[0-9]+)?%$/;
 
 
@@ -501,44 +424,36 @@
                 dHeight = image.height * (dWidth / image.width);
             }
 
-            if (!isNaN(parseFloat(opt.sWidth)) && opt.sWidth > 0) {
-                sWidth = opt.sWidth;
-            }
-            else if (percent_regex.test(opt.sWidth)) {
-                percent = parseFloat(opt.sWidth.replace('%', ''));
-                sWidth = image.width * (percent / 100);
-            }
-            else {
-                sWidth = image.width;
-            }
-
-            if (!isNaN(parseFloat(opt.sHeight)) && opt.sHeight > 0) {
-                sHeight = opt.sHeight;
-            }
-            else if (percent_regex.test(opt.sHeight)) {
-                percent = parseFloat(opt.sHeight.replace('%', ''));
-                sHeight = image.height * (percent / 100);
-            }
-            else {
-                sHeight = image.height;
+            if (isNaN(parseFloat(sWidth)) || sWidth < 0) {
+                if (percent_regex.test(sWidth)) {
+                    percent = parseFloat(sWidth.replace('%', ''));
+                    sWidth = image.width * (percent / 100);
+                }
+                else {
+                    sWidth = image.width;
+                }
             }
 
-            if (percent_regex.test(opt.dWidth)) {
-                percent = parseFloat(opt.dWidth.replace('%', ''));
+
+            if (isNaN(parseFloat(sHeight)) || sHeight < 0) {
+                if (percent_regex.test(sHeight)) {
+                    percent = parseFloat(sHeight.replace('%', ''));
+                    sHeight = image.height * (percent / 100);
+                }
+                else {
+                    sHeight = image.height;
+                }
+            }
+
+            if (percent_regex.test(dWidth)) {
+                percent = parseFloat(dWidth.replace('%', ''));
                 dWidth = sWidth * (percent / 100);
             }
-            else if (!isNaN(parseFloat(opt.dWidth)) && opt.dWidth > 0) {
-                dWidth = opt.dWidth;
-            }
 
-            if (percent_regex.test(opt.dHeight)) {
-                percent = parseFloat(opt.dHeight.replace('%', ''));
+            if (percent_regex.test(dHeight)) {
+                percent = parseFloat(dHeight.replace('%', ''));
                 dHeight = sHeight * (percent / 100);
             }
-            else if (!isNaN(parseFloat(opt.dHeight)) && opt.dHeight > 0) {
-                dHeight = opt.dHeight;
-            }
-
 
             if (percent_regex.test(sx)) {
                 percent = parseFloat(sx.replace('%', ''));
@@ -553,13 +468,13 @@
             var context = self.getContext();
             context.save();
 
-            if(!isNaN(opacity)){
+            if (!isNaN(opacity)) {
                 self.getContext().globalAlpha = opacity / 100;
             }
 
             var scale = self.canvas.scale;
             if (dWidth > 0 && dHeight > 0) {
-                context.drawImage(image, sx, sy, sWidth, sHeight, dx*scale, dy*scale, dWidth*scale, dHeight*scale);
+                context.drawImage(image, sx, sy, sWidth, sHeight, dx * scale, dy * scale, dWidth * scale, dHeight * scale);
             }
             context.restore();
         }
@@ -567,17 +482,23 @@
 
     CanvasLayer.prototype.circle = function (options) {
         var self = this;
-        options = options === undefined ? default_options.circle : merge_options(default_options.circle, options);
+        options = options || {};
+        var x = options.x || 0;
+        var y = options.y || 0;
+        var radius = options.radius || 10;
+        options.fillStyle = options.fillStyle || 'transparent';
+        options.strokeStyle = options.strokeStyle || 'black';
+
         var context = self.getContext();
         context.save();
         self.setContext(options);
         context.beginPath();
-        context.arc(options.x, options.y, options.radius, 0, 2 * Math.PI);
-        if (context.fillStyle !== null && !self.transparentRegex.test(context.fillStyle)) {
+        context.arc(x, y, radius, 0, 2 * Math.PI);
+        if (context.fillStyle && !TRANSPARENT_REG.test(context.fillStyle)) {
             context.fill();
         }
 
-        if (context.strokeStyle !== null && !self.transparentRegex.test(context.strokeStyle)) {
+        if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle)) {
             context.stroke();
         }
         context.restore();
@@ -586,46 +507,65 @@
 
     CanvasLayer.prototype.rect = function (options) {
         var self = this;
-        options = options === undefined ? default_options.rect : merge_options(default_options.rect, options);
+        options = options || {};
+        var x = options.x = options.x || 0;
+        var y = options.y = options.y || 0;
+        var width = options.width = options.width || 10;
+        var height = options.height = options.height || 10;
+        options.fillStyle = options.fillStyle || 'transparent';
+        options.strokeStyle = options.strokeStyle || 'black';
+
         var context = self.getContext();
         context.save();
         self.setContext(options);
-        if (context.fillStyle !== null && !self.transparentRegex.test(context.fillStyle)) {
-            context.fillRect(options.x, options.y, options.width, options.height);
+        if (context.fillStyle && !TRANSPARENT_REG.test(context.fillStyle)) {
+            context.fillRect(x, y, width, height);
         }
 
-        if (context.strokeStyle !== null && !self.transparentRegex.test(context.strokeStyle)) {
-            context.strokeRect(options.x, options.y, options.width, options.height);
+        if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle)) {
+            context.strokeRect(x, y, width, height);
         }
 
         context.restore();
         return self;
     };
 
-    CanvasLayer.prototype.clearRect = function (options) {
+    CanvasLayer.prototype.clear = function (x,y,width,height) {
         var self = this;
-        options = options === undefined ? default_options.rect :merge_options(default_options.rect, options);
+        x = x || 0;
+        y = y || 0;
+        width = width || self.width;
+        height = height || self.height;
         var context = self.getContext();
         var scale = self.canvas.scale;
-        context.clearRect(options.x*scale, options.y*scale, options.width*scale, options.height*scale);
+        context.clearRect(x * scale, y * scale,width * scale, height * scale);
         return self;
     };
 
-    CanvasLayer.prototype.clearCircle = function (options) {
+    CanvasLayer.prototype.clearCircle = function (x,y,radius) {
         var self = this;
-        options = options === undefined ? CanvasLayer.default_options.circle : merge_options(CanvasLayer.default_options.circle, options);
+        x = x || self.width/2;
+        y = y || self.height/2;
+        radius = radius || (self.width+self.height)/4;
+
         var context = self.getContext();
         context.save();
-        context.arc(options.x, options.y, options.radius, 0, Math.PI);
+        context.arc(x, y, radius, 0, Math.PI);
         context.clip();
-        context.clearRect(options.x - options.radius, options.y - options.radius, options.radius * 2, options.radius * 2);
+        context.clearRect(x - radius, y - radius, radius * 2, radius * 2);
         context.restore();
         return self;
     };
 
     CanvasLayer.prototype.polygon = function (options) {
         var self = this;
-        options = options === undefined ? default_options.polygon : merge_options(default_options.polygon, options);
+        options = options || {};
+        options.fillStyle = options.fillStyle || 'transparent';
+        options.strokeStyle = options.strokeStyle || 'black';
+        options.origin = options.origin || {x: 0, y: 0};
+        options.opacity = options.opacity || 100;
+        var points = options.points = options.points || [];
+
         var size = options.points.length;
         var context = self.getContext();
         context.save();
@@ -633,21 +573,21 @@
         if (size > 0) {
             context.beginPath();
 
-            var p = options.points[0];
+            var p = points[0];
             context.moveTo(p[0], p[1]);
 
             for (var i = 1; i < size; i++) {
-                p = options.points[i];
+                p = points[i];
                 context.lineTo(p[0], p[1]);
             }
 
             context.closePath();
 
-            if (context.fillStyle !== null && !self.transparentRegex.test(context.fillStyle)) {
+            if (context.fillStyle && !TRANSPARENT_REG.test(context.fillStyle)) {
                 context.fill();
             }
 
-            if (context.strokeStyle !== null && !self.transparentRegex.test(context.strokeStyle)) {
+            if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle)) {
                 context.stroke();
             }
         }
@@ -658,50 +598,66 @@
     CanvasLayer.prototype.setContext = function (options) {
         var self = this;
         var context = self.getContext();
-        if (options.fillStyle !== undefined) {
-            context.fillStyle = options.fillStyle;
+        options = options || {};
+        var fillStyle = options.fillStyle || 'transparent';
+        var strokeStyle = options.strokeStyle || 'transparent';
+        var lineDash = options.lineDash || [];
+        var opacity = options.opacity || 100;
+        var rotate = options.rotate || 0;
+
+        if(context.fillStyle != fillStyle){
+            context.fillStyle = fillStyle;
         }
 
-        if (options.strokeStyle !== undefined) {
-            context.strokeStyle = options.strokeStyle;
+        if(context.strokeStyle != strokeStyle){
+            context.strokeStyle = strokeStyle;
         }
 
-
-        if(options.lineDash !== undefined && options.lineDash instanceof Array){
-            context.setLineDash(options.lineDash);
+        if ( lineDash instanceof Array) {
+            context.setLineDash(lineDash);
         }
 
-
-        if (options.opacity !== undefined) {
-            context.globalAlpha = options.opacity / 100;
+        if(context.globalAlpha != opacity/100){
+            context.globalAlpha = opacity / 100;
         }
 
-        if (options.origin !== undefined) {
+        if (rotate != 0) {
+            var origin = options.origin || 'center';
+
             var tx = 0;
             var ty = 0;
-            if (typeof options.origin === 'string') {
-                switch (options.origin) {
-                    case 'center':
-                        tx = options.x + (options.width / 2);
-                        ty = options.y + (options.height / 2);
-                        break;
-                }
-            }
-            else if (typeof options === 'object') {
+            if(origin.constructor == {}.constructor){
                 tx = options.origin.x;
                 ty = options.origin.y;
             }
+            else if(origin == 'center'){
+                tx = options.x + (options.width / 2);
+                ty = options.y + (options.height / 2);
+            }
+            else if(origin == 'topLeft'){
+                tx = options.x;
+                ty = options.y;
+            }
+            else if(origin == 'topRight'){
+                tx = options.x + options.width;
+                ty = options.y;
+            }
+            else if(origin == 'bottomLeft'){
+                tx = options.x;
+                ty = options.y+options.height;
+            }
+            else if(origin == 'bottomRight'){
+                tx = options.x+options.width;
+                ty = options.y+options.height;
+            }
+
+            var radians = options.rotate * (Math.PI / 180);
 
             context.translate(tx, ty);
-            options.x = options.x - tx;
-            options.y = options.y - ty;
-        }
-
-        if (options.rotate !== undefined) {
-            var radians = options.rotate * (Math.PI / 180);
             context.rotate(radians);
+            context.translate(-tx,-ty);
         }
         return self;
     };
-    w.CanvasLayer = CanvasLayer;
-})(window);
+    root.CanvasLayer = CanvasLayer;
+})(CE,window);
