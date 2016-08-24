@@ -604,6 +604,11 @@
         var lineDash = options.lineDash || [];
         var opacity = options.opacity || 100;
         var rotate = options.rotate || 0;
+        var lineWidth = options.lineWidth || 1;
+
+        if(context.lineWidth != lineWidth){
+            context.lineWidth = lineWidth;
+        }
 
         if(context.fillStyle != fillStyle){
             context.fillStyle = fillStyle;
