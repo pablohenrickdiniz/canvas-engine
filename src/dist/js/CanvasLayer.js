@@ -611,7 +611,32 @@
         }
 
         if(context.fillStyle != fillStyle){
-            context.fillStyle = fillStyle;
+            if(fillStyle.constructor == {}.constructor){
+                switch(fillStyle.type){
+                    case 'linearGradient':
+                        var color_stop = fillStyle.colorStop || {};
+                        var keys = Object.keys(color_stop);
+                        var length = keys.length;
+                        if(length > 0){
+                            var key;
+                            var x0 = fillStyle.x0 || 0;
+                            var y0 = fillStyle.y0 || 0;
+                            var x1 = fillStyle.x1 || 0;
+                            var y1 = fillStyle.y1 || 0;
+                            var gradient = context.createLinearGradient(x0,y0,x1,y1);
+                            var i;
+                            for(i =0; i < length;i++){
+                                key = keys[i];
+                                gradient.addColorStop(key,color_stop[key]);
+                            }
+                            context.fillStyle = gradient;
+                        }
+                        break;
+                }
+            }
+            else if(typeof fillStyle == 'string'){
+                context.fillStyle = fillStyle;
+            }
         }
 
         if(context.strokeStyle != strokeStyle){
