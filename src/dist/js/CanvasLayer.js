@@ -582,7 +582,7 @@
         var strokeStyle = options.strokeStyle || 'transparent';
         var lineDash = options.lineDash || [];
         var rotate = options.rotate || 0;
-        var lineWidth = options.lineWidth || 1;
+        var lineWidth = options.lineWidth || 0;
 
         if(context.lineWidth != lineWidth){
             context.lineWidth = lineWidth;
