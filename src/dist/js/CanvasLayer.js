@@ -454,7 +454,7 @@
         options.strokeStyle = options.strokeStyle || 'black';
         options.backgroundOpacity = options.backgroundOpacity || 100;
         options.borderOpacity = options.borderOpacity || 100;
-
+        options.borderWidth = options.borderWidth || 0;
 
         var context = self.getContext();
         context.save();
@@ -466,7 +466,7 @@
             context.fill();
         }
 
-        if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0) {
+        if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0 && options.borderWidth > 0) {
             context.globalAlpha = options.borderOpacity/100;
             context.stroke();
         }
@@ -485,6 +485,7 @@
         options.strokeStyle = options.strokeStyle || 'black';
         options.backgroundOpacity = options.backgroundOpacity || 100;
         options.borderOpacity = options.borderOpacity || 100;
+        options.borderWidth = options.borderWidth || 0;
 
         var context = self.getContext();
         context.save();
@@ -495,7 +496,7 @@
             context.fillRect(x, y, width, height);
         }
 
-        if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0) {
+        if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0 && options.borderWidth > 0) {
             context.globalAlpha = options.borderOpacity/100;
             context.strokeRect(x, y, width, height);
         }
@@ -540,6 +541,7 @@
         options.opacity = options.opacity || 100;
         options.backgroundOpacity = options.backgroundOpacity || 100;
         options.borderOpacity = options.borderOpacity || 100;
+        options.borderWidth = options.borderWidth || 0;
 
         var points = options.points = options.points || [];
 
@@ -565,7 +567,7 @@
                 context.fill();
             }
 
-            if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0) {
+            if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0 &&  options.borderWidth > 0) {
                 context.globalAlpha = options.borderOpacity/100;
                 context.stroke();
             }
