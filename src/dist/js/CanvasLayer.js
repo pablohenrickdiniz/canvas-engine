@@ -193,42 +193,6 @@
     };
 
     /*
-     object: getVisibleArea()
-     obtém a área visível do mapa
-     exemplo:
-     {
-     x:0,
-     y:0,
-     width:400,
-     height:400
-     }
-     */
-    CanvasLayer.prototype.getVisibleArea = function () {
-        var self = this;
-        var width = Math.min(self.width, self.canvas.width);
-        var height = Math.min(self.height, self.canvas.height);
-        var x = Math.abs(self.canvas.viewX);
-        var y = Math.abs(self.canvas.viewY);
-        return {
-            x: x,
-            y: y,
-            width: width,
-            height: height
-        };
-    };
-
-    /*
-     boolean: isSetvisible(Object rectSet)
-     verifica se uma área retangular está visível
-     */
-    CanvasLayer.prototype.isSetVisible = function (rectSet) {
-        // console.log('Canvas Layer is set visible...');
-        var self = this;
-        var area = self.getVisibleArea();
-        return !(rectSet.x + rectSet.width < area.x || area.x + area.width < rectSet.x || rectSet.y + rectSet.height < area.y || area.y + area.height < rectSet.y);
-    };
-
-    /*
      CanvasLayer : saveState(String name)
      Salva o gráfico do canvas para o alias name
      Nota: quanto maior a imagem, mas tempo de processamento
@@ -488,17 +452,22 @@
         var radius = options.radius || 10;
         options.fillStyle = options.fillStyle || 'transparent';
         options.strokeStyle = options.strokeStyle || 'black';
+        options.backgroundOpacity = options.backgroundOpacity || 100;
+        options.borderOpacity = options.borderOpacity || 100;
+
 
         var context = self.getContext();
         context.save();
         self.setContext(options);
         context.beginPath();
         context.arc(x, y, radius, 0, 2 * Math.PI);
-        if (context.fillStyle && !TRANSPARENT_REG.test(context.fillStyle)) {
+        if (context.fillStyle && !TRANSPARENT_REG.test(context.fillStyle) && options.backgroundOpacity > 0) {
+            context.globalAlpha = options.backgroundOpacity/100;
             context.fill();
         }
 
-        if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle)) {
+        if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0) {
+            context.globalAlpha = options.borderOpacity/100;
             context.stroke();
         }
         context.restore();
@@ -514,15 +483,20 @@
         var height = options.height = options.height || 10;
         options.fillStyle = options.fillStyle || 'transparent';
         options.strokeStyle = options.strokeStyle || 'black';
+        options.backgroundOpacity = options.backgroundOpacity || 100;
+        options.borderOpacity = options.borderOpacity || 100;
 
         var context = self.getContext();
         context.save();
         self.setContext(options);
-        if (context.fillStyle && !TRANSPARENT_REG.test(context.fillStyle)) {
+
+        if (context.fillStyle && !TRANSPARENT_REG.test(context.fillStyle) && options.backgroundOpacity > 0) {
+            context.globalAlpha = options.backgroundOpacity/100;
             context.fillRect(x, y, width, height);
         }
 
-        if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle)) {
+        if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0) {
+            context.globalAlpha = options.borderOpacity/100;
             context.strokeRect(x, y, width, height);
         }
 
@@ -564,6 +538,9 @@
         options.strokeStyle = options.strokeStyle || 'black';
         options.origin = options.origin || {x: 0, y: 0};
         options.opacity = options.opacity || 100;
+        options.backgroundOpacity = options.backgroundOpacity || 100;
+        options.borderOpacity = options.borderOpacity || 100;
+
         var points = options.points = options.points || [];
 
         var size = options.points.length;
@@ -583,11 +560,13 @@
 
             context.closePath();
 
-            if (context.fillStyle && !TRANSPARENT_REG.test(context.fillStyle)) {
+            if (context.fillStyle && !TRANSPARENT_REG.test(context.fillStyle) && options.backgroundOpacity > 0) {
+                context.globalAlpha = options.backgroundOpacity/100;
                 context.fill();
             }
 
-            if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle)) {
+            if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0) {
+                context.globalAlpha = options.borderOpacity/100;
                 context.stroke();
             }
         }
@@ -602,7 +581,6 @@
         var fillStyle = options.fillStyle || 'transparent';
         var strokeStyle = options.strokeStyle || 'transparent';
         var lineDash = options.lineDash || [];
-        var opacity = options.opacity || 100;
         var rotate = options.rotate || 0;
         var lineWidth = options.lineWidth || 1;
 
@@ -647,9 +625,6 @@
             context.setLineDash(lineDash);
         }
 
-        if(context.globalAlpha != opacity/100){
-            context.globalAlpha = opacity / 100;
-        }
 
         if (rotate != 0) {
             var origin = options.origin || 'center';
