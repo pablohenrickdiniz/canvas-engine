@@ -498,7 +498,8 @@
 
         if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0 && options.lineWidth > 0) {
             context.globalAlpha = options.borderOpacity/100;
-            context.strokeRect(x, y, width, height);
+            var half_line = options.lineWidth/2;
+            context.strokeRect(x-half_line, y-half_line, width+half_line*2, height+half_line*2);
         }
 
         context.restore();
