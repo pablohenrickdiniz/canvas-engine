@@ -360,7 +360,7 @@
             var y = options.y || 0;
             var width = options.width || 200;
             var height = options.height || null;
-            var fontSize = options.fontSize;
+            var fontSize = options.fontSize || 10;
             var textAlign = options.textAlign || 'left';
             text = text.split(' ');
             var lines = [];
