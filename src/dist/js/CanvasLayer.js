@@ -355,14 +355,13 @@
         if (text.length > 0) {
             options = options || {};
             options.fillStyle = options.fillStyle || 'black';
-            self.setContext(options);
+
             var x = options.x || 0;
             var y = options.y || 0;
             var width = options.width || 200;
             var height = options.height || null;
             var fontSize = options.fontSize;
             var textAlign = options.textAlign || 'left';
-            var ctx = self.getContext();
             text = text.split(' ');
             var lines = [];
             var widths = [];
@@ -371,6 +370,10 @@
             var line = [];
             var oldTextWidth = 0;
             var textWidth = 0;
+
+            var ctx = self.getContext();
+            ctx.save();
+            self.setContext(options);
 
             for (i = 0; i < length; i++) {
                 line.push(text[i]);
