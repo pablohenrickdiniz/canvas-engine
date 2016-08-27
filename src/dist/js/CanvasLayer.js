@@ -1,4 +1,4 @@
-(function (root,w) {
+(function (root, w) {
     var remove_element = function (element) {
         if (element instanceof  Element) {
             element.parentElement.removeChild(element);
@@ -14,7 +14,7 @@
 
     const TRANSPARENT_REG = /^\s*transparent\s*|rgba\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*0\s*\)\s*$/;
 
-    var CanvasLayer = function (canvas,options) {
+    var CanvasLayer = function (canvas, options) {
         console.log('Canvas Layer initialize...');
         var self = this;
         self.type = 'layer';
@@ -139,21 +139,21 @@
             }
         });
 
-        Object.defineProperty(self,'visible',{
-            get:function(){
+        Object.defineProperty(self, 'visible', {
+            get: function () {
                 var element = self.getElement();
-                if(element.style.visibility){
+                if (element.style.visibility) {
                     return element.style.visibility == 'visible';
                 }
                 return w.getComputedStyle(self.element).visibility == 'visible';
             },
-            set:function(visible){
+            set: function (visible) {
                 var element = self.getElement();
-                if(visible){
+                if (visible) {
                     element.style.visibility = 'visible';
                     element.setAttribute('data-visible', '1');
                 }
-                else{
+                else {
                     element.style.visibility = 'hidden';
                     element.setAttribute('data-visible', '0');
                 }
@@ -349,16 +349,58 @@
         });
     };
 
-    CanvasLayer.prototype.text = function (options) {
+    CanvasLayer.prototype.text = function (text, options) {
         var self = this;
-        options.text = options.text || '';
-        options.fillStyle = options.fillStyle || 'black';
+        text = text.trim();
+        if (text.length > 0) {
+            options = options || {};
+            options.fillStyle = options.fillStyle || 'black';
+            self.setContext(options);
+            var x = options.x || 0;
+            var y = options.y || 0;
+            var width = options.width || 200;
+            var height = options.height || null;
+            var fontSize = options.fontSize;
+            var ctx = self.getContext();
+            text = text.split(' ');
+            var lines = [];
+            var length = text.length;
+            var i;
+            var line = [];
 
-        self.setContext(options);
-        self.getContext().fill();
+            for (i = 0; i < length; i++) {
+                line.push(text[i]);
+                var join = line.join(' ');
+                if (line.length > 1 && ctx.measureText(join).width > width) {
+                    line.splice(line.length-1,1);
+                    i--;
+                    lines.push(line.join(' '));
+                    line = [];
+                }
+            }
+
+            if (line.length > 0) {
+                lines.push(line.join(' '));
+            }
+
+            if(height != null){
+                ctx.rect(x,y,width,height);
+                ctx.clip();
+            }
+
+            length = lines.length;
+            for (i = 0; i < length; i++) {
+                var top = y+(fontSize*(i+1));
+                if(top>(y+height)){
+                    break;
+                }
+                ctx.fillText(lines[i], x, top);
+            }
+            ctx.restore();
+        }
     };
 
-    CanvasLayer.prototype.image = function (image,options) {
+    CanvasLayer.prototype.image = function (image, options) {
         var self = this;
 
         if (image && image instanceof HTMLImageElement) {
@@ -462,12 +504,12 @@
         context.beginPath();
         context.arc(x, y, radius, 0, 2 * Math.PI);
         if (context.fillStyle && !TRANSPARENT_REG.test(context.fillStyle) && options.backgroundOpacity > 0) {
-            context.globalAlpha = options.backgroundOpacity/100;
+            context.globalAlpha = options.backgroundOpacity / 100;
             context.fill();
         }
 
         if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0 && options.lineWidth > 0) {
-            context.globalAlpha = options.borderOpacity/100;
+            context.globalAlpha = options.borderOpacity / 100;
             context.stroke();
         }
         context.restore();
@@ -492,21 +534,21 @@
         self.setContext(options);
 
         if (context.fillStyle && !TRANSPARENT_REG.test(context.fillStyle) && options.backgroundOpacity > 0) {
-            context.globalAlpha = options.backgroundOpacity/100;
+            context.globalAlpha = options.backgroundOpacity / 100;
             context.fillRect(x, y, width, height);
         }
 
         if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0 && options.lineWidth > 0) {
-            context.globalAlpha = options.borderOpacity/100;
-            var half_line = options.lineWidth/2;
-            context.strokeRect(x-half_line, y-half_line, width+half_line*2, height+half_line*2);
+            context.globalAlpha = options.borderOpacity / 100;
+            var half_line = options.lineWidth / 2;
+            context.strokeRect(x - half_line, y - half_line, width + half_line * 2, height + half_line * 2);
         }
 
         context.restore();
         return self;
     };
 
-    CanvasLayer.prototype.clear = function (x,y,width,height) {
+    CanvasLayer.prototype.clear = function (x, y, width, height) {
         var self = this;
         x = x || 0;
         y = y || 0;
@@ -514,15 +556,15 @@
         height = height || self.height;
         var context = self.getContext();
         var scale = self.canvas.scale;
-        context.clearRect(x * scale, y * scale,width * scale, height * scale);
+        context.clearRect(x * scale, y * scale, width * scale, height * scale);
         return self;
     };
 
-    CanvasLayer.prototype.clearCircle = function (x,y,radius) {
+    CanvasLayer.prototype.clearCircle = function (x, y, radius) {
         var self = this;
-        x = x || self.width/2;
-        y = y || self.height/2;
-        radius = radius || (self.width+self.height)/4;
+        x = x || self.width / 2;
+        y = y || self.height / 2;
+        radius = radius || (self.width + self.height) / 4;
 
         var context = self.getContext();
         context.save();
@@ -564,12 +606,12 @@
             context.closePath();
 
             if (context.fillStyle && !TRANSPARENT_REG.test(context.fillStyle) && options.backgroundOpacity > 0) {
-                context.globalAlpha = options.backgroundOpacity/100;
+                context.globalAlpha = options.backgroundOpacity / 100;
                 context.fill();
             }
 
-            if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0 &&  options.lineWidth > 0) {
-                context.globalAlpha = options.borderOpacity/100;
+            if (context.strokeStyle && !TRANSPARENT_REG.test(context.strokeStyle) && options.borderOpacity > 0 && options.lineWidth > 0) {
+                context.globalAlpha = options.borderOpacity / 100;
                 context.stroke();
             }
         }
@@ -586,45 +628,50 @@
         var lineDash = options.lineDash || [];
         var rotate = options.rotate || 0;
         var lineWidth = options.lineWidth || 0;
+        var fontSize = options.fontSize || 10;
+        var fontFamilly = options.fontFamilly || 'Arial';
 
-        if(context.lineWidth != lineWidth){
+
+        context.font = fontSize + 'px ' + fontFamilly;
+
+        if (context.lineWidth != lineWidth) {
             context.lineWidth = lineWidth;
         }
 
-        if(context.fillStyle != fillStyle){
-            if(fillStyle.constructor == {}.constructor){
-                switch(fillStyle.type){
+        if (context.fillStyle != fillStyle) {
+            if (fillStyle.constructor == {}.constructor) {
+                switch (fillStyle.type) {
                     case 'linearGradient':
                         var color_stop = fillStyle.colorStop || {};
                         var keys = Object.keys(color_stop);
                         var length = keys.length;
-                        if(length > 0){
+                        if (length > 0) {
                             var key;
                             var x0 = fillStyle.x0 || 0;
                             var y0 = fillStyle.y0 || 0;
                             var x1 = fillStyle.x1 || 0;
                             var y1 = fillStyle.y1 || 0;
-                            var gradient = context.createLinearGradient(x0,y0,x1,y1);
+                            var gradient = context.createLinearGradient(x0, y0, x1, y1);
                             var i;
-                            for(i =0; i < length;i++){
+                            for (i = 0; i < length; i++) {
                                 key = keys[i];
-                                gradient.addColorStop(key,color_stop[key]);
+                                gradient.addColorStop(key, color_stop[key]);
                             }
                             context.fillStyle = gradient;
                         }
                         break;
                 }
             }
-            else if(typeof fillStyle == 'string'){
+            else if (typeof fillStyle == 'string') {
                 context.fillStyle = fillStyle;
             }
         }
 
-        if(context.strokeStyle != strokeStyle){
+        if (context.strokeStyle != strokeStyle) {
             context.strokeStyle = strokeStyle;
         }
 
-        if ( lineDash instanceof Array) {
+        if (lineDash instanceof Array) {
             context.setLineDash(lineDash);
         }
 
@@ -634,38 +681,40 @@
 
             var tx = 0;
             var ty = 0;
-            if(origin.constructor == {}.constructor){
+            if (origin.constructor == {}.constructor) {
                 tx = options.origin.x;
                 ty = options.origin.y;
             }
-            else if(origin == 'center'){
+            else if (origin == 'center') {
                 tx = options.x + (options.width / 2);
                 ty = options.y + (options.height / 2);
             }
-            else if(origin == 'topLeft'){
+            else if (origin == 'topLeft') {
                 tx = options.x;
                 ty = options.y;
             }
-            else if(origin == 'topRight'){
+            else if (origin == 'topRight') {
                 tx = options.x + options.width;
                 ty = options.y;
             }
-            else if(origin == 'bottomLeft'){
+            else if (origin == 'bottomLeft') {
                 tx = options.x;
-                ty = options.y+options.height;
+                ty = options.y + options.height;
             }
-            else if(origin == 'bottomRight'){
-                tx = options.x+options.width;
-                ty = options.y+options.height;
+            else if (origin == 'bottomRight') {
+                tx = options.x + options.width;
+                ty = options.y + options.height;
             }
 
             var radians = options.rotate * (Math.PI / 180);
 
             context.translate(tx, ty);
             context.rotate(radians);
-            context.translate(-tx,-ty);
+            context.translate(-tx, -ty);
         }
         return self;
     };
+
+
     root.CanvasLayer = CanvasLayer;
-})(CE,window);
+})(CE, window);
