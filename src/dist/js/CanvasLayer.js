@@ -361,26 +361,34 @@
             var width = options.width || 200;
             var height = options.height || null;
             var fontSize = options.fontSize;
+            var textAlign = options.textAlign || 'left';
             var ctx = self.getContext();
             text = text.split(' ');
             var lines = [];
+            var widths = [];
             var length = text.length;
             var i;
             var line = [];
+            var oldTextWidth = 0;
+            var textWidth = 0;
 
             for (i = 0; i < length; i++) {
                 line.push(text[i]);
                 var join = line.join(' ');
-                if (line.length > 1 && ctx.measureText(join).width > width) {
+                oldTextWidth = textWidth;
+                textWidth = ctx.measureText(join).width;
+                if (line.length > 1 &&  textWidth > width) {
                     line.splice(line.length-1,1);
                     i--;
                     lines.push(line.join(' '));
+                    widths.push(oldTextWidth);
                     line = [];
                 }
             }
 
             if (line.length > 0) {
                 lines.push(line.join(' '));
+                widths.push(textWidth);
             }
 
             if(height != null){
@@ -391,10 +399,20 @@
             length = lines.length;
             for (i = 0; i < length; i++) {
                 var top = y+(fontSize*(i+1));
+                var align = 0;
                 if(top>(y+height)){
                     break;
                 }
-                ctx.fillText(lines[i], x, top);
+
+                switch(textAlign){
+                    case 'center':
+                        align = (width-widths[i])/2;
+                        break;
+                    case 'right':
+                        align = width-widths[i];
+                }
+
+                ctx.fillText(lines[i], x+align, top);
             }
             ctx.restore();
         }
