@@ -36,13 +36,21 @@
 
     CanvasLayer.prototype.initialize = function () {
         var self = this;
+        var zIndex = 0;
+        var left = 0;
+        var top = 0;
+        var width = 0;
+        var height = 0;
+        var opacity = 1;
+        var visible = true;
+
         Object.defineProperty(self, 'zIndex', {
             get: function () {
-                var element = self.getElement();
-                return element.style.zIndex || w.getComputedStyle(element).zIndex || 0;
+                return zIndex;
             },
-            set: function (zIndex) {
-                if (self.zIndex != zIndex) {
+            set: function (z_index) {
+                if (zIndex != z_index) {
+                    zIndex = z_index;
                     var element = self.getElement();
                     element.style.zIndex = zIndex;
                     element.setAttribute('data-zindex', zIndex);
@@ -52,15 +60,11 @@
 
         Object.defineProperty(self, 'left', {
             get: function () {
-                var element = self.getElement();
-                if (element.style.left) {
-                    return parseFloat(element.style.left);
-                }
-                return parseFloat(w.getComputedStyle(element).left);
+                return left;
             },
-            set: function (left) {
-                left = parseFloat(left);
-                if (!isNaN(left) && self.left != left) {
+            set: function (l) {
+                if (left != l) {
+                    left = l;
                     var element = self.getElement();
                     element.style.left = left + 'px';
                     element.setAttribute('data-left', left);
@@ -70,15 +74,11 @@
 
         Object.defineProperty(self, 'top', {
             get: function () {
-                var element = self.getElement();
-                if (element.style.top) {
-                    return parseFloat(element.style.top);
-                }
-                return parseFloat(w.getComputedStyle(element).top);
+                return top;
             },
-            set: function (top) {
-                top = parseFloat(top);
-                if (!isNaN(top) && self.top != top) {
+            set: function (t) {
+                if (top != t){
+                    top = t;
                     var element = self.getElement();
                     element.style.top = top + 'px';
                     element.setAttribute('data-top', top);
@@ -88,15 +88,11 @@
 
         Object.defineProperty(self, 'width', {
             get: function () {
-                var element = self.getElement();
-                if (element.style.width) {
-                    return parseFloat(element.style.width);
-                }
-                return parseFloat(w.getComputedStyle(self.element).width);
+                return width;
             },
-            set: function (width) {
-                width = parseFloat(width);
-                if (!isNaN(width) && width >= 0 && self.width != width) {
+            set: function (w) {
+                if (width != w) {
+                    width = w;
                     self.getElement().width = width;
                     if (self.canvas.alignerWidth < width) {
                         self.canvas.alignerWidth = width;
@@ -107,15 +103,11 @@
 
         Object.defineProperty(self, 'height', {
             get: function () {
-                var element = self.getElement();
-                if (element.style.height) {
-                    return parseFloat(element.style.height);
-                }
-                return parseFloat(w.getComputedStyle(self.element).height);
+                return height;
             },
-            set: function (height) {
-                height = parseFloat(height);
-                if (!isNaN(height) && height >= 0 && self.height != height) {
+            set: function (h) {
+                if (height != h) {
+                    height = h;
                     self.getElement().height = height;
                     if (self.canvas.alignerHeight < height) {
                         self.canvas.alignerHeight = height;
@@ -126,14 +118,11 @@
 
         Object.defineProperty(self, 'opacity', {
             get: function () {
-                var element = self.getElement();
-                if (element.style.opacity) {
-                    return parseFloat(element.style.opacity);
-                }
-                return parseFloat(w.getComputedStyle(self.element).opacity);
+                return opacity;
             },
-            set: function (opacity) {
-                if (opacity != self.opacity) {
+            set: function (o) {
+                if (opacity != o) {
+                    opacity = o;
                     self.getElement().style.opacity = opacity;
                 }
             }
@@ -141,21 +130,20 @@
 
         Object.defineProperty(self, 'visible', {
             get: function () {
-                var element = self.getElement();
-                if (element.style.visibility) {
-                    return element.style.visibility == 'visible';
-                }
-                return w.getComputedStyle(self.element).visibility == 'visible';
+                return visible;
             },
-            set: function (visible) {
+            set: function (v) {
                 var element = self.getElement();
-                if (visible) {
-                    element.style.visibility = 'visible';
-                    element.setAttribute('data-visible', '1');
-                }
-                else {
-                    element.style.visibility = 'hidden';
-                    element.setAttribute('data-visible', '0');
+                if(visible != v){
+                    visible = v;
+                    if (visible) {
+                        element.style.visibility = 'visible';
+                        element.setAttribute('data-visible', '1');
+                    }
+                    else {
+                        element.style.visibility = 'hidden';
+                        element.setAttribute('data-visible', '0');
+                    }
                 }
             }
         });
@@ -249,7 +237,9 @@
             self.element.style.top = 0;
             self.element.style.backgroundColor = 'transparent';
             self.element.style.opacity = 1;
+            self.element.style.zIndex = self.zIndex;
             self.element.setAttribute("class", "canvas-layer");
+            self.element.setAttribute("data-zindex",self.zIndex);
             self.updateParentNode();
         }
 
@@ -266,10 +256,11 @@
         var element = self.getElement();
 
         if (element.parentNode == null && parent != null) {
-            if (parent.fixed) {
-                parent.container.appendChild(element);
+            var aligner = parent.getAligner();
+            if(aligner.children[self.zIndex] != undefined){
+                aligner.insertBefore(element,aligner.children[self.zIndex]);
             }
-            else {
+            else{
                 parent.getAligner().appendChild(element);
             }
         }

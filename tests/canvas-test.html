@@ -8,53 +8,14 @@
     <script type="text/javascript" src="../src/dist/js/CanvasLayer.js"></script>
     <script type="text/javascript">
         function start() {
-            var text_random  = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z','0','1','2','3','4','5','6','7','8','9','10'];
-
-            var random_text = function(length){
-                var text = '';
-                while(text.length < length){
-                    var word_length = Math.min(Math.ceil(Math.random()*10),length-text.length);
-                    for(var i = 0; i < word_length;i++){
-                        var pos = Math.floor(Math.random()*text_random.length);
-                        text += Math.floor(Math.random()*2) == 0?text_random[pos].toUpperCase():text_random[pos];
-                    }
-                    text+= ' ';
-                }
-                return text;
-            };
-
-
-            var container = document.getElementById('container');
-            var engine = CE.create(container,{
-                width:500,
-                height:500,
-                style:{
-                    backgroundColor:'white',
-                    border:'1px solid black'
+            var element = document.getElementById('container');
+            var engine = CE.create(element, {
+                width: 400,
+                height: 400,
+                style: {
+                    border: '1px solid black'
                 }
             });
-
-            var layer = engine.createLayer();
-            layer.rect({
-                x:100,
-                y:100,
-                width:200,
-                height:200,
-                strokeStyle:'black',
-                lineWidth:1
-            });
-
-            var text = random_text(1000);
-            console.log(text);
-//            layer.text(text,{
-//                x:100,
-//                y:100,
-//                width:200,
-//                height:200,
-//                fontSize:10,
-//                fontFamilly:'Verdana',
-//                textAlign:'center'
-//            });
         }
     </script>
 </head>

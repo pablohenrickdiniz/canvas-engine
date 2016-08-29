@@ -307,8 +307,12 @@
         options = options || {};
         var layer = null;
         var self = this;
-        options.zIndex = self.layers.length;
+        options.zIndex = options.zIndex || self.layers.length;
         var CanvasLayer = CE.CanvasLayer;
+
+        if(self.layers[options.zIndex] == undefined){
+            options.zIndex = self.layers.length;
+        }
 
         if (ClassName !== undefined) {
             layer = new ClassName(self, options);
@@ -317,7 +321,17 @@
             layer = new CanvasLayer(self, options);
         }
 
-        self.layers.push(layer);
+        var index = options.zIndex;
+        if(self.layers[index] != undefined){
+            self.layers.splice(index,0,layer);
+            var length = self.layers.length;
+            for(var i = index+1;i<length;i++){
+                self.layers[i].zIndex = i;
+            }
+        }
+        else{
+            self.layers.push(layer);
+        }
 
         return layer;
     };
