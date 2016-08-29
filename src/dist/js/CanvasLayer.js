@@ -340,6 +340,7 @@
         });
     };
 
+
     CanvasLayer.prototype.text = function (text, options) {
         var self = this;
         text = text.trim();
@@ -347,10 +348,13 @@
             options = options || {};
             options.fillStyle = options.fillStyle || 'black';
 
+
             var x = options.x || 0;
             var y = options.y || 0;
-            var width = options.width || 200;
-            var height = options.height || null;
+            var sx = options.sx || 0;
+            var sy = options.sy || 0;
+            var width = options.width || self.width;
+            var height = options.height || self.height;
             var fontSize = options.fontSize || 10;
             var textAlign = options.textAlign || 'left';
             text = text.split(' ');
@@ -385,14 +389,15 @@
                 widths.push(textWidth);
             }
 
-            if(height != null){
-                ctx.rect(x,y,width,height);
-                ctx.clip();
-            }
+            ctx.rect(x,y,width,height);
+            ctx.clip();
+
 
             length = lines.length;
-            for (i = 0; i < length; i++) {
-                var top = y+(fontSize*(i+1));
+            var start_line = Math.floor(sy/fontSize);
+
+            for (i = start_line; i < length; i++) {
+                var top = y+(fontSize*(i+1))-sy;
                 var align = 0;
                 if(top>(y+height)){
                     break;
@@ -405,8 +410,7 @@
                     case 'right':
                         align = width-widths[i];
                 }
-
-                ctx.fillText(lines[i], x+align, top);
+                ctx.fillText(lines[i], x+align-sx, top);
             }
             ctx.restore();
         }
