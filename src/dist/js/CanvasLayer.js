@@ -340,61 +340,77 @@
         });
     };
 
+    CanvasLayer.prototype.processText = function(text, options){
+        var self = this;
+        var ctx = self.getContext();
+        ctx.save();
+        self.setContext(options);
+        text = text.split(' ');
+        var length = text.length;
+        var lines = [];
+        var oldTextWidth = 0;
+        var textWidth = 0;
+        var line = [];
+        var i;
+        var width = options.width || self.width;
+
+        for (i = 0; i < length; i++) {
+            line.push(text[i]);
+            var join = line.join(' ');
+            oldTextWidth = textWidth;
+            textWidth = ctx.measureText(join).width;
+            if (line.length > 1 &&  textWidth > width) {
+                line.splice(line.length-1,1);
+                i--;
+                lines.push({
+                    text:line.join(' '),
+                    width:oldTextWidth
+                });
+                line = [];
+            }
+        }
+
+        ctx.restore();
+
+        if (line.length > 0) {
+            lines.push({
+                text:line.join(' '),
+                width:textWidth
+            });
+        }
+
+        return lines;
+    };
+
 
     CanvasLayer.prototype.text = function (text, options) {
         var self = this;
-        text = text.trim();
         if (text.length > 0) {
             options = options || {};
             options.fillStyle = options.fillStyle || 'black';
-
-
             var x = options.x || 0;
             var y = options.y || 0;
             var sx = options.sx || 0;
             var sy = options.sy || 0;
-            var width = options.width || self.width;
-            var height = options.height || self.height;
-            var fontSize = options.fontSize || 10;
-            var textAlign = options.textAlign || 'left';
-            text = text.split(' ');
-            var lines = [];
-            var widths = [];
-            var length = text.length;
-            var i;
-            var line = [];
-            var oldTextWidth = 0;
-            var textWidth = 0;
+            var width = options.width = options.width || self.width;
+            var height = options.height = options.height || self.height;
+            var fontSize = options.fontSize = options.fontSize || 10;
+            var textAlign = options.textAlign = options.textAlign || 'left';
 
             var ctx = self.getContext();
             ctx.save();
             self.setContext(options);
-
-            for (i = 0; i < length; i++) {
-                line.push(text[i]);
-                var join = line.join(' ');
-                oldTextWidth = textWidth;
-                textWidth = ctx.measureText(join).width;
-                if (line.length > 1 &&  textWidth > width) {
-                    line.splice(line.length-1,1);
-                    i--;
-                    lines.push(line.join(' '));
-                    widths.push(oldTextWidth);
-                    line = [];
-                }
-            }
-
-            if (line.length > 0) {
-                lines.push(line.join(' '));
-                widths.push(textWidth);
-            }
-
             ctx.rect(x,y,width,height);
             ctx.clip();
 
+            if(!(text instanceof Array)){
+                text = text.trim();
+                text = self.processText(text,options);
+            }
 
-            length = lines.length;
+            var length = text.length;
             var start_line = Math.floor(sy/fontSize);
+            var i;
 
             for (i = start_line; i < length; i++) {
                 var top = y+(fontSize*(i+1))-sy;
@@ -405,12 +421,12 @@
 
                 switch(textAlign){
                     case 'center':
-                        align = (width-widths[i])/2;
+                        align = (width-text[i].width)/2;
                         break;
                     case 'right':
-                        align = width-widths[i];
+                        align = width-text[i].width;
                 }
-                ctx.fillText(lines[i], x+align-sx, top);
+                ctx.fillText(text[i].text, x+align-sx, top);
             }
             ctx.restore();
         }
