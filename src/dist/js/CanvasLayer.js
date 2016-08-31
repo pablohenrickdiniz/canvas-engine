@@ -410,14 +410,13 @@
 
             var length = text.length;
             var start_line = Math.floor(sy/fontSize);
+            var end_line = Math.ceil((sy+height)/fontSize);
             var i;
+            end_line = Math.min(end_line,length);
 
-            for (i = start_line; i < length; i++) {
+            for (i = start_line; i < end_line; i++) {
                 var top = y+(fontSize*(i+1))-sy;
                 var align = 0;
-                if(top>(y+height)){
-                    break;
-                }
 
                 switch(textAlign){
                     case 'center':
