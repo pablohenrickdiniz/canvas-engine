@@ -400,8 +400,6 @@
             var ctx = self.getContext();
             ctx.save();
             self.setContext(options);
-            ctx.rect(x,y,width,height);
-            ctx.clip();
 
             if(!(text instanceof Array)){
                 text = text.trim();
