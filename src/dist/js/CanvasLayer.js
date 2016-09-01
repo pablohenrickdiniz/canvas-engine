@@ -77,7 +77,7 @@
                 return top;
             },
             set: function (t) {
-                if (top != t){
+                if (top != t) {
                     top = t;
                     var element = self.getElement();
                     element.style.top = top + 'px';
@@ -134,7 +134,7 @@
             },
             set: function (v) {
                 var element = self.getElement();
-                if(visible != v){
+                if (visible != v) {
                     visible = v;
                     if (visible) {
                         element.style.visibility = 'visible';
@@ -239,7 +239,7 @@
             self.element.style.opacity = 1;
             self.element.style.zIndex = self.zIndex;
             self.element.setAttribute("class", "canvas-layer");
-            self.element.setAttribute("data-zindex",self.zIndex);
+            self.element.setAttribute("data-zindex", self.zIndex);
             self.updateParentNode();
         }
 
@@ -257,10 +257,10 @@
 
         if (element.parentNode == null && parent != null) {
             var aligner = parent.getAligner();
-            if(aligner.children[self.zIndex] != undefined){
-                aligner.insertBefore(element,aligner.children[self.zIndex]);
+            if (aligner.children[self.zIndex] != undefined) {
+                aligner.insertBefore(element, aligner.children[self.zIndex]);
             }
-            else{
+            else {
                 parent.getAligner().appendChild(element);
             }
         }
@@ -340,7 +340,7 @@
         });
     };
 
-    CanvasLayer.prototype.processText = function(text, options){
+    CanvasLayer.prototype.processText = function (text, options) {
         var self = this;
         var ctx = self.getContext();
         ctx.save();
@@ -359,12 +359,12 @@
             var join = line.join(' ');
             oldTextWidth = textWidth;
             textWidth = ctx.measureText(join).width;
-            if (line.length > 1 &&  textWidth > width) {
-                line.splice(line.length-1,1);
+            if (line.length > 1 && textWidth > width) {
+                line.splice(line.length - 1, 1);
                 i--;
                 lines.push({
-                    text:line.join(' '),
-                    width:oldTextWidth
+                    text: line.join(' '),
+                    width: oldTextWidth
                 });
                 line = [];
             }
@@ -374,8 +374,8 @@
 
         if (line.length > 0) {
             lines.push({
-                text:line.join(' '),
-                width:textWidth
+                text: line.join(' '),
+                width: textWidth
             });
         }
 
@@ -396,34 +396,51 @@
             var height = options.height = options.height || self.height;
             var fontSize = options.fontSize = options.fontSize || 10;
             var textAlign = options.textAlign = options.textAlign || 'left';
+            var round = options.round || false;
+            if(round){
+                x = Math.round(x);
+                y = Math.round(y);
+                sx = Math.round(sx);
+                sy = Math.round(sy);
+                width = Math.round(width);
+                height = Math.round(height);
+                fontSize = Math.round(fontSize);
+                options.x = x;
+                options.y = y;
+                options.sx = sx;
+                options.sy = sy;
+                options.width = width;
+                options.height = height;
+                options.fontSize = fontSize;
+            }
 
             var ctx = self.getContext();
             ctx.save();
             self.setContext(options);
 
-            if(!(text instanceof Array)){
+            if (!(text instanceof Array)) {
                 text = text.trim();
-                text = self.processText(text,options);
+                text = self.processText(text, options);
             }
 
             var length = text.length;
-            var start_line = Math.floor(sy/fontSize);
-            var end_line = Math.ceil((sy+height)/fontSize);
+            var start_line = Math.floor(sy / fontSize);
+            var end_line = Math.ceil((sy + height) / fontSize);
             var i;
-            end_line = Math.min(end_line,length);
+            end_line = Math.min(end_line, length);
 
             for (i = start_line; i < end_line; i++) {
-                var top = y+(fontSize*(i+1))-sy;
+                var top = y + (fontSize * (i + 1)) - sy;
                 var align = 0;
 
-                switch(textAlign){
+                switch (textAlign) {
                     case 'center':
-                        align = (width-text[i].width)/2;
+                        align = (width - text[i].width) / 2;
                         break;
                     case 'right':
-                        align = width-text[i].width;
+                        align = width - text[i].width;
                 }
-                ctx.fillText(text[i].text, x+align-sx, top);
+                ctx.fillText(text[i].text, x + align - sx, top);
             }
             ctx.restore();
         }
@@ -521,11 +538,18 @@
         var x = options.x || 0;
         var y = options.y || 0;
         var radius = options.radius || 10;
+        var round = options.round || false;
         options.fillStyle = options.fillStyle || 'transparent';
         options.strokeStyle = options.strokeStyle || 'black';
         options.backgroundOpacity = options.backgroundOpacity || 100;
         options.borderOpacity = options.borderOpacity || 100;
         options.lineWidth = options.lineWidth || 0;
+        if(round){
+            x = Math.round(x);
+            y = Math.round(y);
+            radius = Math.round(radius);
+            options.lineWidth = Math.round(options.lineWidth);
+        }
 
         var context = self.getContext();
         context.save();
@@ -557,6 +581,18 @@
         options.backgroundOpacity = options.backgroundOpacity || 100;
         options.borderOpacity = options.borderOpacity || 100;
         options.lineWidth = options.lineWidth || 0;
+        var round = options.round || false;
+        if (round) {
+            x = Math.round(x);
+            y = Math.round(y);
+            width = Math.round(width);
+            height = Math.round(height);
+            options.x = x;
+            options.y = y;
+            options.width = width;
+            options.height = height;
+            options.lineWidth = Math.round(options.lineWidth);
+        }
 
         var context = self.getContext();
         context.save();
@@ -614,7 +650,10 @@
         options.backgroundOpacity = options.backgroundOpacity || 100;
         options.borderOpacity = options.borderOpacity || 100;
         options.lineWidth = options.lineWidth || 0;
-
+        var round = options.round || false;
+        if(round){
+            options.lineWidth = Math.round(options.lineWidth);
+        }
         var points = options.points = options.points || [];
 
         var size = options.points.length;
