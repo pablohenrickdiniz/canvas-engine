@@ -1,4 +1,8 @@
 (function (root, w) {
+    /**
+     *
+     * @param element
+     */
     var remove_element = function (element) {
         if (element instanceof  Element) {
             element.parentElement.removeChild(element);
@@ -13,17 +17,21 @@
     };
 
     const TRANSPARENT_REG = /^\s*transparent\s*|rgba\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*0\s*\)\s*$/;
-
+    /**
+     *
+     * @param canvas
+     * @param options
+     * @constructor
+     */
     var CanvasLayer = function (canvas, options) {
         console.log('Canvas Layer initialize...');
         var self = this;
+        initialize(self);
         self.type = 'layer';
         self.context = null;
-        self.element = null;
         self.canvas = canvas;
         self.savedStates = [];
         self.name = '';
-        self.initialize();
         options = options || {};
         self.zIndex = options.zIndex || 0;
         self.left = options.left || 0;
@@ -34,129 +42,10 @@
         self.visible = options.visible || true;
     };
 
-    CanvasLayer.prototype.initialize = function () {
-        var self = this;
-        var zIndex = 0;
-        var left = 0;
-        var top = 0;
-        var width = 0;
-        var height = 0;
-        var opacity = 1;
-        var visible = true;
-
-        Object.defineProperty(self, 'zIndex', {
-            get: function () {
-                return zIndex;
-            },
-            set: function (z_index) {
-                if (zIndex != z_index) {
-                    zIndex = z_index;
-                    var element = self.getElement();
-                    element.style.zIndex = zIndex;
-                    element.setAttribute('data-zindex', zIndex);
-                }
-            }
-        });
-
-        Object.defineProperty(self, 'left', {
-            get: function () {
-                return left;
-            },
-            set: function (l) {
-                if (left != l) {
-                    left = l;
-                    var element = self.getElement();
-                    element.style.left = left + 'px';
-                    element.setAttribute('data-left', left);
-                }
-            }
-        });
-
-        Object.defineProperty(self, 'top', {
-            get: function () {
-                return top;
-            },
-            set: function (t) {
-                if (top != t) {
-                    top = t;
-                    var element = self.getElement();
-                    element.style.top = top + 'px';
-                    element.setAttribute('data-top', top);
-                }
-            }
-        });
-
-        Object.defineProperty(self, 'width', {
-            get: function () {
-                return width;
-            },
-            set: function (w) {
-                if (width != w) {
-                    width = w;
-                    self.getElement().width = width;
-                    if (self.canvas.alignerWidth < width) {
-                        self.canvas.alignerWidth = width;
-                    }
-                }
-            }
-        });
-
-        Object.defineProperty(self, 'height', {
-            get: function () {
-                return height;
-            },
-            set: function (h) {
-                if (height != h) {
-                    height = h;
-                    self.getElement().height = height;
-                    if (self.canvas.alignerHeight < height) {
-                        self.canvas.alignerHeight = height;
-                    }
-                }
-            }
-        });
-
-        Object.defineProperty(self, 'opacity', {
-            get: function () {
-                return opacity;
-            },
-            set: function (o) {
-                if (opacity != o) {
-                    opacity = o;
-                    self.getElement().style.opacity = opacity;
-                }
-            }
-        });
-
-        Object.defineProperty(self, 'visible', {
-            get: function () {
-                return visible;
-            },
-            set: function (v) {
-                var element = self.getElement();
-                if (visible != v) {
-                    visible = v;
-                    if (visible) {
-                        element.style.visibility = 'visible';
-                        element.setAttribute('data-visible', '1');
-                    }
-                    else {
-                        element.style.visibility = 'hidden';
-                        element.setAttribute('data-visible', '0');
-                    }
-                }
-            }
-        });
-    };
-
-    CanvasLayer.prototype.setElement = function (element) {
-        var self = this;
-        if (self.element != element) {
-            self.element = element;
-            self.context = null;
-        }
-    };
-
+    /**
+     *
+     * @param style
+     */
     CanvasLayer.prototype.setStyle = function (style) {
         var self = this;
         var element = self.getElement();
@@ -180,11 +69,10 @@
         });
     };
 
-    /*
-     CanvasLayer : saveState(String name)
-     Salva o gráfico do canvas para o alias name
-     Nota: quanto maior a imagem, mas tempo de processamento
-     será necessário para copiála
+    /**
+     *
+     * @param name
+     * @returns {CanvasLayer}
      */
     CanvasLayer.prototype.saveState = function (name) {
         //console.log('Canvas layer save state...');
@@ -196,23 +84,24 @@
         return self;
     };
 
-    /*
-     CanvasLayer : restoreState(name)
-     Redesenha o gráfico do canvas previamente salvo
+    /**
+     *
+     * @param name
+     * @returns {CanvasLayer}
      */
     CanvasLayer.prototype.restoreState = function (name) {
         //console.log('Canvas layer restore state...');
         var self = this;
         var state = self.savedStates[name];
         if (state !== undefined) {
-            self.getContext().drawImage(state, 0, 0);
+            self.context.drawImage(state, 0, 0);
         }
         return self;
     };
 
-    /*
-     CanvasLayer : clearStates()
-     Remove todos os gráficos que foram salvos
+    /**
+     *
+     * @returns {CanvasLayer}
      */
     CanvasLayer.prototype.clearStates = function () {
         //console.log('Canvas layer restore states...');
@@ -221,76 +110,13 @@
         return self;
     };
 
-    /*
-     Canvas: getElement()
-     obtém o elemento html canvas
+    /**
+     *
+     * @returns {*|number}
      */
-    CanvasLayer.prototype.getElement = function () {
-        //console.log('Canvas layer get element...')
-        var self = this;
-        if (self.element === null) {
-            self.element = document.createElement('canvas');
-            self.element.style.pointerEvents = 'none';
-            self.element.style.userSelect = 'none';
-            self.element.style.position = 'absolute';
-            self.element.style.left = 0;
-            self.element.style.top = 0;
-            self.element.style.backgroundColor = 'transparent';
-            self.element.style.opacity = 1;
-            self.element.style.zIndex = self.zIndex;
-            self.element.setAttribute("class", "canvas-layer");
-            self.element.setAttribute("data-zindex", self.zIndex);
-            self.updateParentNode();
-        }
-
-        return self.element;
-    };
-
-    /*
-     updateParentNode():void
-     atualiza o nó no container pai
-     */
-    CanvasLayer.prototype.updateParentNode = function () {
-        var self = this;
-        var parent = self.canvas;
-        var element = self.getElement();
-
-        if (element.parentNode == null && parent != null) {
-            var aligner = parent.getAligner();
-            if (aligner.children[self.zIndex] != undefined) {
-                aligner.insertBefore(element, aligner.children[self.zIndex]);
-            }
-            else {
-                parent.getAligner().appendChild(element);
-            }
-        }
-        parent.updateParentNode();
-    };
-
-    /*
-     CanvasRenderingContext2D: getContext()
-     Obtém o contexto do canvas
-     */
-    CanvasLayer.prototype.getContext = function () {
-        //console.log('Canvas layer get context...');
-        var self = this;
-        if (self.context === null) {
-            self.context = self.getElement().getContext('2d');
-            if (self.context.setLineDash === undefined) {
-                self.context.setLineDash = function () {
-                };
-            }
-        }
-        else {
-            self.updateParentNode();
-        }
-        return self.context;
-    };
-
-
     CanvasLayer.prototype.getRatio = function () {
         var self = this;
-        var context = self.getContext();
+        var context = self.context;
         return context.webkitBackingStorePixelRatio ||
             context.mozBackingStorePixelRatio ||
             context.msBackingStorePixelRatio ||
@@ -298,10 +124,6 @@
             context.backingStorePixelRatio || 1;
     };
 
-    /*
-     CanvasLayer:destroy()
-     Remove a camada da árvore DOM e da CanvasEngine correspondentes
-     */
     CanvasLayer.prototype.destroy = function () {
         //console.log('Canvas layer destroy...');
         var self = this;
@@ -312,25 +134,27 @@
         }
     };
 
-    /*
-     CanvasLayer: drawImage(Image img, int sx, int sy, int sWidth, int sHeight, int x, int y, int width, int height)
-     Desenha uma imagem
+    /**
+     *
+     * @returns {CanvasLayer}
      */
     CanvasLayer.prototype.drawImage = function () {
         //console.log('Canvas layer draw image...');
         var self = this;
-        var context = self.getContext();
+        var context = self.context;
         context.drawImage.apply(context, arguments);
         return self;
     };
 
-    /*
-     CanvasLayer: getPixel(int i, int j)
-     get canvas pixel
+    /**
+     *
+     * @param i
+     * @param j
+     * @returns {Color}
      */
     CanvasLayer.prototype.getPixel = function (i, j) {
         var self = this;
-        var context = self.getContext();
+        var context = self.context;
         var p = context.getImageData(i, j, 1, 1).data;
         return new Color({
             red: p[0],
@@ -339,10 +163,15 @@
             alpha: p[3]
         });
     };
-
+    /**
+     *
+     * @param text
+     * @param options
+     * @returns {Array}
+     */
     CanvasLayer.prototype.processText = function (text, options) {
         var self = this;
-        var ctx = self.getContext();
+        var ctx = self.context;
         ctx.save();
         self.setContext(options);
         text = text.split(' ');
@@ -382,7 +211,11 @@
         return lines;
     };
 
-
+    /**
+     *
+     * @param text
+     * @param options
+     */
     CanvasLayer.prototype.text = function (text, options) {
         var self = this;
         if (text.length > 0) {
@@ -414,7 +247,7 @@
                 options.fontSize = fontSize;
             }
 
-            var ctx = self.getContext();
+            var ctx = self.context;
             ctx.save();
             self.setContext(options);
 
@@ -445,10 +278,13 @@
             ctx.restore();
         }
     };
-
+    /**
+     *
+     * @param image
+     * @param options
+     */
     CanvasLayer.prototype.image = function (image, options) {
         var self = this;
-
         if (image && image instanceof HTMLImageElement) {
             options = options || {};
             var sx = options.sx || 0;
@@ -517,11 +353,11 @@
                 sy = image.height * (percent / 100);
             }
 
-            var context = self.getContext();
+            var context = self.context;
             context.save();
 
             if (!isNaN(opacity)) {
-                self.getContext().globalAlpha = opacity / 100;
+                self.context.globalAlpha = opacity / 100;
             }
 
             var scale = self.canvas.scale;
@@ -531,7 +367,11 @@
             context.restore();
         }
     };
-
+    /**
+     *
+     * @param options
+     * @returns {CanvasLayer}
+     */
     CanvasLayer.prototype.circle = function (options) {
         var self = this;
         options = options || {};
@@ -551,7 +391,7 @@
             options.lineWidth = Math.round(options.lineWidth);
         }
 
-        var context = self.getContext();
+        var context = self.context;
         context.save();
         self.setContext(options);
         context.beginPath();
@@ -568,7 +408,11 @@
         context.restore();
         return self;
     };
-
+    /**
+     *
+     * @param options
+     * @returns {CanvasLayer}
+     */
     CanvasLayer.prototype.rect = function (options) {
         var self = this;
         options = options || {};
@@ -594,7 +438,7 @@
             options.lineWidth = Math.round(options.lineWidth);
         }
 
-        var context = self.getContext();
+        var context = self.context;
         context.save();
         self.setContext(options);
 
@@ -613,26 +457,39 @@
         context.restore();
         return self;
     };
-
+    /**
+     *
+     * @param x
+     * @param y
+     * @param width
+     * @param height
+     * @returns {CanvasLayer}
+     */
     CanvasLayer.prototype.clear = function (x, y, width, height) {
         var self = this;
         x = x || 0;
         y = y || 0;
         width = width || self.width;
         height = height || self.height;
-        var context = self.getContext();
+        var context = self.context;
         var scale = self.canvas.scale;
         context.clearRect(x * scale, y * scale, width * scale, height * scale);
         return self;
     };
-
+    /**
+     *
+     * @param x
+     * @param y
+     * @param radius
+     * @returns {CanvasLayer}
+     */
     CanvasLayer.prototype.clearCircle = function (x, y, radius) {
         var self = this;
         x = x || self.width / 2;
         y = y || self.height / 2;
         radius = radius || (self.width + self.height) / 4;
 
-        var context = self.getContext();
+        var context = self.context;
         context.save();
         context.arc(x, y, radius, 0, Math.PI);
         context.clip();
@@ -640,7 +497,11 @@
         context.restore();
         return self;
     };
-
+    /**
+     *
+     * @param options
+     * @returns {CanvasLayer}
+     */
     CanvasLayer.prototype.polygon = function (options) {
         var self = this;
         options = options || {};
@@ -658,7 +519,7 @@
         var points = options.points = options.points || [];
 
         var size = options.points.length;
-        var context = self.getContext();
+        var context = self.context;
         context.save();
         self.setContext(options);
         if (size > 0) {
@@ -687,10 +548,14 @@
         context.restore();
         return self;
     };
-
+    /**
+     *
+     * @param options
+     * @returns {CanvasLayer}
+     */
     CanvasLayer.prototype.setContext = function (options) {
         var self = this;
-        var context = self.getContext();
+        var context = self.context;
         options = options || {};
         var fillStyle = options.fillStyle || 'transparent';
         var strokeStyle = options.strokeStyle || 'transparent';
@@ -784,6 +649,188 @@
         return self;
     };
 
+    var initialize = function(self){
+        var zIndex = 0;
+        var left = 0;
+        var top = 0;
+        var width = 0;
+        var height = 0;
+        var opacity = 1;
+        var visible = true;
+        var element = null;
+        var context = null;
+
+        Object.defineProperty(self, 'zIndex', {
+            get: function () {
+                return zIndex;
+            },
+            set: function (z_index) {
+                if (zIndex != z_index) {
+                    zIndex = z_index;
+                    var element = self.element;
+                    element.style.zIndex = zIndex;
+                    element.setAttribute('data-zindex', zIndex);
+                }
+            }
+        });
+
+        Object.defineProperty(self, 'left', {
+            get: function () {
+                return left;
+            },
+            set: function (l) {
+                if (left != l) {
+                    left = l;
+                    var element = self.element;
+                    element.style.left = left + 'px';
+                    element.setAttribute('data-left', left);
+                }
+            }
+        });
+
+        Object.defineProperty(self, 'top', {
+            get: function () {
+                return top;
+            },
+            set: function (t) {
+                if (top != t) {
+                    top = t;
+                    var element = self.element;
+                    element.style.top = top + 'px';
+                    element.setAttribute('data-top', top);
+                }
+            }
+        });
+
+        Object.defineProperty(self, 'width', {
+            get: function () {
+                return width;
+            },
+            set: function (w) {
+                if (width != w) {
+                    width = w;
+                    self.element.width = width;
+                    if (self.canvas.alignerWidth < width) {
+                        self.canvas.alignerWidth = width;
+                    }
+                }
+            }
+        });
+
+        Object.defineProperty(self, 'height', {
+            get: function () {
+                return height;
+            },
+            set: function (h) {
+                if (height != h) {
+                    height = h;
+                    self.element.height = height;
+                    if (self.canvas.alignerHeight < height) {
+                        self.canvas.alignerHeight = height;
+                    }
+                }
+            }
+        });
+
+        Object.defineProperty(self, 'opacity', {
+            get: function () {
+                return opacity;
+            },
+            set: function (o) {
+                if (opacity != o) {
+                    opacity = o;
+                    self.element.style.opacity = opacity;
+                }
+            }
+        });
+
+        Object.defineProperty(self, 'visible', {
+            get: function () {
+                return visible;
+            },
+            set: function (v) {
+                var element = self.element;
+                if (visible != v) {
+                    visible = v;
+                    if (visible) {
+                        element.style.visibility = 'visible';
+                        element.setAttribute('data-visible', '1');
+                    }
+                    else {
+                        element.style.visibility = 'hidden';
+                        element.setAttribute('data-visible', '0');
+                    }
+                }
+            }
+        });
+
+        Object.defineProperty(self,'element',{
+            set:function(newElement){
+                if(element != newElement){
+                    element = newElement;
+                    context = null;
+                }
+            },
+            get:function(){
+                if (element == null) {
+                    element = document.createElement('canvas');
+                    element.style.pointerEvents = 'none';
+                    element.style.userSelect = 'none';
+                    element.style.position = 'absolute';
+                    element.style.left = 0;
+                    element.style.top = 0;
+                    element.style.backgroundColor = 'transparent';
+                    element.style.opacity = 1;
+                    element.style.zIndex = self.zIndex;
+                    element.setAttribute("class", "canvas-layer");
+                    element.setAttribute("data-zindex", self.zIndex);
+                    updateParentNode(self);
+                }
+                return element;
+            }
+        });
+
+
+        Object.defineProperty(self,'context',{
+            get:function(){
+                if(context == null){
+                    context = self.element.getContext('2d');
+                    if (context.setLineDash === undefined) {
+                        context.setLineDash = function () {};
+                    }
+                }
+                else{
+                    updateParentNode(self);
+                }
+                return context;
+            }
+        });
+    };
+
+    var updateParentNode = function (self) {
+        if(self instanceof CanvasLayer){
+            var parent = self.canvas;
+            var element = self.element;
+
+            if (element.parentNode == null && parent != null) {
+                var aligner = parent.aligner;
+                if (aligner.children[self.zIndex] != undefined) {
+                    aligner.insertBefore(element, aligner.children[self.zIndex]);
+                }
+                else {
+                    parent.aligner.appendChild(element);
+                }
+            }
+            updateParentNode(parent);
+        }
+        else{
+            var aligner = self.aligner;
+
+            if (aligner.parentNode == null && self.container != null) {
+                self.container.appendChild(aligner);
+            }
+        }
+    };
 
     root.CanvasLayer = CanvasLayer;
 })(CE, window);
