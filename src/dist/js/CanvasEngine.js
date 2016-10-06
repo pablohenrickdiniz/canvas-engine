@@ -8,9 +8,10 @@
     var CE = function (container,options) {
         console.log('initializing canvas engine...');
         var self = this;
-        initialize(self,container);
+        initialize(self);
         options = options || {};
         self.layers = [];
+        self.container = container;
         self.width = options.width || 400;
         self.height = options.height || 400;
         self.style = options.style;
@@ -159,7 +160,7 @@
      * @param self
      * @param container
      */
-    var initialize = function (self,container) {
+    var initialize = function (self) {
         var context_menu = function (e) {
             e.preventDefault();
         };
