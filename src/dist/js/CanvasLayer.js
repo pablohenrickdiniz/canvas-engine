@@ -77,7 +77,7 @@
     CanvasLayer.prototype.saveState = function (name) {
         //console.log('Canvas layer save state...');
         var self = this;
-        var url = self.getElement().toDataURL('image/png');
+        var url = self.element.toDataURL('image/png');
         var img = document.createElement('img');
         img.src = url;
         self.savedStates[name] = img;
@@ -156,12 +156,7 @@
         var self = this;
         var context = self.context;
         var p = context.getImageData(i, j, 1, 1).data;
-        return new Color({
-            red: p[0],
-            green: p[1],
-            blue: p[2],
-            alpha: p[3]
-        });
+        return p;
     };
     /**
      *
@@ -710,9 +705,6 @@
                 if (width != w) {
                     width = w;
                     self.element.width = width;
-                    if (self.canvas.alignerWidth < width) {
-                        self.canvas.alignerWidth = width;
-                    }
                 }
             }
         });
@@ -725,9 +717,6 @@
                 if (height != h) {
                     height = h;
                     self.element.height = height;
-                    if (self.canvas.alignerHeight < height) {
-                        self.canvas.alignerHeight = height;
-                    }
                 }
             }
         });
@@ -813,22 +802,15 @@
             var element = self.element;
 
             if (element.parentNode == null && parent != null) {
-                var aligner = parent.aligner;
-                if (aligner.children[self.zIndex] != undefined) {
-                    aligner.insertBefore(element, aligner.children[self.zIndex]);
+                var container = parent.container;
+                if (container.children[self.zIndex] != undefined) {
+                    container.insertBefore(element, container.children[self.zIndex]);
                 }
                 else {
-                    parent.aligner.appendChild(element);
+                    container.appendChild(element);
                 }
             }
             updateParentNode(parent);
-        }
-        else{
-            var aligner = self.aligner;
-
-            if (aligner.parentNode == null && self.container != null) {
-                self.container.appendChild(aligner);
-            }
         }
     };
 

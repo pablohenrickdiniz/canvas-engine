@@ -1,46 +1,6 @@
 (function (w) {
     /**
      *
-     * @param element
-     * @param className
-     */
-    var add_class = function (element, className) {
-        var original = element.className;
-        original = original.trim();
-        className = className.split(" ");
-        for (var i = 0; i < className.length; i++) {
-            if (!has_class(element, className[i])) {
-                original += " " + className[i];
-            }
-        }
-        element.className = original;
-    };
-    /**
-     *
-     * @param element
-     * @param className
-     * @returns {boolean}
-     */
-    var has_class = function (element, className) {
-        return element.className.indexOf(className) != -1;
-    };
-    /**
-     *
-     * @param element
-     * @param classname
-     */
-    var remove_class = function(element, classname){
-        classname = classname.split(' ');
-        var str = element.className;
-        var length = classname.length;
-        var i;
-        for(i = 0; i < length;i++){
-            str = str.replace(classname[i],'');
-        }
-        element.className = str;
-    };
-    /**
-     *
      * @param container
      * @param options
      * @constructor
@@ -54,8 +14,6 @@
         self.width = options.width || 400;
         self.height = options.height || 400;
         self.style = options.style;
-        self.viewX = options.viewX || 0;
-        self.viewY = options.viewY || 0;
         self.scale = options.scale || 1;
         self.alignerWidth = options.alignerWidth || 400;
         self.alignerHeight = options.alignerHeight || 400;
@@ -65,7 +23,7 @@
      *
      * @returns {CE}
      */
-    CE.prototype.clearAll = function () {
+    CE.prototype.clear = function () {
         var self = this;
         var length = self.layers.length;
         var i;
@@ -202,8 +160,6 @@
      * @param container
      */
     var initialize = function (self,container) {
-        var aligner = null;
-
         var context_menu = function (e) {
             e.preventDefault();
         };
@@ -238,69 +194,6 @@
             }
         });
 
-
-        Object.defineProperty(self, 'alignerWidth', {
-            get: function () {
-                var aligner = self.aligner;
-                if (aligner.style.width) {
-                    return parseFloat(aligner.style.width);
-                }
-                return parseFloat(w.getComputedStyle(aligner).width);
-            },
-            set: function (alignerWidth) {
-                alignerWidth = parseFloat(alignerWidth);
-                if (!isNaN(alignerWidth) && alignerWidth >= 0 && alignerWidth != self.alignerWidth) {
-                    self.aligner.style.width = alignerWidth + 'px';
-                }
-            }
-        });
-
-        Object.defineProperty(self, 'alignerHeight', {
-            get: function () {
-                var aligner = self.aligner;
-                if (aligner.style.height) {
-                    return parseFloat(aligner.style.height);
-                }
-                return parseFloat(w.getComputedStyle(aligner).height);
-            },
-            set: function (alignerHeight) {
-                if (!isNaN(alignerHeight) && alignerHeight >= 0 && alignerHeight != self.alignerHeight) {
-                    self.aligner.style.height = alignerHeight + 'px';
-                }
-            }
-        });
-
-        Object.defineProperty(self, 'viewX', {
-            get: function () {
-                var aligner = self.aligner;
-                if(aligner.style.left){
-                    return parseFloat(aligner.style.left);
-                }
-                return parseFloat(w.getComputedStyle(aligner).left);
-            },
-            set: function (viewX) {
-                viewX = parseFloat(viewX);
-                if (!isNaN(viewX) && viewX <= 0 && self.viewX != viewX) {
-                    self.aligner.style.left = viewX + 'px'
-                }
-            }
-        });
-
-        Object.defineProperty(self, 'viewY', {
-            get: function () {
-                var aligner = self.aligner;
-                if(aligner.style.top){
-                    return parseFloat(aligner.style.top);
-                }
-                return parseFloat(w.getComputedStyle(aligner).top);
-            },
-            set: function (viewY) {
-                viewY = parseFloat(viewY);
-                if (!isNaN(viewY) && viewY <= 0 && self.viewX != viewY) {
-                    self.aligner.style.top = viewY + 'px'
-                }
-            }
-        });
 
         Object.defineProperty(self,'style',{
             get:function(){
@@ -349,46 +242,50 @@
                 }
             }
         });
-
-        Object.defineProperty(self,'visibleArea',{
-            get:function(){
-                return {
-                    x: self.viewX,
-                    y: self.viewY,
-                    width: self.width,
-                    height: self.height
-                };
-            }
-        });
-
-
-        Object.defineProperty(self,'aligner',{
-            get:function(){
-                if (aligner === null) {
-                    aligner = document.createElement('div');
-                    aligner.style.pointerEvents = 'none';
-                    aligner.style.userSelect = 'none';
-                    aligner.style.position = 'relative';
-                    aligner.style.width = self.width + 'px';
-                    aligner.style.height = self.height + 'px';
-                    aligner.style.left = self.left + 'px';
-                    aligner.style.top = self.top + 'px';
-                    add_class(aligner, 'aligner');
-                    self.aligner = aligner;
-                    updateParentNode(self);
-                }
-                return aligner;
-            }
-        });
     };
 
-    var updateParentNode = function (self) {
-        var aligner = self.aligner;
-
-        if (aligner.parentNode == null && self.container != null) {
-            self.container.appendChild(aligner);
+    /**
+     *
+     * @param element
+     * @param className
+     */
+    function add_class(element, className) {
+        var original = element.className;
+        original = original.trim();
+        className = className.split(" ");
+        for (var i = 0; i < className.length; i++) {
+            if (!has_class(element, className[i])) {
+                original += " " + className[i];
+            }
         }
-    };
+        element.className = original;
+    }
+
+    /**
+     *
+     * @param element
+     * @param className
+     * @returns {boolean}
+     */
+    function has_class(element, className) {
+        return element.className.indexOf(className) != -1;
+    }
+
+    /**
+     *
+     * @param element
+     * @param classname
+     */
+    function remove_class(element, classname){
+        classname = classname.split(' ');
+        var str = element.className;
+        var length = classname.length;
+        var i;
+        for(i = 0; i < length;i++){
+            str = str.replace(classname[i],'');
+        }
+        element.className = str;
+    }
 
     w.CE = CE;
 })(window);
