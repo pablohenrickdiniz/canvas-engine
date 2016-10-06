@@ -158,9 +158,11 @@
     /**
      *
      * @param self
-     * @param container
      */
     var initialize = function (self) {
+        var container = null;
+
+
         var context_menu = function (e) {
             e.preventDefault();
         };
