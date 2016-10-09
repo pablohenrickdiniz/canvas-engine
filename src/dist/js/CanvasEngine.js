@@ -214,31 +214,26 @@
             e.preventDefault();
         };
 
-        var resize = function(){
-            if (self.width != width || self.height != height) {
-                width = self.width;
-                height = self.height;
-                if(self.resizeLayers){
-                    var length = self.layers.length;
-                    for(var i =0; i < length;i++){
-                        self.layers[i].width = width;
-                        self.layers[i].height = height;
-                    }
+        var resize = function () {
+            if (self.resizeLayers) {
+                var length = self.layers.length;
+                for (var i = 0; i < length; i++) {
+                    self.layers[i].width = width;
+                    self.layers[i].height = height;
                 }
-                self.trigger('resize', [width, height]);
             }
+            self.trigger('resize', [width, height]);
         };
 
-        w.addEventListener('resize', resize);
+
         Object.defineProperty(self, 'width', {
             get: function () {
                 return parseFloat(w.getComputedStyle(container).width);
             },
-            set:function(w){
+            set: function (w) {
                 w = parseFloat(w);
-                if(w > 0 && w != self.width){
-                    container.style.width = w+'px';
-                    width = w;
+                if (w > 0 && w != self.width) {
+                    container.style.width = w + 'px';
                     resize();
                 }
             }
@@ -248,11 +243,10 @@
             get: function () {
                 return parseFloat(w.getComputedStyle(container).height);
             },
-            set:function(h){
+            set: function (h) {
                 h = parseFloat(h);
-                if(h > 0 && h != self.height){
-                    container.style.height = h+'px';
-                    height = h;
+                if (h > 0 && h != self.height) {
+                    container.style.height = h + 'px';
                     resize();
                 }
             }
