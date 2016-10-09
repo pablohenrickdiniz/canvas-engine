@@ -234,6 +234,7 @@
                 w = parseFloat(w);
                 if (w > 0 && w != self.width) {
                     container.style.width = w + 'px';
+                    width = w;
                     resize();
                 }
             }
@@ -247,6 +248,7 @@
                 h = parseFloat(h);
                 if (h > 0 && h != self.height) {
                     container.style.height = h + 'px';
+                    height = h;
                     resize();
                 }
             }
