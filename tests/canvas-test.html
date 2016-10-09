@@ -10,11 +10,11 @@
         function start() {
             var element = document.getElementById('container');
             var engine = CE.create(element, {
-                width: 400,
-                height: 400,
                 style: {
                     border: '1px solid black'
                 },
+                width:500,
+                height:500,
                 resizeLayers:true
             });
 
@@ -45,7 +45,7 @@
         }
     </script>
 </head>
-<body onload="start();" style="height: 100%;">
-<div id="container" style="width:100%;height:500px;"></div>
+<body onload="start();" id="container">
+
 </body>
 </html>

@@ -16,6 +16,8 @@
         self.style = options.style;
         self.scale = options.scale || 1;
         self.eventsListeners = [];
+        self.width = options.width || null;
+        self.height = options.height || null;
     };
 
     /**
@@ -208,7 +210,6 @@
         var width = null;
         var height = null;
 
-
         var context_menu = function (e) {
             e.preventDefault();
         };
@@ -231,12 +232,28 @@
         Object.defineProperty(self, 'width', {
             get: function () {
                 return parseFloat(w.getComputedStyle(container).width);
+            },
+            set:function(w){
+                w = parseFloat(w);
+                if(w > 0 && w != self.width){
+                    container.style.width = w+'px';
+                    width = w;
+                    self.trigger('resize', [width, height]);
+                }
             }
         });
 
         Object.defineProperty(self, 'height', {
             get: function () {
                 return parseFloat(w.getComputedStyle(container).height);
+            },
+            set:function(h){
+                h = parseFloat(h);
+                if(h > 0 && h != self.height){
+                    container.style.height = h+'px';
+                    height = h;
+                    self.trigger('resize', [width, height]);
+                }
             }
         });
 
