@@ -214,7 +214,7 @@
             e.preventDefault();
         };
 
-        w.addEventListener('resize', function () {
+        var resize = function(){
             if (self.width != width || self.height != height) {
                 width = self.width;
                 height = self.height;
@@ -227,8 +227,9 @@
                 }
                 self.trigger('resize', [width, height]);
             }
-        });
+        };
 
+        w.addEventListener('resize', resize);
         Object.defineProperty(self, 'width', {
             get: function () {
                 return parseFloat(w.getComputedStyle(container).width);
@@ -238,7 +239,7 @@
                 if(w > 0 && w != self.width){
                     container.style.width = w+'px';
                     width = w;
-                    self.trigger('resize', [width, height]);
+                    resize();
                 }
             }
         });
@@ -252,7 +253,7 @@
                 if(h > 0 && h != self.height){
                     container.style.height = h+'px';
                     height = h;
-                    self.trigger('resize', [width, height]);
+                    resize();
                 }
             }
         });
