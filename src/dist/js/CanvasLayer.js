@@ -36,8 +36,8 @@
         self.zIndex = options.zIndex || 0;
         self.left = options.left || 0;
         self.top = options.top || 0;
-        self.width = options.width || canvas.width;
-        self.height = options.height || canvas.height;
+        self.width = canvas.width;
+        self.height =  canvas.height;
         self.opacity = options.opacity || 1;
         self.visible = options.visible || true;
     };

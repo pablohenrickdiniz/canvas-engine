@@ -5,19 +5,63 @@
      * @param options
      * @constructor
      */
-    var CE = function (container,options) {
+    var CE = function (container, options) {
         console.log('initializing canvas engine...');
         var self = this;
         initialize(self);
         options = options || {};
         self.layers = [];
         self.container = container;
-        self.width = options.width || 400;
-        self.height = options.height || 400;
+        self.resizeLayers = options.resizeLayers || false;
         self.style = options.style;
         self.scale = options.scale || 1;
-        self.alignerWidth = options.alignerWidth || 400;
-        self.alignerHeight = options.alignerHeight || 400;
+        self.eventsListeners = [];
+    };
+
+    /**
+     *
+     * @param event
+     * @param callback
+     */
+    CE.prototype.addEventListener = function (event, callback) {
+        var self = this;
+        if (self.eventsListeners[event] == undefined) {
+            self.eventsListeners[event] = [];
+        }
+
+        if (self.eventsListeners[event].indexOf(callback) == -1) {
+            self.eventsListeners[event].push(callback);
+        }
+    };
+
+    /**
+     *
+     * @param event
+     * @param callback
+     */
+    CE.prototype.removeEventListener = function (event, callback) {
+        var self = this;
+        if (self.eventsListeners[event] != undefined) {
+            var index = self.eventsListeners[event].indexOf(callback);
+            if (index != -1) {
+                self.eventsListeners[event].splice(index, 1);
+            }
+        }
+    };
+
+    /**
+     *
+     * @param event
+     * @param args
+     */
+    CE.prototype.trigger = function (event, args) {
+        var self = this;
+        if (self.eventsListeners[event] != undefined) {
+            var length = self.eventsListeners[event].length;
+            for (var i = 0; i < length; i++) {
+                self.eventsListeners[event][i].apply(self, args);
+            }
+        }
     };
 
     /**
@@ -71,7 +115,7 @@
         options.zIndex = options.zIndex || self.layers.length;
         var CanvasLayer = CE.CanvasLayer;
 
-        if(self.layers[options.zIndex] == undefined){
+        if (self.layers[options.zIndex] == undefined) {
             options.zIndex = self.layers.length;
         }
 
@@ -83,14 +127,14 @@
         }
 
         var index = options.zIndex;
-        if(self.layers[index] != undefined){
-            self.layers.splice(index,0,layer);
+        if (self.layers[index] != undefined) {
+            self.layers.splice(index, 0, layer);
             var length = self.layers.length;
-            for(var i = index+1;i<length;i++){
+            for (var i = index + 1; i < length; i++) {
                 self.layers[i].zIndex = i;
             }
         }
-        else{
+        else {
             self.layers.push(layer);
         }
 
@@ -151,8 +195,8 @@
      * @param options
      * @returns {CE}
      */
-    CE.create = function (container,options) {
-        return new CE(container,options);
+    CE.create = function (container, options) {
+        return new CE(container, options);
     };
 
     /**
@@ -161,55 +205,54 @@
      */
     var initialize = function (self) {
         var container = null;
+        var width = null;
+        var height = null;
 
 
         var context_menu = function (e) {
             e.preventDefault();
         };
 
+        w.addEventListener('resize', function () {
+            if (self.width != width || self.height != height) {
+                width = self.width;
+                height = self.height;
+                if(self.resizeLayers){
+                    var length = self.layers.length;
+                    for(var i =0; i < length;i++){
+                        self.layers[i].width = width;
+                        self.layers[i].height = height;
+                    }
+                }
+                self.trigger('resize', [width, height]);
+            }
+        });
+
         Object.defineProperty(self, 'width', {
             get: function () {
-                if (container.style.width) {
-                    return parseFloat(container.style.width);
-                }
                 return parseFloat(w.getComputedStyle(container).width);
-            },
-            set: function (width) {
-                width = parseFloat(width);
-                if (!isNaN(width) && width >= 0 && self.width != width) {
-                    container.style.width = width + 'px';
-                }
             }
         });
 
         Object.defineProperty(self, 'height', {
             get: function () {
-                if (container.style.height) {
-                    return parseFloat(container.style.height);
-                }
                 return parseFloat(w.getComputedStyle(container).height);
-            },
-            set: function (height) {
-                height = parseInt(height);
-                if (!isNaN(height) && height >= 0 && self.height != height) {
-                    container.style.height = height + 'px';
-                }
             }
         });
 
 
-        Object.defineProperty(self,'style',{
-            get:function(){
+        Object.defineProperty(self, 'style', {
+            get: function () {
                 return w.getComputedStyle(container);
             },
-            set:function(style){
+            set: function (style) {
                 style = style || {};
                 var keys = Object.keys(style);
                 var length = keys.length;
-                var  k;
-                for(k = 0; k < length;k++){
+                var k;
+                for (k = 0; k < length; k++) {
                     var key = keys[k];
-                    switch(key){
+                    switch (key) {
                         case 'width':
                             self.width = style[key];
                             break;
@@ -223,20 +266,20 @@
             }
         });
 
-        Object.defineProperty(self,'container',{
-            get:function(){
+        Object.defineProperty(self, 'container', {
+            get: function () {
                 return container;
             },
-            set:function(cont){
+            set: function (cont) {
                 if (container != cont && cont instanceof Element) {
                     cont.style.position = 'relative';
                     cont.style.overflow = 'hidden';
                     cont.style.padding = 0;
                     cont.style.outline = 'none';
 
-                    if(container instanceof Element){
-                        remove_class(container,'trasparent-background canvas-engine');
-                        container.removeEventListener("contextmenu",context_menu);
+                    if (container instanceof Element) {
+                        remove_class(container, 'trasparent-background canvas-engine');
+                        container.removeEventListener("contextmenu", context_menu);
                     }
 
                     add_class(cont, 'transparent-background canvas-engine');
@@ -279,13 +322,13 @@
      * @param element
      * @param classname
      */
-    function remove_class(element, classname){
+    function remove_class(element, classname) {
         classname = classname.split(' ');
         var str = element.className;
         var length = classname.length;
         var i;
-        for(i = 0; i < length;i++){
-            str = str.replace(classname[i],'');
+        for (i = 0; i < length; i++) {
+            str = str.replace(classname[i], '');
         }
         element.className = str;
     }
