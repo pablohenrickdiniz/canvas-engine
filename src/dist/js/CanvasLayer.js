@@ -787,6 +787,7 @@
                     element.style.zIndex = self.zIndex;
                     element.setAttribute("class", "canvas-layer");
                     element.setAttribute("data-zindex", self.zIndex);
+                    element.setAttribute("data-name",self.name);
                     updateParentNode(self);
                 }
                 return element;
