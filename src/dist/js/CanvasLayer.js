@@ -31,7 +31,7 @@
         self.context = null;
         self.canvas = canvas;
         self.savedStates = [];
-        self.name = '';
+        self.name = options.name || '';
         options = options || {};
         self.zIndex = options.zIndex || 0;
         self.left = options.left || 0;
@@ -654,6 +654,20 @@
         var visible = true;
         var element = null;
         var context = null;
+        var name = '';
+
+        Object.defineProperty(self,'name',{
+            get:function(){
+                return name;
+            },
+            set:function(n){
+                if(n != name){
+                    name = n;
+                    var element =self.element;
+                    element.setAttribute('data-name',name);
+                }
+            }
+        });
 
         Object.defineProperty(self, 'zIndex', {
             get: function () {
