@@ -290,6 +290,7 @@
                     cont.style.overflow = 'hidden';
                     cont.style.padding = 0;
                     cont.style.outline = 'none';
+                    cont.style.margin = 0;
 
                     if (container instanceof Element) {
                         remove_class(container, 'trasparent-background canvas-engine');
