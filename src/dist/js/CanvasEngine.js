@@ -232,9 +232,9 @@
             },
             set: function (w) {
                 w = parseFloat(w);
-                if (w > 0 && w != self.width) {
-                    container.style.width = w + 'px';
+                if (w > 0 && w != width) {
                     width = w;
+                    container.style.width = width + 'px';
                     resize();
                 }
             }
@@ -246,14 +246,13 @@
             },
             set: function (h) {
                 h = parseFloat(h);
-                if (h > 0 && h != self.height) {
-                    container.style.height = h + 'px';
+                if (h > 0 && h != height) {
                     height = h;
+                    container.style.height = height + 'px';
                     resize();
                 }
             }
         });
-
 
         Object.defineProperty(self, 'style', {
             get: function () {
