@@ -1,3 +1,4 @@
+'use strict';
 (function (w) {
     /**
      *
@@ -15,7 +16,7 @@
         self.resizeLayers = options.resizeLayers || false;
         self.style = options.style;
         self.scale = options.scale || 1;
-        self.eventsListeners = [];
+        self.listeners = [];
         self.width = options.width || null;
         self.height = options.height || null;
     };
@@ -27,12 +28,12 @@
      */
     CE.prototype.addEventListener = function (event, callback) {
         var self = this;
-        if (self.eventsListeners[event] == undefined) {
-            self.eventsListeners[event] = [];
+        if (self.listeners[event] === undefined) {
+            self.listeners[event] = [];
         }
 
-        if (self.eventsListeners[event].indexOf(callback) == -1) {
-            self.eventsListeners[event].push(callback);
+        if (self.listeners[event].indexOf(callback) === -1) {
+            self.listeners[event].push(callback);
         }
     };
 
@@ -43,10 +44,10 @@
      */
     CE.prototype.removeEventListener = function (event, callback) {
         var self = this;
-        if (self.eventsListeners[event] != undefined) {
-            var index = self.eventsListeners[event].indexOf(callback);
-            if (index != -1) {
-                self.eventsListeners[event].splice(index, 1);
+        if (self.listeners[event] !==  undefined) {
+            var index = self.listeners[event].indexOf(callback);
+            if (index !==  -1) {
+                self.listeners[event].splice(index, 1);
             }
         }
     };
@@ -58,10 +59,10 @@
      */
     CE.prototype.trigger = function (event, args) {
         var self = this;
-        if (self.eventsListeners[event] != undefined) {
-            var length = self.eventsListeners[event].length;
+        if (self.listeners[event] !== undefined) {
+            var length = self.listeners[event].length;
             for (var i = 0; i < length; i++) {
-                self.eventsListeners[event][i].apply(self, args);
+                self.listeners[event][i].apply(self, args);
             }
         }
     };
@@ -117,7 +118,7 @@
         options.zIndex = options.zIndex || self.layers.length;
         var CanvasLayer = CE.CanvasLayer;
 
-        if (self.layers[options.zIndex] == undefined) {
+        if (self.layers[options.zIndex] === undefined) {
             options.zIndex = self.layers.length;
         }
 
@@ -129,7 +130,7 @@
         }
 
         var index = options.zIndex;
-        if (self.layers[index] != undefined) {
+        if (self.layers[index] !== undefined) {
             self.layers.splice(index, 0, layer);
             var length = self.layers.length;
             for (var i = index + 1; i < length; i++) {
@@ -201,18 +202,21 @@
         return new CE(container, options);
     };
 
+
+    function context_menu(e){
+        e.preventDefault();
+    }
+
+
     /**
      *
      * @param self
      */
-    var initialize = function (self) {
+    function initialize(self) {
         var container = null;
         var width = null;
         var height = null;
 
-        var context_menu = function (e) {
-            e.preventDefault();
-        };
 
         var resize = function () {
             if (self.resizeLayers) {
@@ -232,7 +236,7 @@
             },
             set: function (w) {
                 w = parseFloat(w);
-                if (w > 0 && w != width) {
+                if (w > 0 && w !== width) {
                     width = w;
                     container.style.width = width + 'px';
                     resize();
@@ -246,7 +250,7 @@
             },
             set: function (h) {
                 h = parseFloat(h);
-                if (h > 0 && h != height) {
+                if (h > 0 && h !== height) {
                     height = h;
                     container.style.height = height + 'px';
                     resize();
@@ -284,7 +288,7 @@
                 return container;
             },
             set: function (cont) {
-                if (container != cont && cont instanceof Element) {
+                if (container !==  cont && cont instanceof Element) {
                     cont.style.position = 'relative';
                     cont.style.overflow = 'hidden';
                     cont.style.padding = 0;
@@ -302,7 +306,7 @@
                 }
             }
         });
-    };
+    }
 
     /**
      *
@@ -328,7 +332,7 @@
      * @returns {boolean}
      */
     function has_class(element, className) {
-        return element.className.indexOf(className) != -1;
+        return element.className.indexOf(className) !== -1;
     }
 
     /**

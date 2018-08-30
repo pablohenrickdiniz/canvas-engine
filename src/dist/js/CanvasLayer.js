@@ -1,9 +1,12 @@
-(function (root, w) {
+'use strict';
+(function (root) {
+    var TRANSPARENT_REG = /^\s*transparent\s*|rgba\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*0\s*\)\s*$/;
+
     /**
      *
      * @param element
      */
-    var remove_element = function (element) {
+    function remove_element(element) {
         if (element instanceof  Element) {
             element.parentElement.removeChild(element);
         }
@@ -14,9 +17,7 @@
                 }
             }
         }
-    };
-
-    const TRANSPARENT_REG = /^\s*transparent\s*|rgba\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*0\s*\)\s*$/;
+    }
     /**
      *
      * @param canvas
@@ -28,7 +29,6 @@
         var self = this;
         initialize(self);
         self.type = 'layer';
-        self.context = null;
         self.canvas = canvas;
         self.savedStates = [];
         self.name = options.name || '';
@@ -150,13 +150,12 @@
      *
      * @param i
      * @param j
-     * @returns {Color}
+     * @returns array
      */
     CanvasLayer.prototype.getPixel = function (i, j) {
         var self = this;
         var context = self.context;
-        var p = context.getImageData(i, j, 1, 1).data;
-        return p;
+        return context.getImageData(i, j, 1, 1).data;
     };
     /**
      *
@@ -563,12 +562,12 @@
 
         context.font = fontSize + 'px ' + fontFamilly;
 
-        if (context.lineWidth != lineWidth) {
+        if (context.lineWidth !== lineWidth) {
             context.lineWidth = lineWidth;
         }
 
-        if (context.fillStyle != fillStyle) {
-            if (fillStyle.constructor == {}.constructor) {
+        if (context.fillStyle !== fillStyle) {
+            if (fillStyle.constructor === {}.constructor) {
                 switch (fillStyle.type) {
                     case 'linearGradient':
                         var color_stop = fillStyle.colorStop || {};
@@ -591,12 +590,12 @@
                         break;
                 }
             }
-            else if (typeof fillStyle == 'string') {
+            else if (typeof fillStyle === 'string') {
                 context.fillStyle = fillStyle;
             }
         }
 
-        if (context.strokeStyle != strokeStyle) {
+        if (context.strokeStyle !== strokeStyle) {
             context.strokeStyle = strokeStyle;
         }
 
@@ -605,32 +604,32 @@
         }
 
 
-        if (rotate != 0) {
+        if (rotate !== 0) {
             var origin = options.origin || 'center';
 
             var tx = 0;
             var ty = 0;
-            if (origin.constructor == {}.constructor) {
+            if (origin.constructor === {}.constructor) {
                 tx = options.origin.x;
                 ty = options.origin.y;
             }
-            else if (origin == 'center') {
+            else if (origin === 'center') {
                 tx = options.x + (options.width / 2);
                 ty = options.y + (options.height / 2);
             }
-            else if (origin == 'topLeft') {
+            else if (origin === 'topLeft') {
                 tx = options.x;
                 ty = options.y;
             }
-            else if (origin == 'topRight') {
+            else if (origin === 'topRight') {
                 tx = options.x + options.width;
                 ty = options.y;
             }
-            else if (origin == 'bottomLeft') {
+            else if (origin === 'bottomLeft') {
                 tx = options.x;
                 ty = options.y + options.height;
             }
-            else if (origin == 'bottomRight') {
+            else if (origin === 'bottomRight') {
                 tx = options.x + options.width;
                 ty = options.y + options.height;
             }
@@ -644,7 +643,7 @@
         return self;
     };
 
-    var initialize = function(self){
+    function initialize(self){
         var zIndex = 0;
         var left = 0;
         var top = 0;
@@ -661,7 +660,7 @@
                 return name;
             },
             set:function(n){
-                if(n != name){
+                if(n !== name){
                     name = n;
                     var element =self.element;
                     element.setAttribute('data-name',name);
@@ -674,7 +673,7 @@
                 return zIndex;
             },
             set: function (z_index) {
-                if (zIndex != z_index) {
+                if (zIndex !== z_index) {
                     zIndex = z_index;
                     var element = self.element;
                     element.style.zIndex = zIndex;
@@ -688,7 +687,7 @@
                 return left;
             },
             set: function (l) {
-                if (left != l) {
+                if (left !== l) {
                     left = l;
                     var element = self.element;
                     element.style.left = left + 'px';
@@ -702,7 +701,7 @@
                 return top;
             },
             set: function (t) {
-                if (top != t) {
+                if (top !== t) {
                     top = t;
                     var element = self.element;
                     element.style.top = top + 'px';
@@ -716,7 +715,7 @@
                 return width;
             },
             set: function (w) {
-                if (width != w) {
+                if (width !== w) {
                     width = w;
                     self.element.width = width;
                 }
@@ -728,7 +727,7 @@
                 return height;
             },
             set: function (h) {
-                if (height != h) {
+                if (height !== h) {
                     height = h;
                     self.element.height = height;
                 }
@@ -740,7 +739,7 @@
                 return opacity;
             },
             set: function (o) {
-                if (opacity != o) {
+                if (opacity !== o) {
                     opacity = o;
                     self.element.style.opacity = opacity;
                 }
@@ -753,7 +752,7 @@
             },
             set: function (v) {
                 var element = self.element;
-                if (visible != v) {
+                if (visible !== v) {
                     visible = v;
                     if (visible) {
                         element.style.visibility = 'visible';
@@ -769,7 +768,7 @@
 
         Object.defineProperty(self,'element',{
             set:function(newElement){
-                if(element != newElement){
+                if(element !== newElement){
                     element = newElement;
                     context = null;
                 }
@@ -811,14 +810,14 @@
         });
     };
 
-    var updateParentNode = function (self) {
+    function updateParentNode(self) {
         if(self instanceof CanvasLayer){
             var parent = self.canvas;
             var element = self.element;
 
             if (element.parentNode == null && parent != null) {
                 var container = parent.container;
-                if (container.children[self.zIndex] != undefined) {
+                if (container.children[self.zIndex] !== undefined) {
                     container.insertBefore(element, container.children[self.zIndex]);
                 }
                 else {
@@ -827,7 +826,7 @@
             }
             updateParentNode(parent);
         }
-    };
+    }
 
     root.CanvasLayer = CanvasLayer;
-})(CE, window);
+})(CE);
