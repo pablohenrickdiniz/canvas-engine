@@ -6,9 +6,9 @@
      * @param options
      * @constructor
      */
-    var CE = function (container, options) {
+    let CE = function (container, options) {
         console.log('initializing canvas engine...');
-        var self = this;
+        let self = this;
         initialize(self);
         options = options || {};
         self.layers = [];
@@ -27,7 +27,7 @@
      * @param callback
      */
     CE.prototype.addEventListener = function (event, callback) {
-        var self = this;
+        let self = this;
         if (self.listeners[event] === undefined) {
             self.listeners[event] = [];
         }
@@ -43,9 +43,9 @@
      * @param callback
      */
     CE.prototype.removeEventListener = function (event, callback) {
-        var self = this;
+        let self = this;
         if (self.listeners[event] !==  undefined) {
-            var index = self.listeners[event].indexOf(callback);
+            let index = self.listeners[event].indexOf(callback);
             if (index !==  -1) {
                 self.listeners[event].splice(index, 1);
             }
@@ -58,10 +58,10 @@
      * @param args
      */
     CE.prototype.trigger = function (event, args) {
-        var self = this;
+        let self = this;
         if (self.listeners[event] !== undefined) {
-            var length = self.listeners[event].length;
-            for (var i = 0; i < length; i++) {
+            let length = self.listeners[event].length;
+            for (let i = 0; i < length; i++) {
                 self.listeners[event][i].apply(self, args);
             }
         }
@@ -72,9 +72,9 @@
      * @returns {CE}
      */
     CE.prototype.clear = function () {
-        var self = this;
-        var length = self.layers.length;
-        var i;
+        let self = this;
+        let length = self.layers.length;
+        let i;
         for (i = 0; i < length; i++) {
             self.layers[i].clear();
         }
@@ -88,11 +88,11 @@
      * @returns {CE}
      */
     CE.prototype.applyToLayers = function (options, conditions) {
-        var self = this;
-        var length = self.layers.length;
-        var i;
+        let self = this;
+        let length = self.layers.length;
+        let i;
         for (i = 0; i < length; i++) {
-            var layer = self.layers[i];
+            let layer = self.layers[i];
             if (conditions === undefined || conditions.apply(layer)) {
                 layer.zIndex = options.zIndex || layer.zIndex;
                 layer.left = options.left || layer.left;
@@ -113,10 +113,10 @@
      */
     CE.prototype.createLayer = function (options, ClassName) {
         options = options || {};
-        var layer = null;
-        var self = this;
+        let layer = null;
+        let self = this;
         options.zIndex = options.zIndex || self.layers.length;
-        var CanvasLayer = CE.CanvasLayer;
+        let CanvasLayer = CE.CanvasLayer;
 
         if (self.layers[options.zIndex] === undefined) {
             options.zIndex = self.layers.length;
@@ -129,11 +129,11 @@
             layer = new CanvasLayer(self, options);
         }
 
-        var index = options.zIndex;
+        let index = options.zIndex;
         if (self.layers[index] !== undefined) {
             self.layers.splice(index, 0, layer);
-            var length = self.layers.length;
-            for (var i = index + 1; i < length; i++) {
+            let length = self.layers.length;
+            for (let i = index + 1; i < length; i++) {
                 self.layers[i].zIndex = i;
             }
         }
@@ -150,7 +150,7 @@
      * @returns {*}
      */
     CE.prototype.getLayer = function (index) {
-        var self = this;
+        let self = this;
         if (self.layers[index]) {
             return self.layers[index];
         }
@@ -161,7 +161,7 @@
      * @param layers
      */
     CE.prototype.removeLayers = function (layers) {
-        var self = this;
+        let self = this;
         while (layers.length > 0) {
             self.removeLayer(layers.pop());
         }
@@ -173,9 +173,9 @@
      * @returns {CE}
      */
     CE.prototype.removeLayer = function (layer) {
-        var self = this;
+        let self = this;
 
-        var index = -1;
+        let index = -1;
         if (layer instanceof CanvasLayer) {
             index = self.layers.indexOf(layer);
         }
@@ -186,7 +186,7 @@
         if (index !== -1) {
             self.layers[index].destroy();
             self.layers.splice(index, 1);
-            for (var i = index; i < self.layers.length; i++) {
+            for (let i = index; i < self.layers.length; i++) {
                 self.layers[i].zIndex = i;
             }
         }
@@ -213,15 +213,15 @@
      * @param self
      */
     function initialize(self) {
-        var container = null;
-        var width = null;
-        var height = null;
+        let container = null;
+        let width = null;
+        let height = null;
 
 
-        var resize = function () {
+        let resize = function () {
             if (self.resizeLayers) {
-                var length = self.layers.length;
-                for (var i = 0; i < length; i++) {
+                let length = self.layers.length;
+                for (let i = 0; i < length; i++) {
                     self.layers[i].width = width;
                     self.layers[i].height = height;
                 }
@@ -264,11 +264,11 @@
             },
             set: function (style) {
                 style = style || {};
-                var keys = Object.keys(style);
-                var length = keys.length;
-                var k;
+                let keys = Object.keys(style);
+                let length = keys.length;
+                let k;
                 for (k = 0; k < length; k++) {
-                    var key = keys[k];
+                    let key = keys[k];
                     switch (key) {
                         case 'width':
                             self.width = style[key];
@@ -314,10 +314,10 @@
      * @param className
      */
     function add_class(element, className) {
-        var original = element.className;
+        let original = element.className;
         original = original.trim();
         className = className.split(" ");
-        for (var i = 0; i < className.length; i++) {
+        for (let i = 0; i < className.length; i++) {
             if (!has_class(element, className[i])) {
                 original += " " + className[i];
             }
@@ -342,9 +342,9 @@
      */
     function remove_class(element, classname) {
         classname = classname.split(' ');
-        var str = element.className;
-        var length = classname.length;
-        var i;
+        let str = element.className;
+        let length = classname.length;
+        let i;
         for (i = 0; i < length; i++) {
             str = str.replace(classname[i], '');
         }
