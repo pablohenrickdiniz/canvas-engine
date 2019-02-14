@@ -1,4 +1,3 @@
-'use strict';
 (function (w) {
     /**
      *
@@ -7,7 +6,6 @@
      * @constructor
      */
     let CE = function (container, options) {
-        console.log('initializing canvas engine...');
         let self = this;
         initialize(self);
         options = options || {};
@@ -28,7 +26,7 @@
      */
     CE.prototype.addEventListener = function (event, callback) {
         let self = this;
-        if (self.listeners[event] === undefined) {
+        if (!self.listeners[event]) {
             self.listeners[event] = [];
         }
 
@@ -44,7 +42,7 @@
      */
     CE.prototype.removeEventListener = function (event, callback) {
         let self = this;
-        if (self.listeners[event] !==  undefined) {
+        if (self.listeners[event]) {
             let index = self.listeners[event].indexOf(callback);
             if (index !==  -1) {
                 self.listeners[event].splice(index, 1);
@@ -59,7 +57,7 @@
      */
     CE.prototype.trigger = function (event, args) {
         let self = this;
-        if (self.listeners[event] !== undefined) {
+        if (self.listeners[event]) {
             let length = self.listeners[event].length;
             for (let i = 0; i < length; i++) {
                 self.listeners[event][i].apply(self, args);
@@ -115,12 +113,8 @@
         options = options || {};
         let layer = null;
         let self = this;
-        options.zIndex = options.zIndex || self.layers.length;
         let CanvasLayer = CE.CanvasLayer;
-
-        if (self.layers[options.zIndex] === undefined) {
-            options.zIndex = self.layers.length;
-        }
+        options.zIndex = self.layers.length;
 
         if (ClassName !== undefined) {
             layer = new ClassName(self, options);
@@ -129,18 +123,7 @@
             layer = new CanvasLayer(self, options);
         }
 
-        let index = options.zIndex;
-        if (self.layers[index] !== undefined) {
-            self.layers.splice(index, 0, layer);
-            let length = self.layers.length;
-            for (let i = index + 1; i < length; i++) {
-                self.layers[i].zIndex = i;
-            }
-        }
-        else {
-            self.layers.push(layer);
-        }
-
+        self.layers.push(layer);
         return layer;
     };
 

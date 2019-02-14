@@ -1,4 +1,3 @@
-'use strict';
 (function (root) {
     let TRANSPARENT_REG = /^\s*transparent\s*|rgba\((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\s*,\s*0\s*\)\s*$/;
 
@@ -25,7 +24,6 @@
      * @constructor
      */
     let CanvasLayer = function (canvas, options) {
-        console.log('Canvas Layer initialize...');
         let self = this;
         initialize(self);
         self.type = 'layer';
@@ -52,14 +50,8 @@
         Object.keys(style).forEach(function (key) {
             switch (key) {
                 case 'width':
-                    self.width = style[key];
-                    break;
                 case 'height':
-                    self.height = style[key];
-                    break;
                 case 'left':
-                    self.left = style[key];
-                    break;
                 case 'top':
                     self.top = style[key];
                     break;
@@ -75,7 +67,6 @@
      * @returns {CanvasLayer}
      */
     CanvasLayer.prototype.saveState = function (name) {
-        //console.log('Canvas layer save state...');
         let self = this;
         let url = self.element.toDataURL('image/png');
         let img = document.createElement('img');
@@ -90,10 +81,9 @@
      * @returns {CanvasLayer}
      */
     CanvasLayer.prototype.restoreState = function (name) {
-        //console.log('Canvas layer restore state...');
         let self = this;
         let state = self.savedStates[name];
-        if (state !== undefined) {
+        if (state) {
             self.context.drawImage(state, 0, 0);
         }
         return self;
@@ -104,7 +94,6 @@
      * @returns {CanvasLayer}
      */
     CanvasLayer.prototype.clearStates = function () {
-        //console.log('Canvas layer restore states...');
         let self = this;
         self.savedStates = [];
         return self;
@@ -125,11 +114,9 @@
     };
 
     CanvasLayer.prototype.destroy = function () {
-        //console.log('Canvas layer destroy...');
         let self = this;
         remove_element(self.element);
-
-        if (self.canvas.layers[self.zIndex] !== undefined) {
+        if (!self.canvas.layers[self.zIndex]) {
             delete self.canvas.layers[self.zIndex];
         }
     };
@@ -139,7 +126,6 @@
      * @returns {CanvasLayer}
      */
     CanvasLayer.prototype.drawImage = function () {
-        //console.log('Canvas layer draw image...');
         let self = this;
         let context = self.context;
         context.drawImage.apply(context, arguments);
@@ -294,7 +280,6 @@
             let percent;
             let percent_regex = /^[0-9]+(\.[0-9]+)?%$/;
 
-
             if (dWidth === 'auto' && dHeight === 'auto') {
                 dWidth = image.width;
                 dHeight = image.height;
@@ -315,7 +300,6 @@
                     sWidth = image.width;
                 }
             }
-
 
             if (isNaN(parseFloat(sHeight)) || sHeight < 0) {
                 if (percent_regex.test(sHeight)) {
@@ -792,8 +776,7 @@
                 return element;
             }
         });
-
-
+        
         Object.defineProperty(self,'context',{
             get:function(){
                 if(context == null){
